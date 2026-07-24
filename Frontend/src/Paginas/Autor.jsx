@@ -3,6 +3,7 @@ import { SlidersHorizontal, Pencil, Trash2 } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
+import FilterAuthorModal from '../Components/FilterAuthorModal';
 import axios from 'axios';
 import './Autor.css';
 
@@ -11,12 +12,12 @@ export default function Autor() {
     const [currentPage, setCurrentPage] = useState(1);
     const authorsPerPage = 4;
 
-    const [showRegisterModal, setShowRegisterModal] = useState(false); // Estado para o modal de cadastro
-    const [showUpdateModal, setShowUpdateModal] = useState(false);     // Estado para o modal de edição
-    const [selectedAuthor, setSelectedAuthor] = useState(null);       // Estado para o autor selecionado para edição
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [selectedAuthor, setSelectedAuthor] = useState(null);
+    const [filters, setFilters] = useState({});
 
-    // Dados fictícios dos autores (adicionei mais alguns para testar a paginação)
-    
     const [allAuthors, setAllAuthors] = useState([]);
    useEffect(() => {
   axios.get(`${process.env.REACT_APP_API_URL}/api/autores`)
@@ -28,12 +29,20 @@ export default function Autor() {
     });
 }, []);
 
-    // Lógica de filtro pela barra de busca
-    const filteredAuthors = allAuthors.filter(author =>
-    (author.name && author.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (author.email && author.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (author.university && author.university.toLowerCase().includes(searchTerm.toLowerCase()))
-);
+    // Aplica busca textual + filtros
+    const filteredAuthors = allAuthors.filter(author => {
+    const matchesSearch = !searchTerm || (
+      (author.name && author.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (author.email && author.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (author.university && author.university.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    const matchesFilters = Object.entries(filters).every(([key, value]) =>
+      author[key] && author[key].toLowerCase() === value.toLowerCase()
+    );
+
+    return matchesSearch && matchesFilters;
+});
 
 
     // Lógica de paginação
@@ -52,6 +61,12 @@ export default function Autor() {
     // Funções para abrir/fechar modais
     const handleOpenRegisterModal = () => setShowRegisterModal(true);
     const handleCloseRegisterModal = () => setShowRegisterModal(false);
+    const handleOpenFilterModal = () => setShowFilterModal(true);
+    const handleCloseFilterModal = () => setShowFilterModal(false);
+    const handleApplyFilters = (newFilters) => {
+      setFilters(newFilters);
+      setCurrentPage(1);
+    };
 
     const handleOpenUpdateModal = (author) => {
         setSelectedAuthor(author);
@@ -109,7 +124,7 @@ export default function Autor() {
                         />
                     </div>
                     <div className="header-buttons">
-                        <button className="filter-button">
+                        <button className="filter-button" onClick={handleOpenFilterModal}>
                             <SlidersHorizontal size={16} className="filter-icon" /> Filtros
                         </button>
                         {/* Botão para abrir o modal de CADASTRO */}
@@ -201,6 +216,15 @@ export default function Autor() {
                     onClose={handleCloseUpdateModal}
                     author={selectedAuthor}
                     onUpdateSuccess={handleUpdateSuccess}
+                />
+            )}
+
+            {/* Modal de filtros */}
+            {showFilterModal && (
+                <FilterAuthorModal
+                    onClose={handleCloseFilterModal}
+                    onApplyFilters={handleApplyFilters}
+                    currentFilters={filters}
                 />
             )}
         </div>
