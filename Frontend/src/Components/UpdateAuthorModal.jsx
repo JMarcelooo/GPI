@@ -11,6 +11,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const [university, setUniversity] = useState(author?.university || '');
     const [gender, setGender] = useState(author?.gender || 'Nao informado');
     const [phone, setPhone] = useState(author?.phone || '');
+    const [phoneError, setPhoneError] = useState('');
 
     // Efeito para atualizar o estado se o prop 'author' mudar
     useEffect(() => {
@@ -22,14 +23,25 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             setCampus(author.campus);
             setUniversity(author.university);
             setGender(author.gender || 'Nao informado');
-            setPhone(author.phone || '');
+            setPhone(author.phone ? author.phone.replace(/\D/g, '').slice(0, 11) : '');
+            setPhoneError('');
         }
     }, [author]);
 
     
 
+    const handlePhoneChange = (e) => {
+      const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+      setPhone(digits);
+      if (phoneError) setPhoneError('');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (phone.length !== 11) {
+          setPhoneError('Informe um telefone válido');
+          return;
+        }
         const updatedAuthorData = {
             ...author,
             name,
@@ -89,10 +101,17 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             type="text"
                             id="edit-phone"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="(84) 99999-9999"
+                            onChange={handlePhoneChange}
+                            placeholder="11999999999"
                             required
+                            maxLength={11}
+                            style={phoneError ? { borderColor: '#dc3545' } : {}}
                         />
+                        {phoneError && (
+                          <span style={{ color: '#dc3545', fontSize: 'var(--text-xs)', marginTop: 4, display: 'block' }}>
+                            {phoneError}
+                          </span>
+                        )}
                     </div>
                     <div className="form-group">
                         <label>Vínculo</label>

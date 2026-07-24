@@ -10,9 +10,20 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [university, setUniversity] = useState('');
     const [gender, setGender] = useState('Nao informado');
     const [phone, setPhone] = useState('');
+    const [phoneError, setPhoneError] = useState('');
+
+    const handlePhoneChange = (e) => {
+      const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+      setPhone(digits);
+      if (phoneError) setPhoneError('');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (phone.length !== 11) {
+          setPhoneError('Telefone deve ter exatamente 11 dígitos');
+          return;
+        }
         const newAuthorData = { name, email, bond, department, campus, university, gender, phone };
         try {
             if (onRegisterSuccess) {
@@ -62,10 +73,17 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             type="text"
                             id="phone"
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="(84) 99999-9999"
+                            onChange={handlePhoneChange}
+                            placeholder="11999999999"
                             required
+                            maxLength={11}
+                            style={phoneError ? { borderColor: '#dc3545' } : {}}
                         />
+                        {phoneError && (
+                          <span style={{ color: '#dc3545', fontSize: 'var(--text-xs)', marginTop: 4, display: 'block' }}>
+                            {phoneError}
+                          </span>
+                        )}
                     </div>
                     <div className="form-group">
                         <label>Vínculo</label>
