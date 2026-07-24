@@ -1,0 +1,83 @@
+criar autor
+
+curl -X POST http://localhost:3000/api/autores \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Carlos Silva",
+    "pais": "BR",
+    "tipo": "pessoa_fisica",
+    "documento": "123.456.789-00",
+    "percentual": 100,
+    "contato": "carlos@exemplo.com"
+  }'
+
+  listar autores
+
+  curl -X GET http://localhost:3000/api/autores
+
+  buscas autor por id
+
+  curl -X GET http://localhost:3000/api/autores/1
+
+  atualizar autor
+
+  curl -X PUT http://localhost:3000/api/autores/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Carlos Silva Santos",
+    "percentual": 80
+  }'
+
+  deletar autor
+
+  curl -X DELETE http://localhost:3000/api/autores/1
+
+listas pi
+
+curl -X GET http://localhost:3000/api/pi
+
+buscas pi por id
+
+curl -X GET http://localhost:3000/api/pi/1
+
+Criar pi
+
+curl -X POST http://localhost:3000/api/pi \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipo_pi": "patente",
+    "titulo": "Novo Sistema de Gestão",
+    "protocolo": "BR20240002",
+    "depositante": "Empresa XYZ",
+    "resumo": "Sistema inovador para gestão de propriedade intelectual",
+    "data_entrada": "2024-01-01",
+    "titulares": [
+      {
+        "id": 1,
+        "nome": "Titular Válido",
+        "pais": "BR",
+        "percentual": 100
+      }
+    ],
+    "classificacao_ipc": "G06F16/9035"
+  }'
+
+atualizar pi
+
+curl -X PUT http://localhost:3000/api/pi/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "concedida",
+    "parceiro": "Empresa XYZ"
+  }'
+
+deletar pi
+
+curl -X DELETE http://localhost:3000/api/pi/1
+
+VALIDAÇÃO
+
+CRIAR PI SEM TITULO
+curl -X POST http://localhost:3000/api/pi \
+  -H "Content-Type: application/json" \
+  -d '{"tipo_pi": "marca"}'

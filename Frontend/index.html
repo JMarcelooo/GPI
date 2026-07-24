@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Autores</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <img src="imagens/LOGO GPI.png" alt="Logo GPI" class="logo-gpi">
+        <nav>
+            <a href="#">Início</a>
+            <a href="#">Propriedade Intelectual</a>
+            <a href="#" class="active">Autores</a>
+            <a href="#">Pagamentos</a>
+            <a href="#">Configurações</a>
+        </nav>
+        <img src="imagens/UERN INOVA LOGO.png" alt="Logo UERN Inova" class="logo-uern">
+    </aside>
+
+    <main>
+        <h1>Autores</h1>
+        <div class="top-bar">
+            <input type="text" placeholder="Buscar por nome, sobrenome, instituição, etc.">
+            <button class="filter-btn">Filtros</button>
+            <button class="add-btn" onclick="openAuthorModal()">Cadastrar Autor</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Instituição</th>
+                    <th>PIs Registrados</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01</td>
+                    <td>Fulano de Tal</td>
+                    <td>email@email.com</td>
+                    <td>Universidade do Estado do Rio Grande do Norte</td>
+                    <td><span class="badge">2</span></td>
+                    <td>
+                        <button onclick="openEditModal()">✏️</button>
+                    </td>
+                </tr>
+                <!-- Adicione mais linhas conforme necessário -->
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <button>Anterior</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>Próxima</button>
+        </div>
+    </main>
+
+    <!-- Modal Cadastrar Autor -->
+    <div class="modal" id="authorModal">
+        <div class="modal-content">
+            <h2>Cadastrar Novo Autor</h2>
+            <label>Nome</label>
+            <input type="text" placeholder="Nome completo">
+            <label>E-mail</label>
+            <input type="email" placeholder="email@email.com">
+            <label>Vínculo</label>
+            <div class="radio-group">
+                <label><input type="radio" name="vinculo"> Docente</label>
+                <label><input type="radio" name="vinculo"> Técnico</label>
+                <label><input type="radio" name="vinculo"> Discente Graduação</label>
+                <label><input type="radio" name="vinculo"> Discente Pós-Graduação</label>
+            </div>
+            <label>Departamento</label>
+            <input type="text" placeholder="Departamento">
+            <label>Campus</label>
+            <input type="text" placeholder="Campus">
+            <label>Universidade</label>
+            <input type="text" placeholder="Universidade">
+            <div class="modal-actions">
+                <button onclick="closeAuthorModal()">Cancelar</button>
+                <button>Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Autor -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h2>Editar Autor</h2>
+            <label>Nome</label>
+            <input type="text" value="Fulano de Tal">
+            <label>E-mail</label>
+            <input type="email" value="email@email.com">
+            <label>Vínculo</label>
+            <div class="radio-group">
+                <label><input type="radio" name="vinculo-edit"> Docente</label>
+                <label><input type="radio" name="vinculo-edit"> Técnico</label>
+                <label><input type="radio" name="vinculo-edit"> Discente Graduação</label>
+                <label><input type="radio" name="vinculo-edit"> Discente Pós-Graduação</label>
+            </div>
+            <label>Departamento</label>
+            <input type="text" value="Departamento">
+            <label>Campus</label>
+            <input type="text" value="Mossoró">
+            <label>Universidade</label>
+            <input type="text" value="UERN">
+            <div class="modal-actions">
+                <button onclick="closeEditModal()">Cancelar</button>
+                <button>Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
