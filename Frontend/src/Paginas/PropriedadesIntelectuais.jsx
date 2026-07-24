@@ -28,7 +28,7 @@ function PropriedadesIntelectuais() {
         <img src="imagens/Sistema-Logo.png" alt="UERN inova" width="150" />
         <nav className="nav">
           <button onClick={() => navigate("/dashboard")}>Inicio</button>
-          <button onClick={() => navigate("/propriedade-intelectual")}>Propriedade Intelectual</button>
+          <button onClick={() => navigate("/propriedade-intelectual")}>Propriedades Intelectuais</button>
           <button onClick={() => navigate("/autores")}>Autores</button>
           <button onClick={() => navigate("/pagamentos")}>Pagamentos</button>
           <button>Configurações</button>

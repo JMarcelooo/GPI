@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Sidebar from '../Components/Sidebar';
 import './Detalhe1.css';
 
 export default function CadastroPI() {
@@ -45,26 +46,7 @@ export default function CadastroPI() {
 
   return (
     <div className="container">
-      {/* Sidebar - Reutilizando a sidebar do Detalhe1.jsx para consistência */}
-      <div className="sidebar">
-        {/* Lembre-se de corrigir o caminho das imagens como discutimos:
-            Opção 1: Mover para public/imagens e usar src="/imagens/Sistema-Logo.png"
-            Opção 2: Importar no topo do arquivo e usar src={SistemaLogo}
-        */}
-        <img src="/imagens/Sistema-Logo.png" alt="UERN inova" width="150" />
-        <nav className="nav">
-          <button onClick={() => navigate("/dashboard")}>
-            Início
-          </button>
-          <button onClick={() => navigate("/propriedade-intelectual")}>
-            Propriedade Intelectual
-          </button>
-          <button>Autores</button>
-          <button>Programas</button>
-          <button>Configurações</button>
-        </nav>
-        <img src="/imagens/Inova-Rodape.png" alt="Rodapé" width="150" />
-      </div>
+      <Sidebar />
 
       {/* Main Content - Tela de Cadastro */}
       <main style={{ flex: 1, backgroundColor: "#f3f4f6", padding: "30px" }}>

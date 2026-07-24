@@ -31,7 +31,7 @@ export default function PatenteDetalhes() {
         <img src="imagens/Sistema-Logo.png" alt="UERN inova" width="150" />
         <nav className="nav">
           <button onClick={() => navigate("/dashboard")}>Inicio</button>
-          <button onClick={() => navigate("/propriedade-intelectual")}>Propriedade Intelectual</button>
+          <button onClick={() => navigate("/propriedade-intelectual")}>Propriedades Intelectuais</button>
           <button>Autores</button>
           <button>Configurações</button>
         </nav>
@@ -42,7 +42,7 @@ export default function PatenteDetalhes() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "8px", borderRadius: "5px", display: "flex", alignItems: "center" }}><ArrowLeft size={20} /></button>
-            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Detalhes da Propriedade Intelectual</h2>
+            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Detalhes da Propriedades Intelectuais</h2>
           </div>
         </div>
 

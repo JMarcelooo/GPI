@@ -164,10 +164,7 @@ export default function Autor() {
                         <button className="filter-button" onClick={handleOpenFilterModal}>
                             <SlidersHorizontal size={16} className="filter-icon" /> Filtros
                         </button>
-                        {/* Botão para abrir o modal de CADASTRO */}
-                        <button className="add-author-button" onClick={handleOpenRegisterModal}>
-                            <span className="plus-icon">+</span> Cadastrar Autor
-                        </button>
+
                     </div>
                 </div>
 
