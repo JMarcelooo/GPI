@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { SlidersHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { SlidersHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
 import FilterAuthorModal from '../Components/FilterAuthorModal';
 import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
+import ViewAuthorModal from '../Components/ViewAuthorModal';
 import axios from 'axios';
 import './Autor.css';
 
@@ -29,8 +30,10 @@ export default function Autor() {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
     const [selectedAuthor, setSelectedAuthor] = useState(null);
     const [authorToDelete, setAuthorToDelete] = useState(null);
+    const [authorToView, setAuthorToView] = useState(null);
     const [filters, setFilters] = useState({});
 
     const [allAuthors, setAllAuthors] = useState([]);
@@ -88,6 +91,15 @@ export default function Autor() {
         setShowUpdateModal(true);
     };
     const handleCloseUpdateModal = () => setShowUpdateModal(false);
+
+    const handleOpenViewModal = (author) => {
+      setAuthorToView(author);
+      setShowViewModal(true);
+    };
+    const handleCloseViewModal = () => {
+      setAuthorToView(null);
+      setShowViewModal(false);
+    };
 
     const handleOpenDeleteModal = (author) => {
       setAuthorToDelete(author);
@@ -181,10 +193,13 @@ export default function Autor() {
                                     <td>{author.gender}</td>
                                     <td>{author.university}</td>
                                     <td>
-                                        <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)}>
+                                        <button className="edit-author-button" onClick={() => handleOpenViewModal(author)} title="Visualizar">
+                                            <Eye size={16} />
+                                        </button>
+                                        <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)} style={{ marginLeft: 4 }} title="Editar">
                                             <Pencil size={16} />
                                         </button>
-                                        <button className="delete-author-button" onClick={() => handleOpenDeleteModal(author)} style={{ marginLeft: 8 }}>
+                                        <button className="delete-author-button" onClick={() => handleOpenDeleteModal(author)} style={{ marginLeft: 4 }} title="Excluir">
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
@@ -259,6 +274,14 @@ export default function Autor() {
                     onClose={handleCloseDeleteModal}
                     onConfirm={handleDeleteAuthor}
                     authorName={authorToDelete.name}
+                />
+            )}
+
+            {/* Modal de visualização */}
+            {showViewModal && authorToView && (
+                <ViewAuthorModal
+                    onClose={handleCloseViewModal}
+                    author={authorToView}
                 />
             )}
         </div>
