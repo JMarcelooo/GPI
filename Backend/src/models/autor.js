@@ -29,6 +29,11 @@ module.exports = function(sequelize, DataTypes) {
     university: {
       type: DataTypes.STRING(50),
       allowNull: false
+    },
+    gender: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'Nao informado'
     }
   }, {
     sequelize,

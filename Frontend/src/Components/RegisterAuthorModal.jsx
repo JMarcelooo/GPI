@@ -8,10 +8,11 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [department, setDepartment] = useState('');
     const [campus, setCampus] = useState('');
     const [university, setUniversity] = useState('');
+    const [gender, setGender] = useState('Nao informado');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const newAuthorData = { name, email, bond, department, campus, university };
+        const newAuthorData = { name, email, bond, department, campus, university, gender };
         try {
             if (onRegisterSuccess) {
                 await onRegisterSuccess(newAuthorData);
@@ -125,6 +126,39 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             onChange={(e) => setUniversity(e.target.value)}
                             placeholder="Universidade"
                         />
+                    </div>
+                    <div className="form-group">
+                        <label>Gênero</label>
+                        <div className="radio-group">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Masculino"
+                                    checked={gender === 'Masculino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                /> Masculino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Feminino"
+                                    checked={gender === 'Feminino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Feminino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Nao informado"
+                                    checked={gender === 'Nao informado'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Não informado
+                            </label>
+                        </div>
                     </div>
                     <div className="modal-actions-author">
                         <button type="button" className="cancel-button" onClick={onClose}>

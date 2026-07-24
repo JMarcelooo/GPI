@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS "autor" (
 	"vinculo" varchar(30) NOT NULL,
 	"departamento" varchar(50) NOT NULL,
 	"campus" varchar(30) NOT NULL,
-	"universidade" varchar(50) NOT NULL,
+  "universidade" varchar(50) NOT NULL,
+  "genero" varchar(20) NOT NULL DEFAULT 'Nao informado',
 	PRIMARY KEY ("id")
 );
 

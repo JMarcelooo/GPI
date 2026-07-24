@@ -9,6 +9,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const [department, setDepartment] = useState(author?.department || '');
     const [campus, setCampus] = useState(author?.campus || '');
     const [university, setUniversity] = useState(author?.university || '');
+    const [gender, setGender] = useState(author?.gender || 'Nao informado');
 
     // Efeito para atualizar o estado se o prop 'author' mudar
     useEffect(() => {
@@ -19,6 +20,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             setDepartment(author.department);
             setCampus(author.campus);
             setUniversity(author.university);
+            setGender(author.gender || 'Nao informado');
         }
     }, [author]);
 
@@ -34,6 +36,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             department,
             campus,
             university,
+            gender,
         };
         try {
             if (onUpdateSuccess) {
@@ -148,6 +151,39 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             onChange={(e) => setUniversity(e.target.value)}
                             placeholder="Universidade"
                         />
+                    </div>
+                    <div className="form-group">
+                        <label>Gênero</label>
+                        <div className="radio-group">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Masculino"
+                                    checked={gender === 'Masculino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                /> Masculino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Feminino"
+                                    checked={gender === 'Feminino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Feminino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Nao informado"
+                                    checked={gender === 'Nao informado'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Não informado
+                            </label>
+                        </div>
                     </div>
                     <div className="modal-actions-author">
                         <button type="button" className="cancel-button" onClick={onClose}>

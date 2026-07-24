@@ -5,9 +5,9 @@ const Autor = models.autor;
 
 // CREATE
 exports.createAutor = async (req, res) => {
-  const { name, email, bond, department, campus, university } = req.body;
+  const { name, email, bond, department, campus, university, gender } = req.body;
 
-  if (!name || !email || !bond || !department || !campus || !university) {
+  if (!name || !email || !bond || !department || !campus || !university || !gender) {
     return res.status(400).json({
       success: false,
       error: 'Todos os campos são obrigatórios'

@@ -127,6 +127,7 @@ export default function Autor() {
                                 <th>ID</th>
                                 <th>Nome</th>
                                 <th>E-mail</th>
+                                <th>Gênero</th>
                                 <th>Universidade</th>
                                 <th>Ações</th>
                             </tr>
@@ -137,6 +138,7 @@ export default function Autor() {
                                     <td>{author.id}</td>
                                     <td>{author.name}</td>
                                     <td>{author.email}</td>
+                                    <td>{author.gender}</td>
                                     <td>{author.university}</td>
                                     <td>
                                         <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)}>
