@@ -9,10 +9,11 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [campus, setCampus] = useState('');
     const [university, setUniversity] = useState('');
     const [gender, setGender] = useState('Nao informado');
+    const [phone, setPhone] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const newAuthorData = { name, email, bond, department, campus, university, gender };
+        const newAuthorData = { name, email, bond, department, campus, university, gender, phone };
         try {
             if (onRegisterSuccess) {
                 await onRegisterSuccess(newAuthorData);
@@ -52,6 +53,17 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="email@email.com"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="phone">Telefone</label>
+                        <input
+                            type="text"
+                            id="phone"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="(84) 99999-9999"
                             required
                         />
                     </div>

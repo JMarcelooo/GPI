@@ -34,6 +34,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING(20),
       allowNull: false,
       defaultValue: 'Nao informado'
+    },
+    phone: {
+      type: DataTypes.STRING(20),
+      allowNull: false
     }
   }, {
     sequelize,

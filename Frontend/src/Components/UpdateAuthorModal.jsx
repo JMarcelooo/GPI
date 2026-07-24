@@ -10,6 +10,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const [campus, setCampus] = useState(author?.campus || '');
     const [university, setUniversity] = useState(author?.university || '');
     const [gender, setGender] = useState(author?.gender || 'Nao informado');
+    const [phone, setPhone] = useState(author?.phone || '');
 
     // Efeito para atualizar o estado se o prop 'author' mudar
     useEffect(() => {
@@ -21,6 +22,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             setCampus(author.campus);
             setUniversity(author.university);
             setGender(author.gender || 'Nao informado');
+            setPhone(author.phone || '');
         }
     }, [author]);
 
@@ -37,6 +39,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             campus,
             university,
             gender,
+            phone,
         };
         try {
             if (onUpdateSuccess) {
@@ -77,6 +80,17 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="email@email.com"
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="edit-phone">Telefone</label>
+                        <input
+                            type="text"
+                            id="edit-phone"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="(84) 99999-9999"
                             required
                         />
                     </div>

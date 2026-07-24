@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS "autor" (
 	"campus" varchar(30) NOT NULL,
   "universidade" varchar(50) NOT NULL,
   "genero" varchar(20) NOT NULL DEFAULT 'Nao informado',
+  "telefone" varchar(20) NOT NULL,
 	PRIMARY KEY ("id")
 );
 

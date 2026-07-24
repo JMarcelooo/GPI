@@ -7,6 +7,18 @@ import FilterAuthorModal from '../Components/FilterAuthorModal';
 import axios from 'axios';
 import './Autor.css';
 
+const formatPhone = (phone) => {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return phone;
+};
+
 export default function Autor() {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -139,9 +151,9 @@ export default function Autor() {
                     <table className="authors-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
                                 <th>Nome</th>
                                 <th>E-mail</th>
+                                <th>Telefone</th>
                                 <th>Gênero</th>
                                 <th>Universidade</th>
                                 <th>Ações</th>
@@ -150,9 +162,9 @@ export default function Autor() {
                         <tbody>
                             {currentAuthors.map(author => (
                                 <tr key={author.id}>
-                                    <td>{author.id}</td>
                                     <td>{author.name}</td>
                                     <td>{author.email}</td>
+                                    <td>{formatPhone(author.phone)}</td>
                                     <td>{author.gender}</td>
                                     <td>{author.university}</td>
                                     <td>

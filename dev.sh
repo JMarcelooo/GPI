@@ -1,9 +1,17 @@
 #!/bin/bash
-trap 'kill 0' EXIT
+set -m
+
+cleanup() {
+  echo ""
+  echo "=== Parando servidores ==="
+  kill -- -$$ 2>/dev/null
+  exit
+}
+trap cleanup SIGINT SIGTERM SIGHUP EXIT
 
 echo "=== Iniciando Backend (porta 3000) ==="
-(cd Backend && npm start) &
+(cd Backend && exec npm start) &
 echo "=== Iniciando Frontend (porta 3001) ==="
-(cd Frontend && npm start) &
+(cd Frontend && exec npm start) &
 
 wait
