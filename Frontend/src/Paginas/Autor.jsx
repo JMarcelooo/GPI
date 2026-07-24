@@ -4,6 +4,7 @@ import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
 import FilterAuthorModal from '../Components/FilterAuthorModal';
+import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
 import axios from 'axios';
 import './Autor.css';
 
@@ -27,7 +28,9 @@ export default function Autor() {
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedAuthor, setSelectedAuthor] = useState(null);
+    const [authorToDelete, setAuthorToDelete] = useState(null);
     const [filters, setFilters] = useState({});
 
     const [allAuthors, setAllAuthors] = useState([]);
@@ -86,6 +89,15 @@ export default function Autor() {
     };
     const handleCloseUpdateModal = () => setShowUpdateModal(false);
 
+    const handleOpenDeleteModal = (author) => {
+      setAuthorToDelete(author);
+      setShowDeleteModal(true);
+    };
+    const handleCloseDeleteModal = () => {
+      setAuthorToDelete(null);
+      setShowDeleteModal(false);
+    };
+
     // Funções de callback para quando o modal de cadastro/edição tiver sucesso
     const handleRegisterSuccess = async (newAuthor) => {
     try {
@@ -108,11 +120,12 @@ export default function Autor() {
     }
 };
 
-    const handleDeleteAuthor = async (id) => {
-    if (!window.confirm("Tem certeza que deseja excluir este autor?")) return;
+    const handleDeleteAuthor = async () => {
+    if (!authorToDelete) return;
     try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/autores/${id}`);
-        setAllAuthors(allAuthors.filter(author => author.id !== id));
+        await axios.delete(`${process.env.REACT_APP_API_URL}/api/autores/${authorToDelete.id}`);
+        setAllAuthors(allAuthors.filter(author => author.id !== authorToDelete.id));
+        handleCloseDeleteModal();
     } catch (error) {
         console.error("Erro ao deletar autor:", error);
     }
@@ -171,7 +184,7 @@ export default function Autor() {
                                         <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)}>
                                             <Pencil size={16} />
                                         </button>
-                                        <button className="delete-author-button" onClick={() => handleDeleteAuthor(author.id)} style={{ marginLeft: 8 }}>
+                                        <button className="delete-author-button" onClick={() => handleOpenDeleteModal(author)} style={{ marginLeft: 8 }}>
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
@@ -237,6 +250,15 @@ export default function Autor() {
                     onClose={handleCloseFilterModal}
                     onApplyFilters={handleApplyFilters}
                     currentFilters={filters}
+                />
+            )}
+
+            {/* Modal de confirmação de exclusão */}
+            {showDeleteModal && authorToDelete && (
+                <ConfirmDeleteModal
+                    onClose={handleCloseDeleteModal}
+                    onConfirm={handleDeleteAuthor}
+                    authorName={authorToDelete.name}
                 />
             )}
         </div>
