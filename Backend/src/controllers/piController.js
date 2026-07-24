@@ -1,14 +1,14 @@
 const PI = require('../models/PI');
 
-require('../models/PI')
+require('../models/PI');
 
 const validatePIData = (data, isUpdate = false) => {
   const errors = [];
-  
+
   // Validação do título (para criação e atualização quando fornecido)
   if (!isUpdate || data.titulo !== undefined) {
     if (!data.titulo || data.titulo.length < 5) {
-      errors.push("Título deve ter pelo menos 5 caracteres");
+      errors.push('Título deve ter pelo menos 5 caracteres');
     }
   }
 
@@ -32,7 +32,7 @@ const validatePIData = (data, isUpdate = false) => {
     // Validação específica para titulares
     if (data.titulares) {
       if (!Array.isArray(data.titulares)) {
-        errors.push("Titulares deve ser um array");
+        errors.push('Titulares deve ser um array');
       } else {
         let percentualTotal = 0;
         data.titulares.forEach((titular, index) => {
@@ -43,7 +43,7 @@ const validatePIData = (data, isUpdate = false) => {
         });
 
         if (percentualTotal !== 100) {
-          errors.push("A soma dos percentuais dos titulares deve ser 100");
+          errors.push('A soma dos percentuais dos titulares deve ser 100');
         }
       }
     }
@@ -78,7 +78,7 @@ exports.createPI = async (req, res) => {
       cessao_assinada: req.body.cessao_assinada || false,
       parceiro: req.body.parceiro || null,
       // Para patentes, verifica se tem classificação IPC
-      classificacao_ipc: req.body.tipo_pi === 'patente' 
+      classificacao_ipc: req.body.tipo_pi === 'patente'
         ? req.body.classificacao_ipc || null
         : null
     };
@@ -86,10 +86,10 @@ exports.createPI = async (req, res) => {
     const newPI = await PI.create(piData);
     res.status(201).json({ success: true, data: newPI });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: "Erro ao criar PI",
-      details: error.message 
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao criar PI',
+      details: error.message
     });
   }
 };
@@ -98,15 +98,15 @@ exports.createPI = async (req, res) => {
 exports.getAllPIs = async (req, res) => {
   try {
     const pis = await PI.findAll();
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       count: pis.length,
-      data: pis 
+      data: pis
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: "Erro ao buscar PIs",
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao buscar PIs',
       details: error.message
     });
   }
@@ -117,16 +117,16 @@ exports.getPIById = async (req, res) => {
   try {
     const pi = await PI.findByPk(req.params.id);
     if (!pi) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "PI não encontrada" 
+      return res.status(404).json({
+        success: false,
+        error: 'PI não encontrada'
       });
     }
     res.json({ success: true, data: pi });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: "Erro ao buscar PI",
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao buscar PI',
       details: error.message
     });
   }
@@ -143,9 +143,9 @@ exports.updatePI = async (req, res) => {
     // Verifica se a PI existe antes de atualizar
     const existingPI = await PI.findByPk(req.params.id);
     if (!existingPI) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "PI não encontrada" 
+      return res.status(404).json({
+        success: false,
+        error: 'PI não encontrada'
       });
     }
 
@@ -153,7 +153,7 @@ exports.updatePI = async (req, res) => {
     if (req.body.tipo_pi && req.body.tipo_pi !== existingPI.tipo_pi) {
       return res.status(400).json({
         success: false,
-        error: "Não é possível alterar o tipo de PI após a criação"
+        error: 'Não é possível alterar o tipo de PI após a criação'
       });
     }
 
@@ -161,10 +161,10 @@ exports.updatePI = async (req, res) => {
     const updatedPI = await PI.findByPk(req.params.id);
     res.json({ success: true, data: updatedPI });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: "Erro ao atualizar PI",
-      details: error.message 
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao atualizar PI',
+      details: error.message
     });
   }
 };
@@ -176,18 +176,18 @@ exports.deletePI = async (req, res) => {
     if (!pi) {
       return res.status(404).json({
         error: 'PI não encontrada'
-      })
-    } 
-      
+      });
+    }
+
     await pi.destroy();
-    
-    res.status(200).json({ 
-      success: true, 
-      message: "PI removida com sucesso" 
+
+    res.status(200).json({
+      success: true,
+      message: 'PI removida com sucesso'
     });
   } catch (error) {
-    res.status(500).json({ 
-      error: "Erro ao remover PI",
+    res.status(500).json({
+      error: 'Erro ao remover PI',
       details: error.message
     });
   }
@@ -198,34 +198,34 @@ exports.searchPIs = async (req, res) => {
   try {
     const { q, status, tipo_pi } = req.query;
     let pis = await PI.findAll();
-    
+
     if (q) {
       const searchTerm = q.toLowerCase();
-      pis = pis.filter(pi => 
-        pi.titulo.toLowerCase().includes(searchTerm) || 
+      pis = pis.filter(pi =>
+        pi.titulo.toLowerCase().includes(searchTerm) ||
         pi.protocolo.toLowerCase().includes(searchTerm) ||
         pi.depositante.toLowerCase().includes(searchTerm) ||
         (pi.resumo && pi.resumo.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     if (status) {
       pis = pis.filter(pi => pi.status === status);
     }
-    
+
     if (tipo_pi) {
       pis = pis.filter(pi => pi.tipo_pi === tipo_pi);
     }
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       count: pis.length,
-      data: pis 
+      data: pis
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: "Erro na busca",
+    res.status(500).json({
+      success: false,
+      error: 'Erro na busca',
       details: error.message
     });
   }
@@ -243,15 +243,15 @@ exports.getPIsByStatus = async (req, res) => {
     }
 
     const pis = await PI.findAll({ where: { status: req.params.status } });
-    res.json({ 
+    res.json({
       success: true,
       count: pis.length,
-      data: pis 
+      data: pis
     });
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: "Erro ao buscar PIs por status",
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao buscar PIs por status',
       details: error.message
     });
   }
@@ -260,16 +260,16 @@ exports.getPIsByStatus = async (req, res) => {
 // GET TITULARES BY PI
 exports.getTitularesByPI = async (req, res) => {
   try {
-    const pi = await PI.findById(req.params.id);
+    const pi = await PI.findByPk(req.params.id);
     if (!pi) {
-      return res.status(404).json({ 
-        success: false, 
-        error: "PI não encontrado" 
+      return res.status(404).json({
+        success: false,
+        error: 'PI não encontrado'
       });
     }
 
-    // Verifica se a PI tem o campo titulares
-    if (!pi.titulares || !Array.isArray(pi.titulares)) {
+    const titulares = pi.titulares;
+    if (!titulares || !Array.isArray(titulares)) {
       return res.json({
         success: true,
         count: 0,
@@ -277,17 +277,16 @@ exports.getTitularesByPI = async (req, res) => {
       });
     }
 
-   
-    
+
     res.json({
       success: true,
       count: titulares.filter(t => t !== null).length,
       data: titulares.filter(t => t !== null)
     });
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: "Erro ao buscar titulares",
+      error: 'Erro ao buscar titulares',
       details: error.message
     });
   }

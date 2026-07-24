@@ -1,5 +1,3 @@
-const Sequelize = require('sequelize');
-
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('autor', {
     id: {
@@ -39,10 +37,10 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: "autor_pkey",
+        name: 'autor_pkey',
         unique: true,
         fields: [
-          { name: "id" },
+          { name: 'id' },
         ]
       },
     ]

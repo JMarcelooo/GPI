@@ -21,7 +21,7 @@ const listRoutes = (app) => {
 // Inicie o servidor
 const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-  
+
   // Agora podemos listar as rotas (opcional)
   if (process.env.NODE_ENV !== 'production') {
     setTimeout(() => listRoutes(app), 100); // Pequeno delay para garantir

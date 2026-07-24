@@ -22,7 +22,7 @@ app.get('/health', (req, res) => {
 });
 
 // Middleware de erro
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Erro não tratado:', err);
   res.status(500).json({ error: 'Erro interno' });
 });

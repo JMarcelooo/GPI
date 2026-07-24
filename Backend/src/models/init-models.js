@@ -1,5 +1,5 @@
-var DataTypes = require("sequelize").DataTypes;
-var _autor = require("./autor");
+var DataTypes = require('sequelize').DataTypes;
+var _autor = require('./autor');
 
 function initModels(sequelize) {
   var autor = _autor(sequelize, DataTypes);

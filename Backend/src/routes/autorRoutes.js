@@ -6,7 +6,7 @@ const autorController = require('../controllers/autorController');
 router.route('/')
   .get(autorController.getAllAutores)
   .post(autorController.createAutor);
-  
+
 
 
 router.route('/:id')

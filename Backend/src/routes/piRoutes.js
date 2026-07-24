@@ -26,9 +26,9 @@ router.route('/:id')
   .delete(piController.deletePI);
 
 router.route('/status/:status')
-  .get(piController.getPIsByStatus); 
+  .get(piController.getPIsByStatus);
 
 router.route('/:id/titulares')
   .get(piController.getTitularesByPI);
-  
+
 module.exports = router;
