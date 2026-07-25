@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, UserPlus } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, UserPlus, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
@@ -39,7 +39,10 @@ export default function CadastroPI() {
   const [autoresDisponiveis, setAutoresDisponiveis] = useState([]);
   const [autoresSelecionados, setAutoresSelecionados] = useState([]);
   const [showRegisterAuthorModal, setShowRegisterAuthorModal] = useState(false);
+  const [searchAutor, setSearchAutor] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/autores`)
@@ -60,12 +63,21 @@ export default function CadastroPI() {
     setShowRegisterAuthorModal(false);
   };
 
-  const toggleAutor = (autorId) => {
-    setAutoresSelecionados(prev =>
-      prev.includes(autorId)
-        ? prev.filter(id => id !== autorId)
-        : [...prev, autorId]
-    );
+  const autoresFiltrados = autoresDisponiveis.filter(a =>
+    !autoresSelecionados.includes(a.id) &&
+    (a.name.toLowerCase().includes(searchAutor.toLowerCase()) ||
+     a.email.toLowerCase().includes(searchAutor.toLowerCase()))
+  );
+
+  const adicionarAutorNaLista = (autor) => {
+    setAutoresSelecionados(prev => [...prev, autor.id]);
+    setSearchAutor('');
+    setShowDropdown(false);
+    searchRef.current?.focus();
+  };
+
+  const removerAutorDaLista = (autorId) => {
+    setAutoresSelecionados(prev => prev.filter(id => id !== autorId));
   };
 
   const handleSubmit = async (e) => {
@@ -164,51 +176,68 @@ export default function CadastroPI() {
           </div>
 
           <div className="card-form-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 className="section-title" style={{ margin: 0 }}>Autores</h3>
+            <h3 className="section-title">Autores</h3>
+
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="Buscar autor por nome ou email..."
+                  value={searchAutor}
+                  onChange={e => { setSearchAutor(e.target.value); setShowDropdown(true); }}
+                  onFocus={() => setShowDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                  style={{ width: '100%', padding: '10px 12px', paddingLeft: '36px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.875rem', boxSizing: 'border-box' }}
+                />
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                {showDropdown && searchAutor && autoresFiltrados.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid var(--color-border)', borderRadius: '8px', marginTop: '4px', maxHeight: '180px', overflowY: 'auto', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    {autoresFiltrados.map(autor => (
+                      <div
+                        key={autor.id}
+                        onMouseDown={() => adicionarAutorNaLista(autor)}
+                        style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F5F3FF'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <span>{autor.name}</span>
+                        <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{autor.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowRegisterAuthorModal(true)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
+                  display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
                   background: '#7C3AED', color: '#fff', border: 'none',
-                  padding: '8px 16px', borderRadius: '8px', fontSize: '0.875rem',
+                  padding: '10px 16px', borderRadius: '8px', fontSize: '0.875rem',
                   fontWeight: 600, cursor: 'pointer'
                 }}
               >
                 <UserPlus size={16} /> Adicionar Autor
               </button>
             </div>
-            {autoresDisponiveis.length === 0 ? (
-              <p style={{ color: '#888', fontSize: '0.875rem' }}>Nenhum autor encontrado. Cadastre autores primeiro.</p>
-            ) : (
-              <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: 'var(--space-2)' }}>
-                {autoresDisponiveis.map(autor => (
-                  <label key={autor.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', cursor: 'pointer', borderRadius: '4px' }}>
-                    <input
-                      type="checkbox"
-                      checked={autoresSelecionados.includes(autor.id)}
-                      onChange={() => toggleAutor(autor.id)}
-                    />
-                    <span>{autor.name}</span>
-                    <span style={{ color: '#888', fontSize: '0.75rem' }}>({autor.email})</span>
-                  </label>
-                ))}
-              </div>
-            )}
+
             {autoresSelecionados.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {autoresSelecionados.map(id => {
                   const autor = autoresDisponiveis.find(a => a.id === id);
                   if (!autor) return null;
                   return (
                     <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#EDE9FE', color: '#7C3AED', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
                       {autor.name}
-                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => toggleAutor(id)} />
+                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => removerAutorDaLista(id)} />
                     </span>
                   );
                 })}
               </div>
+            )}
+            {autoresSelecionados.length === 0 && (
+              <p style={{ color: '#888', fontSize: '0.875rem', margin: 0 }}>Nenhum autor selecionado.</p>
             )}
           </div>
 
