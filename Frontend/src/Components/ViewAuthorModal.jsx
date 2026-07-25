@@ -1,5 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AuthorModal.css';
+import { formatStatus } from '../utils/formatDate';
 
 const formatPhone = (phone) => {
   if (!phone) return '';
@@ -19,6 +21,7 @@ const genderLabel = (g) => {
 };
 
 export default function ViewAuthorModal({ onClose, author }) {
+  const navigate = useNavigate();
   const associatedPI = author.PIs || [];
 
   const infoItems = [
@@ -156,16 +159,23 @@ export default function ViewAuthorModal({ onClose, author }) {
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>Título</th>
                   <th>Protocolo</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {associatedPI.map(pi => (
-                  <tr key={pi.id}>
-                    <td style={{ textTransform: 'capitalize' }}>{pi.titulo}</td>
+                  <tr key={pi.id}
+                    onClick={() => navigate(`/detalhes/${pi.id}`)}
+                    style={{ cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F5F3FF'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <td style={{ textTransform: 'capitalize' }}>{pi.tipo}</td>
+                    <td style={{ fontWeight: 600 }}>{pi.titulo || "-"}</td>
                     <td>{pi.protocolo}</td>
-                    <td>{pi.status}</td>
+                    <td>{formatStatus(pi.status)}</td>
                   </tr>
                 ))}
               </tbody>

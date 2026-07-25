@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const PI = sequelize.define('PI', {
-  titulo: {
+  tipo: {
     type: DataTypes.ENUM(
       'patente de invencao',
       'modelo de utilidade',
@@ -10,6 +10,10 @@ const PI = sequelize.define('PI', {
       'programa de computador'
     ),
     allowNull: false
+  },
+  titulo: {
+    type: DataTypes.STRING(200),
+    allowNull: true
   },
   depositante: {
     type: DataTypes.STRING(100),

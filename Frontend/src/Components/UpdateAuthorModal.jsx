@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './AuthorModal.css'; // O CSS compartilhado para os modais
+import './AuthorModal.css';
+import Toast from './Toast';
 
 export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) {
     // Inicializa o estado com os dados do autor recebido, ou valores vazios se não houver autor
@@ -12,6 +13,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const [gender, setGender] = useState(author?.gender || 'Nao informado');
     const [phone, setPhone] = useState(author?.phone || '');
     const [phoneError, setPhoneError] = useState('');
+    const [toast, setToast] = useState(null);
 
     // Efeito para atualizar o estado se o prop 'author' mudar
     useEffect(() => {
@@ -57,14 +59,16 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             if (onUpdateSuccess) {
                 await onUpdateSuccess(updatedAuthorData);
             }
-            onClose();
+            setToast({ message: 'Autor atualizado com sucesso!', type: 'success' });
+            setTimeout(onClose, 1000);
         } catch (error) {
             console.error("Erro ao atualizar autor:", error);
-            alert("Erro ao atualizar autor. Verifique os dados e tente novamente.");
+            setToast({ message: 'Erro ao atualizar autor. Verifique os dados.', type: 'error' });
         }
     };
 
     return (
+        <>
         <div className="modal-overlay">
             <div className="modal-content-author">
                 <div className="modal-header-author">
@@ -229,5 +233,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                 </form>
             </div>
         </div>
+        <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+        </>
     );
 }

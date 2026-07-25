@@ -20,11 +20,11 @@ const STATUS_VALIDOS = [
 const validatePIData = (data, isUpdate = false) => {
   const errors = [];
 
-  if (!isUpdate || data.titulo !== undefined) {
-    if (!data.titulo) {
-      errors.push('Titulo é obrigatório');
-    } else if (!TIPOS_VALIDOS.includes(data.titulo)) {
-      errors.push(`Titulo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`);
+  if (!isUpdate || data.tipo !== undefined) {
+    if (!data.tipo) {
+      errors.push('Tipo é obrigatório');
+    } else if (!TIPOS_VALIDOS.includes(data.tipo)) {
+      errors.push(`Tipo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`);
     }
   }
 
@@ -58,7 +58,8 @@ exports.createPI = async (req, res) => {
     }
 
     const piData = {
-      titulo: req.body.titulo,
+      tipo: req.body.tipo,
+      titulo: req.body.titulo || null,
       depositante: req.body.depositante,
       parceiro: req.body.parceiro || null,
       titular: req.body.titular || null,
@@ -144,7 +145,7 @@ exports.updatePI = async (req, res) => {
     }
 
     const updateData = {};
-    const allowedFields = ['titulo', 'depositante', 'parceiro', 'titular', 'status', 'protocolo', 'data_entrada', 'ano', 'termo_cessao'];
+    const allowedFields = ['tipo', 'titulo', 'depositante', 'parceiro', 'titular', 'status', 'protocolo', 'data_entrada', 'ano', 'termo_cessao'];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
@@ -158,10 +159,10 @@ exports.updatePI = async (req, res) => {
       });
     }
 
-    if (updateData.titulo && !TIPOS_VALIDOS.includes(updateData.titulo)) {
+    if (updateData.tipo && !TIPOS_VALIDOS.includes(updateData.tipo)) {
       return res.status(400).json({
         success: false,
-        error: `Titulo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`
+        error: `Tipo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`
       });
     }
 
@@ -215,7 +216,7 @@ exports.deletePI = async (req, res) => {
 // SEARCH
 exports.searchPIs = async (req, res) => {
   try {
-    const { q, status, titulo } = req.query;
+    const { q, status, tipo } = req.query;
     let pis = await PI.findAll();
 
     if (q) {
@@ -232,8 +233,8 @@ exports.searchPIs = async (req, res) => {
       pis = pis.filter(pi => pi.status === status);
     }
 
-    if (titulo) {
-      pis = pis.filter(pi => pi.titulo === titulo);
+    if (tipo) {
+      pis = pis.filter(pi => pi.tipo === tipo);
     }
 
     res.json({

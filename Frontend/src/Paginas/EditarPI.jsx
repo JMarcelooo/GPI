@@ -28,6 +28,7 @@ export default function EditarPI() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [form, setForm] = useState({
+    tipo: '',
     titulo: '',
     depositante: '',
     parceiro: '',
@@ -57,6 +58,7 @@ export default function EditarPI() {
         setAutoresDisponiveis(autoresRes.data.data || []);
         const pi = piRes.data.data;
         setForm({
+          tipo: pi.tipo || '',
           titulo: pi.titulo || '',
           depositante: pi.depositante || '',
           parceiro: pi.parceiro || '',
@@ -169,13 +171,17 @@ export default function EditarPI() {
             <h3 className="section-title">Informações principais</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="titulo">Tipo</label>
-                <select id="titulo" name="titulo" value={form.titulo} onChange={handleChange} required>
+                <label htmlFor="tipo">Tipo</label>
+                <select id="tipo" name="tipo" value={form.tipo} onChange={handleChange} required>
                   <option value="">Selecione</option>
                   {TIPOS_PI.map(t => (
                     <option key={t} value={t}>{t.toUpperCase()}</option>
                   ))}
                 </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="titulo">Título</label>
+                <input type="text" id="titulo" name="titulo" value={form.titulo} onChange={handleChange} placeholder="Nome da PI" />
               </div>
               <div className="form-group">
                 <label htmlFor="status">Status</label>

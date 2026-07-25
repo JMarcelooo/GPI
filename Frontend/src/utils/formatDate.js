@@ -8,3 +8,17 @@ export function formatDate(dateStr) {
     return '-';
   }
 }
+
+const STATUS_LABELS = {
+  'em analise': 'Em análise',
+  'indeferida': 'Indeferida',
+  'anulada': 'Anulada',
+  'arquivada': 'Arquivada',
+  'deferida': 'Deferida',
+  'registrada': 'Registrada',
+  'carta patente': 'Carta Patente'
+};
+
+export function formatStatus(status) {
+  return STATUS_LABELS[status] || status;
+}

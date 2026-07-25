@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS "usuarios" (
 
 CREATE TABLE IF NOT EXISTS "pi" (
 	"id" serial NOT NULL UNIQUE,
-	"titulo" varchar(50) NOT NULL,
+	"tipo" varchar(50) NOT NULL,
+	"titulo" varchar(200),
 	"depositante" varchar(100) NOT NULL,
 	"parceiro" varchar(100),
 	"titular" varchar(100),
