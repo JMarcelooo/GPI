@@ -1,4 +1,4 @@
-const PI = require('../models/PI');
+const { PI } = require('../models/index');
 
 const TIPOS_VALIDOS = [
   'patente de invencao',
@@ -108,7 +108,9 @@ exports.getAllPIs = async (req, res) => {
 // READ (Single)
 exports.getPIById = async (req, res) => {
   try {
-    const pi = await PI.findByPk(req.params.id);
+    const pi = await PI.findByPk(req.params.id, {
+      include: [{ association: 'autores' }]
+    });
     if (!pi) {
       return res.status(404).json({
         success: false,
@@ -164,7 +166,18 @@ exports.updatePI = async (req, res) => {
     }
 
     await PI.update(updateData, { where: { id: req.params.id } });
-    const updatedPI = await PI.findByPk(req.params.id);
+
+    if (req.body.autores !== undefined) {
+      await PI.sequelize.query(`DELETE FROM autor_pi WHERE pi_id = ${req.params.id}`);
+      if (Array.isArray(req.body.autores) && req.body.autores.length > 0) {
+        const values = req.body.autores.map(autorId => `(${req.params.id}, ${autorId})`).join(', ');
+        await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
+      }
+    }
+
+    const updatedPI = await PI.findByPk(req.params.id, {
+      include: [{ association: 'autores' }]
+    });
     res.json({ success: true, data: updatedPI });
   } catch (error) {
     res.status(500).json({

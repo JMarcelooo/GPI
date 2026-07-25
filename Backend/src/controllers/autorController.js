@@ -1,7 +1,4 @@
-const sequelize = require('../config/db');
-const initModels = require('../models/init-models');
-const models = initModels(sequelize);
-const Autor = models.autor;
+const { autor: Autor } = require('../models/index');
 
 // CREATE
 exports.createAutor = async (req, res) => {
