@@ -103,7 +103,6 @@ export default function Autor() {
     }
 
     // Funções para abrir/fechar modais
-    const handleOpenRegisterModal = () => setShowRegisterModal(true);
     const handleCloseRegisterModal = () => setShowRegisterModal(false);
     const handleOpenFilterModal = () => setShowFilterModal(true);
     const handleCloseFilterModal = () => setShowFilterModal(false);

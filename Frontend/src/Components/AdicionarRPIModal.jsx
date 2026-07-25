@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importa o hook
 
-import '../Paginas/Detalhe1.css'; // <--- ESTA LINHA É A CORREÇÃO
+import '../Paginas/Detalhe1.css';
 
 const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
   const [data, setData] = useState('');
