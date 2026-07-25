@@ -8,10 +8,23 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [department, setDepartment] = useState('');
     const [campus, setCampus] = useState('');
     const [university, setUniversity] = useState('');
+    const [gender, setGender] = useState('Nao informado');
+    const [phone, setPhone] = useState('');
+    const [phoneError, setPhoneError] = useState('');
+
+    const handlePhoneChange = (e) => {
+      const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+      setPhone(digits);
+      if (phoneError) setPhoneError('');
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const newAuthorData = { name, email, bond, department, campus, university };
+        if (phone.length !== 11) {
+          setPhoneError('Telefone deve ter exatamente 11 dígitos');
+          return;
+        }
+        const newAuthorData = { name, email, bond, department, campus, university, gender, phone };
         try {
             if (onRegisterSuccess) {
                 await onRegisterSuccess(newAuthorData);
@@ -53,6 +66,24 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             placeholder="email@email.com"
                             required
                         />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="phone">Telefone</label>
+                        <input
+                            type="text"
+                            id="phone"
+                            value={phone}
+                            onChange={handlePhoneChange}
+                            placeholder="11999999999"
+                            required
+                            maxLength={11}
+                            style={phoneError ? { borderColor: '#dc3545' } : {}}
+                        />
+                        {phoneError && (
+                          <span style={{ color: '#dc3545', fontSize: 'var(--text-xs)', marginTop: 4, display: 'block' }}>
+                            {phoneError}
+                          </span>
+                        )}
                     </div>
                     <div className="form-group">
                         <label>Vínculo</label>
@@ -125,6 +156,39 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             onChange={(e) => setUniversity(e.target.value)}
                             placeholder="Universidade"
                         />
+                    </div>
+                    <div className="form-group">
+                        <label>Gênero</label>
+                        <div className="radio-group">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Masculino"
+                                    checked={gender === 'Masculino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                /> Masculino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Feminino"
+                                    checked={gender === 'Feminino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Feminino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Nao informado"
+                                    checked={gender === 'Nao informado'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Não informado
+                            </label>
+                        </div>
                     </div>
                     <div className="modal-actions-author">
                         <button type="button" className="cancel-button" onClick={onClose}>

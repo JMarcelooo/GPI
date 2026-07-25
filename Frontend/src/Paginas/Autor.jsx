@@ -1,22 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { SlidersHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
+import FilterAuthorModal from '../Components/FilterAuthorModal';
+import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
+import ViewAuthorModal from '../Components/ViewAuthorModal';
 import axios from 'axios';
 import './Autor.css';
+
+const formatPhone = (phone) => {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return phone;
+};
 
 export default function Autor() {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const authorsPerPage = 4;
 
-    const [showRegisterModal, setShowRegisterModal] = useState(false); // Estado para o modal de cadastro
-    const [showUpdateModal, setShowUpdateModal] = useState(false);     // Estado para o modal de edição
-    const [selectedAuthor, setSelectedAuthor] = useState(null);       // Estado para o autor selecionado para edição
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedAuthor, setSelectedAuthor] = useState(null);
+    const [authorToDelete, setAuthorToDelete] = useState(null);
+    const [authorToView, setAuthorToView] = useState(null);
+    const [filters, setFilters] = useState({});
+    const [sortField, setSortField] = useState(null);
+    const [sortDir, setSortDir] = useState('asc');
 
-    // Dados fictícios dos autores (adicionei mais alguns para testar a paginação)
-    
+    const handleSort = (field) => {
+      if (sortField === field) {
+        setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortField(field);
+        setSortDir('asc');
+      }
+    };
+
+    const sortIcon = (field) => {
+      if (sortField !== field) return null;
+      return sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+    };
+
     const [allAuthors, setAllAuthors] = useState([]);
    useEffect(() => {
   axios.get(`${process.env.REACT_APP_API_URL}/api/autores`)
@@ -28,13 +63,31 @@ export default function Autor() {
     });
 }, []);
 
-    // Lógica de filtro pela barra de busca
-    const filteredAuthors = allAuthors.filter(author =>
-    (author.name && author.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (author.email && author.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (author.university && author.university.toLowerCase().includes(searchTerm.toLowerCase()))
-);
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, filters]);
 
+    // Aplica busca textual + filtros
+    let filteredAuthors = allAuthors.filter(author => {
+    const matchesSearch = !searchTerm || (
+      (author.name && author.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (author.email && author.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (author.university && author.university.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    const matchesFilters = Object.entries(filters).every(([key, value]) =>
+      author[key] && author[key].toLowerCase() === value.toLowerCase()
+    );
+
+    return matchesSearch && matchesFilters;
+});
+
+    if (sortField) {
+      filteredAuthors = [...filteredAuthors].sort((a, b) => {
+        const valA = (a[sortField] || '').toString().toLowerCase();
+        const valB = (b[sortField] || '').toString().toLowerCase();
+        const cmp = valA.localeCompare(valB);
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
 
     // Lógica de paginação
     const indexOfLastAuthor = currentPage * authorsPerPage;
@@ -52,12 +105,42 @@ export default function Autor() {
     // Funções para abrir/fechar modais
     const handleOpenRegisterModal = () => setShowRegisterModal(true);
     const handleCloseRegisterModal = () => setShowRegisterModal(false);
+    const handleOpenFilterModal = () => setShowFilterModal(true);
+    const handleCloseFilterModal = () => setShowFilterModal(false);
+    const handleApplyFilters = (newFilters) => {
+      setFilters(newFilters);
+      setCurrentPage(1);
+    };
 
     const handleOpenUpdateModal = (author) => {
         setSelectedAuthor(author);
         setShowUpdateModal(true);
     };
     const handleCloseUpdateModal = () => setShowUpdateModal(false);
+
+    const handleOpenViewModal = async (author) => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/autores/${author.id}`);
+        setAuthorToView(response.data.data);
+      } catch (error) {
+        console.error("Erro ao buscar autor:", error);
+        setAuthorToView(author);
+      }
+      setShowViewModal(true);
+    };
+    const handleCloseViewModal = () => {
+      setAuthorToView(null);
+      setShowViewModal(false);
+    };
+
+    const handleOpenDeleteModal = (author) => {
+      setAuthorToDelete(author);
+      setShowDeleteModal(true);
+    };
+    const handleCloseDeleteModal = () => {
+      setAuthorToDelete(null);
+      setShowDeleteModal(false);
+    };
 
     // Funções de callback para quando o modal de cadastro/edição tiver sucesso
     const handleRegisterSuccess = async (newAuthor) => {
@@ -81,11 +164,12 @@ export default function Autor() {
     }
 };
 
-    const handleDeleteAuthor = async (id) => {
-    if (!window.confirm("Tem certeza que deseja excluir este autor?")) return;
+    const handleDeleteAuthor = async () => {
+    if (!authorToDelete) return;
     try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/autores/${id}`);
-        setAllAuthors(allAuthors.filter(author => author.id !== id));
+        await axios.delete(`${process.env.REACT_APP_API_URL}/api/autores/${authorToDelete.id}`);
+        setAllAuthors(allAuthors.filter(author => author.id !== authorToDelete.id));
+        handleCloseDeleteModal();
     } catch (error) {
         console.error("Erro ao deletar autor:", error);
     }
@@ -109,13 +193,10 @@ export default function Autor() {
                         />
                     </div>
                     <div className="header-buttons">
-                        <button className="filter-button">
+                        <button className="filter-button" onClick={handleOpenFilterModal}>
                             <SlidersHorizontal size={16} className="filter-icon" /> Filtros
                         </button>
-                        {/* Botão para abrir o modal de CADASTRO */}
-                        <button className="add-author-button" onClick={handleOpenRegisterModal}>
-                            <span className="plus-icon">+</span> Cadastrar Autor
-                        </button>
+
                     </div>
                 </div>
 
@@ -124,25 +205,30 @@ export default function Autor() {
                     <table className="authors-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Nome</th>
+                                <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>Nome {sortIcon('name')}</th>
                                 <th>E-mail</th>
-                                <th>Universidade</th>
+                                <th>Telefone</th>
+                                <th onClick={() => handleSort('gender')} style={{ cursor: 'pointer', userSelect: 'none' }}>Gênero {sortIcon('gender')}</th>
+                                <th onClick={() => handleSort('university')} style={{ cursor: 'pointer', userSelect: 'none' }}>Universidade {sortIcon('university')}</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {currentAuthors.map(author => (
                                 <tr key={author.id}>
-                                    <td>{author.id}</td>
                                     <td>{author.name}</td>
                                     <td>{author.email}</td>
+                                    <td>{formatPhone(author.phone)}</td>
+                                    <td>{author.gender}</td>
                                     <td>{author.university}</td>
                                     <td>
-                                        <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)}>
+                                        <button className="edit-author-button" onClick={() => handleOpenViewModal(author)} title="Visualizar">
+                                            <Eye size={16} />
+                                        </button>
+                                        <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)} style={{ marginLeft: 4 }} title="Editar">
                                             <Pencil size={16} />
                                         </button>
-                                        <button className="delete-author-button" onClick={() => handleDeleteAuthor(author.id)} style={{ marginLeft: 8 }}>
+                                        <button className="delete-author-button" onClick={() => handleOpenDeleteModal(author)} style={{ marginLeft: 4 }} title="Excluir">
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
@@ -199,6 +285,32 @@ export default function Autor() {
                     onClose={handleCloseUpdateModal}
                     author={selectedAuthor}
                     onUpdateSuccess={handleUpdateSuccess}
+                />
+            )}
+
+            {/* Modal de filtros */}
+            {showFilterModal && (
+                <FilterAuthorModal
+                    onClose={handleCloseFilterModal}
+                    onApplyFilters={handleApplyFilters}
+                    currentFilters={filters}
+                />
+            )}
+
+            {/* Modal de confirmação de exclusão */}
+            {showDeleteModal && authorToDelete && (
+                <ConfirmDeleteModal
+                    onClose={handleCloseDeleteModal}
+                    onConfirm={handleDeleteAuthor}
+                    authorName={authorToDelete.name}
+                />
+            )}
+
+            {/* Modal de visualização */}
+            {showViewModal && authorToView && (
+                <ViewAuthorModal
+                    onClose={handleCloseViewModal}
+                    author={authorToView}
                 />
             )}
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './AuthorModal.css'; // O CSS compartilhado para os modais
+import './AuthorModal.css';
+import Toast from './Toast';
 
 export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) {
     // Inicializa o estado com os dados do autor recebido, ou valores vazios se não houver autor
@@ -9,6 +10,10 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const [department, setDepartment] = useState(author?.department || '');
     const [campus, setCampus] = useState(author?.campus || '');
     const [university, setUniversity] = useState(author?.university || '');
+    const [gender, setGender] = useState(author?.gender || 'Nao informado');
+    const [phone, setPhone] = useState(author?.phone || '');
+    const [phoneError, setPhoneError] = useState('');
+    const [toast, setToast] = useState(null);
 
     // Efeito para atualizar o estado se o prop 'author' mudar
     useEffect(() => {
@@ -19,13 +24,26 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             setDepartment(author.department);
             setCampus(author.campus);
             setUniversity(author.university);
+            setGender(author.gender || 'Nao informado');
+            setPhone(author.phone ? author.phone.replace(/\D/g, '').slice(0, 11) : '');
+            setPhoneError('');
         }
     }, [author]);
 
     
 
+    const handlePhoneChange = (e) => {
+      const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+      setPhone(digits);
+      if (phoneError) setPhoneError('');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (phone.length !== 11) {
+          setPhoneError('Informe um telefone válido');
+          return;
+        }
         const updatedAuthorData = {
             ...author,
             name,
@@ -34,19 +52,23 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             department,
             campus,
             university,
+            gender,
+            phone,
         };
         try {
             if (onUpdateSuccess) {
                 await onUpdateSuccess(updatedAuthorData);
             }
-            onClose();
+            setToast({ message: 'Autor atualizado com sucesso!', type: 'success' });
+            setTimeout(onClose, 1000);
         } catch (error) {
             console.error("Erro ao atualizar autor:", error);
-            alert("Erro ao atualizar autor. Verifique os dados e tente novamente.");
+            setToast({ message: 'Erro ao atualizar autor. Verifique os dados.', type: 'error' });
         }
     };
 
     return (
+        <>
         <div className="modal-overlay">
             <div className="modal-content-author">
                 <div className="modal-header-author">
@@ -76,6 +98,24 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             placeholder="email@email.com"
                             required
                         />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="edit-phone">Telefone</label>
+                        <input
+                            type="text"
+                            id="edit-phone"
+                            value={phone}
+                            onChange={handlePhoneChange}
+                            placeholder="11999999999"
+                            required
+                            maxLength={11}
+                            style={phoneError ? { borderColor: '#dc3545' } : {}}
+                        />
+                        {phoneError && (
+                          <span style={{ color: '#dc3545', fontSize: 'var(--text-xs)', marginTop: 4, display: 'block' }}>
+                            {phoneError}
+                          </span>
+                        )}
                     </div>
                     <div className="form-group">
                         <label>Vínculo</label>
@@ -149,6 +189,39 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             placeholder="Universidade"
                         />
                     </div>
+                    <div className="form-group">
+                        <label>Gênero</label>
+                        <div className="radio-group">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Masculino"
+                                    checked={gender === 'Masculino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    required
+                                /> Masculino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Feminino"
+                                    checked={gender === 'Feminino'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Feminino
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="Nao informado"
+                                    checked={gender === 'Nao informado'}
+                                    onChange={(e) => setGender(e.target.value)}
+                                /> Não informado
+                            </label>
+                        </div>
+                    </div>
                     <div className="modal-actions-author">
                         <button type="button" className="cancel-button" onClick={onClose}>
                             Cancelar
@@ -160,5 +233,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                 </form>
             </div>
         </div>
+        <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+        </>
     );
 }

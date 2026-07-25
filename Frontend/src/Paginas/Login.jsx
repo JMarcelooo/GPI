@@ -13,7 +13,7 @@ function Login() {
   return (
     <div className="tela">
       <br/>
-      <img src="imagens/Sistema-Logo.png" alt="UERN inova" width="150" height="auto"/>
+      <img src="/imagens/Sistema-Logo.png" alt="UERN inova" width="150" height="auto"/>
 
       <h2>Seja bem-vindo(a)!</h2>
       <input type="email" placeholder="Digite seu e-mail" />
@@ -29,7 +29,7 @@ function Login() {
       <br/>
       <br/>
       <br/>
-      <img src="imagens/Inova-Rodape.png" alt="UERN inova" width="150" height="auto"/>
+      <img src="/imagens/Inova-Rodape.png" alt="UERN inova" width="150" height="auto"/>
     </div>
   );
 }
