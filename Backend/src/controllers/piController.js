@@ -1,63 +1,48 @@
 const PI = require('../models/PI');
 
-require('../models/PI');
+const TIPOS_VALIDOS = [
+  'patente de invencao',
+  'modelo de utilidade',
+  'marca',
+  'programa de computador'
+];
+
+const STATUS_VALIDOS = [
+  'indeferida',
+  'anulada',
+  'arquivada',
+  'em analise',
+  'deferida',
+  'registrada',
+  'carta patente'
+];
 
 const validatePIData = (data, isUpdate = false) => {
   const errors = [];
 
-  // Validação do título (para criação e atualização quando fornecido)
   if (!isUpdate || data.titulo !== undefined) {
-    if (!data.titulo || data.titulo.length < 5) {
-      errors.push('Título deve ter pelo menos 5 caracteres');
+    if (!data.titulo) {
+      errors.push('Titulo é obrigatório');
+    } else if (!TIPOS_VALIDOS.includes(data.titulo)) {
+      errors.push(`Titulo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`);
     }
   }
 
-  // Validações específicas para criação
+  if (!isUpdate || data.depositante !== undefined) {
+    if (!data.depositante) {
+      errors.push('Depositante é obrigatório');
+    }
+  }
+
+  if (!isUpdate || data.protocolo !== undefined) {
+    if (!data.protocolo) {
+      errors.push('Protocolo é obrigatório');
+    }
+  }
+
   if (!isUpdate) {
-    const camposObrigatorios = [
-      { field: 'tipo_pi', name: 'Tipo de PI' },
-      { field: 'protocolo', name: 'Protocolo' },
-      { field: 'depositante', name: 'Depositante' },
-      { field: 'data_entrada', name: 'Data de entrada' },
-      { field: 'resumo', name: 'Resumo' },
-      { field: 'titulares', name: 'Titulares' }
-    ];
-
-    camposObrigatorios.forEach(({ field, name }) => {
-      if (!data[field]) {
-        errors.push(`${name} é obrigatório`);
-      }
-    });
-
-    // Validação específica para titulares
-    if (data.titulares) {
-      if (!Array.isArray(data.titulares)) {
-        errors.push('Titulares deve ser um array');
-      } else {
-        let percentualTotal = 0;
-        data.titulares.forEach((titular, index) => {
-          if (!titular.nome || !titular.pais || titular.percentual === undefined) {
-            errors.push(`Titular ${index + 1} deve ter nome, pais e percentual`);
-          }
-          percentualTotal += Number(titular.percentual) || 0;
-        });
-
-        if (percentualTotal !== 100) {
-          errors.push('A soma dos percentuais dos titulares deve ser 100');
-        }
-      }
-    }
-
-    // Validação de tipo_pi
-    const tiposPermitidos = ['patente', 'marca', 'software'];
-    if (data.tipo_pi && !tiposPermitidos.includes(data.tipo_pi)) {
-      errors.push(`Tipo de PI inválido. Use: ${tiposPermitidos.join(', ')}`);
-    }
-
-    // Validação de status
-    const statusPermitidos = ['pendente', 'concedida', 'expirada', 'negada'];
-    if (data.status && !statusPermitidos.includes(data.status)) {
-      errors.push(`Status inválido. Use: ${statusPermitidos.join(', ')}`);
+    if (data.status && !STATUS_VALIDOS.includes(data.status)) {
+      errors.push(`Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`);
     }
   }
 
@@ -72,15 +57,16 @@ exports.createPI = async (req, res) => {
       return res.status(400).json({ success: false, errors });
     }
 
-    // Padroniza os dados antes de criar
     const piData = {
-      ...req.body,
-      cessao_assinada: req.body.cessao_assinada || false,
+      titulo: req.body.titulo,
+      depositante: req.body.depositante,
       parceiro: req.body.parceiro || null,
-      // Para patentes, verifica se tem classificação IPC
-      classificacao_ipc: req.body.tipo_pi === 'patente'
-        ? req.body.classificacao_ipc || null
-        : null
+      titular: req.body.titular || null,
+      status: req.body.status || 'em analise',
+      protocolo: req.body.protocolo,
+      data_entrada: req.body.data_entrada || null,
+      ano: req.body.ano || null,
+      termo_cessao: req.body.termo_cessao || false
     };
 
     const newPI = await PI.create(piData);
@@ -140,7 +126,6 @@ exports.updatePI = async (req, res) => {
       return res.status(400).json({ success: false, errors });
     }
 
-    // Verifica se a PI existe antes de atualizar
     const existingPI = await PI.findByPk(req.params.id);
     if (!existingPI) {
       return res.status(404).json({
@@ -149,15 +134,29 @@ exports.updatePI = async (req, res) => {
       });
     }
 
-    // Não permite alteração do tipo_pi se já estiver definido
-    if (req.body.tipo_pi && req.body.tipo_pi !== existingPI.tipo_pi) {
+    const updateData = {};
+    const allowedFields = ['titulo', 'depositante', 'parceiro', 'titular', 'status', 'protocolo', 'data_entrada', 'ano', 'termo_cessao'];
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
+
+    if (updateData.status && !STATUS_VALIDOS.includes(updateData.status)) {
       return res.status(400).json({
         success: false,
-        error: 'Não é possível alterar o tipo de PI após a criação'
+        error: `Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`
       });
     }
 
-    await PI.update(req.body, {where: {id: req.params.id}});
+    if (updateData.titulo && !TIPOS_VALIDOS.includes(updateData.titulo)) {
+      return res.status(400).json({
+        success: false,
+        error: `Titulo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`
+      });
+    }
+
+    await PI.update(updateData, { where: { id: req.params.id } });
     const updatedPI = await PI.findByPk(req.params.id);
     res.json({ success: true, data: updatedPI });
   } catch (error) {
@@ -196,16 +195,16 @@ exports.deletePI = async (req, res) => {
 // SEARCH
 exports.searchPIs = async (req, res) => {
   try {
-    const { q, status, tipo_pi } = req.query;
+    const { q, status, titulo } = req.query;
     let pis = await PI.findAll();
 
     if (q) {
       const searchTerm = q.toLowerCase();
       pis = pis.filter(pi =>
-        pi.titulo.toLowerCase().includes(searchTerm) ||
         pi.protocolo.toLowerCase().includes(searchTerm) ||
         pi.depositante.toLowerCase().includes(searchTerm) ||
-        (pi.resumo && pi.resumo.toLowerCase().includes(searchTerm))
+        (pi.parceiro && pi.parceiro.toLowerCase().includes(searchTerm)) ||
+        (pi.titular && pi.titular.toLowerCase().includes(searchTerm))
       );
     }
 
@@ -213,8 +212,8 @@ exports.searchPIs = async (req, res) => {
       pis = pis.filter(pi => pi.status === status);
     }
 
-    if (tipo_pi) {
-      pis = pis.filter(pi => pi.tipo_pi === tipo_pi);
+    if (titulo) {
+      pis = pis.filter(pi => pi.titulo === titulo);
     }
 
     res.json({
@@ -234,11 +233,10 @@ exports.searchPIs = async (req, res) => {
 // GET BY STATUS
 exports.getPIsByStatus = async (req, res) => {
   try {
-    const statusPermitidos = ['pendente', 'concedida', 'expirada', 'negada'];
-    if (!statusPermitidos.includes(req.params.status)) {
+    if (!STATUS_VALIDOS.includes(req.params.status)) {
       return res.status(400).json({
         success: false,
-        error: `Status inválido. Use: ${statusPermitidos.join(', ')}`
+        error: `Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`
       });
     }
 
@@ -257,36 +255,25 @@ exports.getPIsByStatus = async (req, res) => {
   }
 };
 
-// GET TITULARES BY PI
+// GET TITULAR
 exports.getTitularesByPI = async (req, res) => {
   try {
     const pi = await PI.findByPk(req.params.id);
     if (!pi) {
       return res.status(404).json({
         success: false,
-        error: 'PI não encontrado'
+        error: 'PI não encontrada'
       });
     }
-
-    const titulares = pi.titulares;
-    if (!titulares || !Array.isArray(titulares)) {
-      return res.json({
-        success: true,
-        count: 0,
-        data: []
-      });
-    }
-
 
     res.json({
       success: true,
-      count: titulares.filter(t => t !== null).length,
-      data: titulares.filter(t => t !== null)
+      data: pi.titular || null
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: 'Erro ao buscar titulares',
+      error: 'Erro ao buscar titular',
       details: error.message
     });
   }

@@ -122,24 +122,31 @@
   text-transform: capitalize;
 }
 
-.badge.pendente {
+.badge.\'em analise\',
+.badge.em-analise,
+.badge.em_analise {
   background: var(--color-warning-bg);
   color: var(--color-warning);
 }
 
-.badge.concedida {
+.badge.deferida,
+.badge.registrada,
+.badge.\'carta patente\',
+.badge.carta-patente,
+.badge.carta_patente {
   background: var(--color-success-bg);
   color: var(--color-success);
 }
 
-.badge.expirada {
+.badge.indeferida,
+.badge.anulada {
   background: var(--color-error-bg);
   color: var(--color-error);
 }
 
-.badge.negada {
-  background: var(--color-error-bg);
-  color: var(--color-error);
+.badge.arquivada {
+  background: var(--color-border);
+  color: var(--color-text-muted);
 }
 
 .badge.green {

@@ -5,20 +5,17 @@ const initModels = require('../src/models/init-models');
 
 initModels(sequelize);
 
-require('../src/models/PI');
-
 async function main() {
   try {
     await sequelize.authenticate();
-    console.log('✅ Conectado ao banco de dados.');
-
+    console.log('Conectado ao banco de dados.');
 
     await sequelize.sync({ force: false });
 
-    console.log('✅ Tabelas criadas/sincronizadas com sucesso: autor, PIs');
+    console.log('Tabelas criadas/sincronizadas com sucesso: autor, pi');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Erro ao criar as tabelas:', err);
+    console.error('Erro ao criar as tabelas:', err);
     process.exit(1);
   }
 }

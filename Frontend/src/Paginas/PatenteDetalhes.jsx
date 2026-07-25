@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdicionarRPIModal from '../Components/AdicionarRPIModal';
+import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
 
@@ -23,26 +24,17 @@ export default function PatenteDetalhes() {
     setRpiEvents(prev => [...prev, newRPI]);
   };
 
-  if (!pi) return <div className="container"><main style={{ flex: 1, padding: 30 }}>Carregando...</main></div>;
+  if (!pi) return <div className="container"><Sidebar /><main style={{ flex: 1, padding: 30 }}>Carregando...</main></div>;
 
   return (
     <div className="container">
-      <div className="sidebar">
-        <img src="imagens/Sistema-Logo.png" alt="UERN inova" width="150" />
-        <nav className="nav">
-          <button onClick={() => navigate("/dashboard")}>Inicio</button>
-          <button onClick={() => navigate("/propriedade-intelectual")}>Propriedades Intelectuais</button>
-          <button>Autores</button>
-          <button>Configurações</button>
-        </nav>
-        <img src="imagens/Inova-Rodape.png" alt="Rodapé" width="150" />
-      </div>
+      <Sidebar />
 
-      <main style={{ flex: 1, backgroundColor: "white", padding: "30px" }}>
+      <main style={{ flex: 1, backgroundColor: "#f3f4f6", padding: "30px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: "8px", borderRadius: "5px", display: "flex", alignItems: "center" }}><ArrowLeft size={20} /></button>
-            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Detalhes da Propriedades Intelectuais</h2>
+            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Detalhes da Propriedade Intelectual</h2>
           </div>
         </div>
 
@@ -58,10 +50,16 @@ export default function PatenteDetalhes() {
             <div style={{ backgroundColor: "white", padding: "20px", borderRadius: "10px", marginBottom: "30px" }}>
               <h3 style={{ color: "#6B21A8", marginBottom: "15px" }}>Informações principais</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", fontSize: "14px" }}>
-                <div><strong>Título:</strong><br />{pi.titulo}</div>
+                <div><strong>Tipo:</strong><br /><span style={{ textTransform: 'capitalize' }}>{pi.titulo}</span></div>
                 <div><strong>Status:</strong><br />{pi.status}</div>
                 <div><strong>Protocolo:</strong><br />{pi.protocolo || "-"}</div>
-                <div><strong>Data de Criação:</strong><br />{pi.createdAt ? new Date(pi.createdAt).toLocaleDateString("pt-BR") : "-"}</div>
+                <div><strong>Depositante:</strong><br />{pi.depositante || "-"}</div>
+                <div><strong>Parceiro:</strong><br />{pi.parceiro || "-"}</div>
+                <div><strong>Titular:</strong><br />{pi.titular || "-"}</div>
+                <div><strong>Data de Entrada:</strong><br />{pi.data_entrada ? new Date(pi.data_entrada + 'T00:00:00').toLocaleDateString("pt-BR") : "-"}</div>
+                <div><strong>Ano:</strong><br />{pi.ano || "-"}</div>
+                <div><strong>Termo de Cessão:</strong><br />{pi.termo_cessao ? "Sim" : "Não"}</div>
+                <div><strong>Data de Cadastro:</strong><br />{pi.createdAt ? new Date(pi.createdAt).toLocaleDateString("pt-BR") : "-"}</div>
               </div>
             </div>
 
