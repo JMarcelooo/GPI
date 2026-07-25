@@ -5,6 +5,7 @@ import axios from "axios";
 import Sidebar from '../Components/Sidebar';
 import "./PI.css";
 import "../Tela2.css";
+import { formatDate } from '../utils/formatDate';
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
@@ -131,7 +132,7 @@ function PropriedadesIntelectuais() {
                       </td>
                       <td>{pi.protocolo || "-"}</td>
                       <td>{pi.depositante || "-"}</td>
-                      <td>{pi.data_entrada ? new Date(pi.data_entrada + 'T00:00:00').toLocaleDateString("pt-BR") : "-"}</td>
+                      <td>{formatDate(pi.data_entrada)}</td>
                       <td style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => navigate(`/detalhes/${pi.id}`)} className="btn-acao" title="Visualizar"><Eye size={18} /></button>
                         <button onClick={() => navigate(`/editar-pi/${pi.id}`)} className="btn-acao" title="Editar"><Pencil size={18} /></button>

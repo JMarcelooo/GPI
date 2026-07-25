@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
+import Toast from '../Components/Toast';
 import './Detalhe1.css';
 
 const TIPOS_PI = [
@@ -44,6 +45,7 @@ export default function EditarPI() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -108,6 +110,10 @@ export default function EditarPI() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.data_entrada && isNaN(new Date(form.data_entrada).getTime())) {
+      setToast({ message: 'Data de entrada inválida.', type: 'error' });
+      return;
+    }
     setSubmitting(true);
     try {
       await axios.put(`${process.env.REACT_APP_API_URL}/api/pi/${id}`, {
@@ -116,10 +122,11 @@ export default function EditarPI() {
         data_entrada: form.data_entrada || null,
         autores: autoresSelecionados
       });
-      navigate('/propriedade-intelectual');
+      setToast({ message: 'PI atualizada com sucesso!', type: 'success' });
+      setTimeout(() => navigate('/propriedade-intelectual'), 1200);
     } catch (err) {
       console.error("Erro ao atualizar PI:", err);
-      alert("Erro ao atualizar PI. Verifique os dados e tente novamente.");
+      setToast({ message: 'Erro ao atualizar PI. Verifique os dados.', type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -289,6 +296,7 @@ export default function EditarPI() {
           onRegisterSuccess={handleRegisterAuthorSuccess}
         />
       )}
+      <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
     </div>
   );
 }

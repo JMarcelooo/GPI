@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
+import Toast from '../Components/Toast';
 import './Detalhe1.css';
 
 const TIPOS_PI = [
@@ -42,6 +43,7 @@ export default function CadastroPI() {
   const [searchAutor, setSearchAutor] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
   const searchRef = useRef(null);
 
   useEffect(() => {
@@ -82,6 +84,10 @@ export default function CadastroPI() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.data_entrada && isNaN(new Date(form.data_entrada).getTime())) {
+      setToast({ message: 'Data de entrada inválida.', type: 'error' });
+      return;
+    }
     setSubmitting(true);
     try {
       await axios.post(`${process.env.REACT_APP_API_URL}/api/pi`, {
@@ -90,10 +96,11 @@ export default function CadastroPI() {
         data_entrada: form.data_entrada || null,
         autores: autoresSelecionados
       });
-      navigate('/propriedade-intelectual');
+      setToast({ message: 'PI cadastrada com sucesso!', type: 'success' });
+      setTimeout(() => navigate('/propriedade-intelectual'), 1200);
     } catch (err) {
       console.error("Erro ao cadastrar PI:", err);
-      alert("Erro ao cadastrar PI. Verifique os dados e tente novamente.");
+      setToast({ message: 'Erro ao cadastrar PI. Verifique os dados.', type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -254,6 +261,7 @@ export default function CadastroPI() {
           onRegisterSuccess={handleRegisterAuthorSuccess}
         />
       )}
+      <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
     </div>
   );
 }

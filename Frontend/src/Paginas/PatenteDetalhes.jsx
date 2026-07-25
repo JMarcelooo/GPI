@@ -5,6 +5,7 @@ import AdicionarRPIModal from '../Components/AdicionarRPIModal';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
+import { formatDate } from '../utils/formatDate';
 
 export default function PatenteDetalhes() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function PatenteDetalhes() {
                 <div><strong>Depositante:</strong><br />{pi.depositante || "-"}</div>
                 <div><strong>Parceiro:</strong><br />{pi.parceiro || "-"}</div>
                 <div><strong>Titular:</strong><br />{pi.titular || "-"}</div>
-                <div><strong>Data de Entrada:</strong><br />{pi.data_entrada ? new Date(pi.data_entrada + 'T00:00:00').toLocaleDateString("pt-BR") : "-"}</div>
+                <div><strong>Data de Entrada:</strong><br />{formatDate(pi.data_entrada)}</div>
                 <div><strong>Ano:</strong><br />{pi.ano || "-"}</div>
                 <div><strong>Termo de Cessão:</strong><br />{pi.termo_cessao ? "Sim" : "Não"}</div>
                 <div><strong>Data de Cadastro:</strong><br />{pi.createdAt ? new Date(pi.createdAt).toLocaleDateString("pt-BR") : "-"}</div>
