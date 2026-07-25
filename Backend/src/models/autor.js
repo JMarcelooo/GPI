@@ -12,32 +12,32 @@ module.exports = function(sequelize, DataTypes) {
     },
     email: {
       type: DataTypes.STRING(50),
-      allowNull: false
+      allowNull: true
     },
     bond: {
       type: DataTypes.STRING(30),
-      allowNull: false
+      allowNull: true
     },
     department: {
       type: DataTypes.STRING(50),
-      allowNull: false
+      allowNull: true
     },
     campus: {
       type: DataTypes.STRING(30),
-      allowNull: false
+      allowNull: true
     },
     university: {
       type: DataTypes.STRING(50),
-      allowNull: false
+      allowNull: true
     },
     gender: {
       type: DataTypes.STRING(20),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 'Nao informado'
     },
     phone: {
       type: DataTypes.STRING(20),
-      allowNull: false
+      allowNull: true
     }
   }, {
     sequelize,

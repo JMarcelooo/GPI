@@ -69,7 +69,7 @@ export default function CadastroPI() {
   const autoresFiltrados = autoresDisponiveis.filter(a =>
     !autoresSelecionados.includes(a.id) &&
     (a.name.toLowerCase().includes(searchAutor.toLowerCase()) ||
-     a.email.toLowerCase().includes(searchAutor.toLowerCase()))
+     (a.email && a.email.toLowerCase().includes(searchAutor.toLowerCase())))
   );
 
   const adicionarAutorNaLista = (autor) => {

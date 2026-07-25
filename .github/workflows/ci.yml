@@ -22,9 +22,7 @@ jobs:
         working-directory: Backend
 
       - name: Lint backend
-        run: |
-          chmod +x node_modules/.bin/eslint
-          npm run lint
+        run: npm run lint
         working-directory: Backend
 
       - name: Install frontend dependencies

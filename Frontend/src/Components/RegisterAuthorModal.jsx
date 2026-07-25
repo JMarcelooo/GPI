@@ -20,11 +20,7 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (phone.length !== 11) {
-          setPhoneError('Telefone deve ter exatamente 11 dígitos');
-          return;
-        }
-        const newAuthorData = { name, email, bond, department, campus, university, gender, phone };
+        const newAuthorData = { name, email, bond: bond || null, department, campus, university, gender, phone };
         try {
             if (onRegisterSuccess) {
                 await onRegisterSuccess(newAuthorData);
@@ -64,7 +60,6 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="email@email.com"
-                            required
                         />
                     </div>
                     <div className="form-group">
@@ -75,7 +70,6 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             value={phone}
                             onChange={handlePhoneChange}
                             placeholder="11999999999"
-                            required
                             maxLength={11}
                             style={phoneError ? { borderColor: '#dc3545' } : {}}
                         />
@@ -95,7 +89,6 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                                     value="Docente"
                                     checked={bond === 'Docente'}
                                     onChange={(e) => setBond(e.target.value)}
-                                    required
                                 /> Docente
                             </label>
                             <label>
@@ -124,6 +117,15 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                                     checked={bond === 'Discente Pós-Graduação'}
                                     onChange={(e) => setBond(e.target.value)}
                                 /> Discente Pós-Graduação
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="bond"
+                                    value="Instituição"
+                                    checked={bond === 'Instituição'}
+                                    onChange={(e) => setBond(e.target.value)}
+                                /> Instituição
                             </label>
                         </div>
                     </div>
@@ -167,7 +169,6 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                                     value="Masculino"
                                     checked={gender === 'Masculino'}
                                     onChange={(e) => setGender(e.target.value)}
-                                    required
                                 /> Masculino
                             </label>
                             <label>

@@ -2,12 +2,12 @@ const { autor: Autor } = require('../models/index');
 
 // CREATE
 exports.createAutor = async (req, res) => {
-  const { name, email, bond, department, campus, university, gender, phone } = req.body;
+  const { name } = req.body;
 
-  if (!name || !email || !bond || !department || !campus || !university || !gender || !phone) {
+  if (!name) {
     return res.status(400).json({
       success: false,
-      error: 'Todos os campos são obrigatórios'
+      error: 'Nome é obrigatório'
     });
   }
 

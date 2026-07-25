@@ -40,10 +40,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (phone.length !== 11) {
-          setPhoneError('Informe um telefone válido');
-          return;
-        }
         const updatedAuthorData = {
             ...author,
             name,
@@ -96,7 +92,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="email@email.com"
-                            required
                         />
                     </div>
                     <div className="form-group">
@@ -107,7 +102,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             value={phone}
                             onChange={handlePhoneChange}
                             placeholder="11999999999"
-                            required
                             maxLength={11}
                             style={phoneError ? { borderColor: '#dc3545' } : {}}
                         />
@@ -127,7 +121,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                                     value="Docente"
                                     checked={bond === 'Docente'}
                                     onChange={(e) => setBond(e.target.value)}
-                                    required
                                 /> Docente
                             </label>
                             <label>
@@ -156,6 +149,15 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                                     checked={bond === 'Discente Pós-Graduação'}
                                     onChange={(e) => setBond(e.target.value)}
                                 /> Discente Pós-Graduação
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="bond"
+                                    value="Instituição"
+                                    checked={bond === 'Instituição'}
+                                    onChange={(e) => setBond(e.target.value)}
+                                /> Instituição
                             </label>
                         </div>
                     </div>
@@ -199,7 +201,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                                     value="Masculino"
                                     checked={gender === 'Masculino'}
                                     onChange={(e) => setGender(e.target.value)}
-                                    required
                                 /> Masculino
                             </label>
                             <label>
