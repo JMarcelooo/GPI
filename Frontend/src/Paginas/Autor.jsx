@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SlidersHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
+import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
@@ -35,6 +35,22 @@ export default function Autor() {
     const [authorToDelete, setAuthorToDelete] = useState(null);
     const [authorToView, setAuthorToView] = useState(null);
     const [filters, setFilters] = useState({});
+    const [sortField, setSortField] = useState(null);
+    const [sortDir, setSortDir] = useState('asc');
+
+    const handleSort = (field) => {
+      if (sortField === field) {
+        setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+        setSortField(field);
+        setSortDir('asc');
+      }
+    };
+
+    const sortIcon = (field) => {
+      if (sortField !== field) return null;
+      return sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+    };
 
     const [allAuthors, setAllAuthors] = useState([]);
    useEffect(() => {
@@ -47,8 +63,10 @@ export default function Autor() {
     });
 }, []);
 
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, filters]);
+
     // Aplica busca textual + filtros
-    const filteredAuthors = allAuthors.filter(author => {
+    let filteredAuthors = allAuthors.filter(author => {
     const matchesSearch = !searchTerm || (
       (author.name && author.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (author.email && author.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -62,6 +80,14 @@ export default function Autor() {
     return matchesSearch && matchesFilters;
 });
 
+    if (sortField) {
+      filteredAuthors = [...filteredAuthors].sort((a, b) => {
+        const valA = (a[sortField] || '').toString().toLowerCase();
+        const valB = (b[sortField] || '').toString().toLowerCase();
+        const cmp = valA.localeCompare(valB);
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
 
     // Lógica de paginação
     const indexOfLastAuthor = currentPage * authorsPerPage;
@@ -179,11 +205,11 @@ export default function Autor() {
                     <table className="authors-table">
                         <thead>
                             <tr>
-                                <th>Nome</th>
+                                <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>Nome {sortIcon('name')}</th>
                                 <th>E-mail</th>
                                 <th>Telefone</th>
-                                <th>Gênero</th>
-                                <th>Universidade</th>
+                                <th onClick={() => handleSort('gender')} style={{ cursor: 'pointer', userSelect: 'none' }}>Gênero {sortIcon('gender')}</th>
+                                <th onClick={() => handleSort('university')} style={{ cursor: 'pointer', userSelect: 'none' }}>Universidade {sortIcon('university')}</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
