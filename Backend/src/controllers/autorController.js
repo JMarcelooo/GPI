@@ -42,7 +42,9 @@ exports.getAllAutores = async (req, res) => {
 
 exports.getAutorByID = async (req, res) => {
   try {
-    const autor = await Autor.findByPk(req.params.id);
+    const autor = await Autor.findByPk(req.params.id, {
+      include: [{ association: 'PIs' }]
+    });
     if (!autor) {
       return res.status(404).json({ success: false, error: 'Autor não encontrado' });
     }

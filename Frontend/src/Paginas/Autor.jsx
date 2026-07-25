@@ -92,8 +92,14 @@ export default function Autor() {
     };
     const handleCloseUpdateModal = () => setShowUpdateModal(false);
 
-    const handleOpenViewModal = (author) => {
-      setAuthorToView(author);
+    const handleOpenViewModal = async (author) => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/autores/${author.id}`);
+        setAuthorToView(response.data.data);
+      } catch (error) {
+        console.error("Erro ao buscar autor:", error);
+        setAuthorToView(author);
+      }
       setShowViewModal(true);
     };
     const handleCloseViewModal = () => {

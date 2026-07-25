@@ -19,7 +19,7 @@ const genderLabel = (g) => {
 };
 
 export default function ViewAuthorModal({ onClose, author }) {
-  const associatedPI = [];
+  const associatedPI = author.PIs || [];
 
   const infoItems = [
     { label: 'E-mail', value: author.email, icon: '@' },
@@ -152,10 +152,10 @@ export default function ViewAuthorModal({ onClose, author }) {
               <span>Nenhuma propriedade intelectual vinculada a este autor.</span>
             </div>
           ) : (
-            <table className="authors-table">
+              <table className="authors-table">
               <thead>
                 <tr>
-                  <th>Título</th>
+                  <th>Tipo</th>
                   <th>Protocolo</th>
                   <th>Status</th>
                 </tr>
@@ -163,7 +163,7 @@ export default function ViewAuthorModal({ onClose, author }) {
               <tbody>
                 {associatedPI.map(pi => (
                   <tr key={pi.id}>
-                    <td>{pi.titulo}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{pi.titulo}</td>
                     <td>{pi.protocolo}</td>
                     <td>{pi.status}</td>
                   </tr>

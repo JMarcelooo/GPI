@@ -70,6 +70,13 @@ exports.createPI = async (req, res) => {
     };
 
     const newPI = await PI.create(piData);
+
+    if (req.body.autores && Array.isArray(req.body.autores) && req.body.autores.length > 0) {
+      const autorIds = req.body.autores;
+      const values = autorIds.map(autorId => `(${newPI.id}, ${autorId})`).join(', ');
+      await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
+    }
+
     res.status(201).json({ success: true, data: newPI });
   } catch (error) {
     res.status(500).json({
