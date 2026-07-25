@@ -8,19 +8,15 @@ CREATE TABLE IF NOT EXISTS "usuarios" (
 CREATE TABLE IF NOT EXISTS "pi" (
 	"id" serial NOT NULL UNIQUE,
 	"tipo" varchar(50) NOT NULL,
-	"titulo" varchar(50) NOT NULL,
-	"protocolo" varchar(50) NOT NULL,
-	"termo_de_cessao" boolean NOT NULL,
-	"depositante" varchar(20) NOT NULL,
+	"titulo" varchar(200),
+	"depositante" varchar(100) NOT NULL,
+	"parceiro" varchar(100),
+	"titular" varchar(100),
 	"status" varchar(50) NOT NULL,
-	"nome_do_parceiro" varchar(20),
-	"data_de_entrada" date,
-	"sei" varchar(50),
-	"data_de_registro" date NOT NULL,
-	"titular" varchar(20) NOT NULL,
-	"responsavel" varchar(20),
-	"telefone" varchar(30) NOT NULL,
-	"endereco" varchar(30) NOT NULL,
+	"protocolo" varchar(50) NOT NULL UNIQUE,
+	"data_entrada" date,
+	"ano" integer,
+	"termo_cessao" boolean NOT NULL DEFAULT false,
 	PRIMARY KEY ("id")
 );
 
@@ -60,18 +56,20 @@ CREATE TABLE IF NOT EXISTS "indicadores_anuais" (
 	"tipo_pi" varchar(50) NOT NULL,
 	"quantidade_total" bigint NOT NULL,
 	"origem" varchar(50) NOT NULL,
-	"tipo_de_incador" varchar(50) NOT NULL,
+	"tipo_de_indicador" varchar(50) NOT NULL,
 	PRIMARY KEY ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "autor" (
 	"id" serial NOT NULL UNIQUE,
-	"nome" varchar(50) NOT NULL,
+	"name" varchar(50) NOT NULL,
 	"email" varchar(50) NOT NULL,
-	"vinculo" varchar(30) NOT NULL,
-	"departamento" varchar(50) NOT NULL,
+	"bond" varchar(30) NOT NULL,
+	"department" varchar(50) NOT NULL,
 	"campus" varchar(30) NOT NULL,
-	"universidade" varchar(50) NOT NULL,
+  "university" varchar(50) NOT NULL,
+  "gender" varchar(20) NOT NULL DEFAULT 'Nao informado',
+  "phone" varchar(20) NOT NULL,
 	PRIMARY KEY ("id")
 );
 

@@ -7,7 +7,7 @@ function Cadastro() {
 
   return (
     <div className="tela">
-    <img src="imagens/Sistema-Logo.png" alt="UERN inova" width="150" height="auto"/>
+    <img src="/imagens/Sistema-Logo.png" alt="UERN inova" width="150" height="auto"/>
       <h2>Cadastro de Usuário</h2>
 
       <input type="text" placeholder="Digite seu nome completo" />
@@ -25,7 +25,7 @@ function Cadastro() {
           Cadastrar
         </button>
       </div>
-<img src="imagens/Inova-Rodape.png" alt="UERN inova" width="150" height="auto"/>
+<img src="/imagens/Inova-Rodape.png" alt="UERN inova" width="150" height="auto"/>
 
 
     </div>

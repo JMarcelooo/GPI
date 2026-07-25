@@ -6,6 +6,7 @@ import Dashboard from './Paginas/Dashboard';
 import PropriedadesIntelectuais from './Paginas/PropriedadesIntelectuais';
 import PatenteDetalhes from "./Paginas/PatenteDetalhes"; // <- componente de detalhes
 import CadastroPI from './Paginas/CadastroPI.jsx';
+import EditarPI from './Paginas/EditarPI';
 import Payments from './Paginas/Payments';
 import Autor from './Paginas/Autor';
 function App() {
@@ -18,7 +19,8 @@ function App() {
         <Route path="/login" element={<Login />} />
        <Route path="/propriedade-intelectual" element={<PropriedadesIntelectuais />} />
         <Route path="/detalhes/:id" element={<PatenteDetalhes />} />
-        <Route path="/cadastro-pi" element={<CadastroPI />} /> 
+        <Route path="/cadastro-pi" element={<CadastroPI />} />
+        <Route path="/editar-pi/:id" element={<EditarPI />} />
          <Route path="/pagamentos" element={<Payments />} />
         <Route path="/autores" element={<Autor />} /> {/* Esta é a nova rota para o Autor.jsx */}
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, UserPlus, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
@@ -24,8 +24,9 @@ const STATUS_PI = [
   'carta patente'
 ];
 
-export default function CadastroPI() {
+export default function EditarPI() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [form, setForm] = useState({
     tipo: '',
     titulo: '',
@@ -44,14 +45,40 @@ export default function CadastroPI() {
   const [searchAutor, setSearchAutor] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const searchRef = useRef(null);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/autores`)
-      .then(res => setAutoresDisponiveis(res.data.data || []))
-      .catch(err => console.error("Erro ao buscar autores:", err));
-  }, []);
+    Promise.all([
+      axios.get(`${process.env.REACT_APP_API_URL}/api/autores`),
+      axios.get(`${process.env.REACT_APP_API_URL}/api/pi/${id}`)
+    ])
+      .then(([autoresRes, piRes]) => {
+        setAutoresDisponiveis(autoresRes.data.data || []);
+        const pi = piRes.data.data;
+        setForm({
+          tipo: pi.tipo || '',
+          titulo: pi.titulo || '',
+          depositante: pi.depositante || '',
+          parceiro: pi.parceiro || '',
+          titular: pi.titular || '',
+          status: pi.status || 'em analise',
+          protocolo: pi.protocolo || '',
+          data_entrada: pi.data_entrada || '',
+          ano: pi.ano || new Date().getFullYear(),
+          termo_cessao: pi.termo_cessao || false
+        });
+        if (pi.autores && Array.isArray(pi.autores)) {
+          setAutoresSelecionados(pi.autores.map(a => a.id));
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Erro ao carregar dados:", err);
+        setLoading(false);
+      });
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -80,7 +107,7 @@ export default function CadastroPI() {
   };
 
   const removerAutorDaLista = (autorId) => {
-    setAutoresSelecionados(prev => prev.filter(id => id !== autorId));
+    setAutoresSelecionados(prev => prev.filter(a => a !== autorId));
   };
 
   const handleSubmit = async (e) => {
@@ -91,21 +118,32 @@ export default function CadastroPI() {
     }
     setSubmitting(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/pi`, {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/pi/${id}`, {
         ...form,
         ano: form.ano ? Number(form.ano) : null,
         data_entrada: form.data_entrada || null,
         autores: autoresSelecionados
       });
-      setToast({ message: 'PI cadastrada com sucesso!', type: 'success' });
+      setToast({ message: 'PI atualizada com sucesso!', type: 'success' });
       setTimeout(() => navigate('/propriedade-intelectual'), 1200);
     } catch (err) {
-      console.error("Erro ao cadastrar PI:", err);
-      setToast({ message: 'Erro ao cadastrar PI. Verifique os dados.', type: 'error' });
+      console.error("Erro ao atualizar PI:", err);
+      setToast({ message: 'Erro ao atualizar PI. Verifique os dados.', type: 'error' });
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container">
+        <Sidebar />
+        <main style={{ flex: 1, backgroundColor: "#f3f4f6", padding: "30px" }}>
+          Carregando...
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -124,7 +162,7 @@ export default function CadastroPI() {
             >
               ←
             </button>
-            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Cadastro de Propriedade Intelectual</h2>
+            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Editar Propriedade Intelectual</h2>
           </div>
         </div>
 
@@ -188,8 +226,7 @@ export default function CadastroPI() {
           </div>
 
           <div className="card-form-section">
-            <h3 className="section-title">Autores</h3>
-
+            <h3 className="section-title">Autores Vinculados</h3>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <div style={{ position: 'relative', flex: 1 }}>
                 <input
@@ -234,7 +271,7 @@ export default function CadastroPI() {
               </button>
             </div>
 
-            {autoresSelecionados.length > 0 && (
+            {autoresSelecionados.length > 0 ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {autoresSelecionados.map(id => {
                   const autor = autoresDisponiveis.find(a => a.id === id);
@@ -247,15 +284,14 @@ export default function CadastroPI() {
                   );
                 })}
               </div>
-            )}
-            {autoresSelecionados.length === 0 && (
+            ) : (
               <p style={{ color: '#888', fontSize: '0.875rem', margin: 0 }}>Nenhum autor selecionado.</p>
             )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px' }}>
             <button type="button" className="cancel-button" onClick={() => navigate(-1)}>Cancelar</button>
-            <button type="submit" className="submit-button" disabled={submitting}>{submitting ? "Salvando..." : "Cadastrar PI"}</button>
+            <button type="submit" className="submit-button" disabled={submitting}>{submitting ? "Salvando..." : "Salvar Alterações"}</button>
           </div>
         </form>
       </main>

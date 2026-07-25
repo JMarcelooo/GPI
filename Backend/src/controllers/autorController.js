@@ -1,13 +1,10 @@
-const sequelize = require('../config/db');
-const initModels = require('../models/init-models');
-const models = initModels(sequelize);
-const Autor = models.autor;
+const { autor: Autor } = require('../models/index');
 
 // CREATE
 exports.createAutor = async (req, res) => {
-  const { name, email, bond, department, campus, university } = req.body;
+  const { name, email, bond, department, campus, university, gender, phone } = req.body;
 
-  if (!name || !email || !bond || !department || !campus || !university) {
+  if (!name || !email || !bond || !department || !campus || !university || !gender || !phone) {
     return res.status(400).json({
       success: false,
       error: 'Todos os campos são obrigatórios'
@@ -42,7 +39,9 @@ exports.getAllAutores = async (req, res) => {
 
 exports.getAutorByID = async (req, res) => {
   try {
-    const autor = await Autor.findByPk(req.params.id);
+    const autor = await Autor.findByPk(req.params.id, {
+      include: [{ association: 'PIs' }]
+    });
     if (!autor) {
       return res.status(404).json({ success: false, error: 'Autor não encontrado' });
     }
