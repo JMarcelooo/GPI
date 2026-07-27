@@ -168,9 +168,9 @@ export default function PatenteDetalhes() {
                     {rpiEvents.map((event, index) => (
                       <div key={index} className="rpi-card">
                         <div className="card-header">
-                          <span>{event.date} - {event.version}</span>
+                          <span>{event.data} — Código: {event.codigo_evento}</span>
                         </div>
-                        <p>{event.description}</p>
+                        <p>{event.descricao_do_evento}</p>
                       </div>
                     ))}
                   </div>

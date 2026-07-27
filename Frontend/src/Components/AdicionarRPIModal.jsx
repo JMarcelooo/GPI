@@ -1,60 +1,67 @@
 import React, { useState } from 'react';
 
-import '../Paginas/Detalhe1.css';
+import '../Paginas/Modal.css';
 
 const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
   const [data, setData] = useState('');
+  const [codigoEvento, setCodigoEvento] = useState('');
   const [descricao, setDescricao] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const novaRPI = {
-      date: data,
-      version: 'Nova Versão', // Você pode precisar implementar uma lógica mais robusta para a versão
-      description: descricao,
-    };
-    onAddRPI(novaRPI);
+    onAddRPI({
+      data,
+      codigo_evento: Number(codigoEvento),
+      descricao_do_evento: descricao
+    });
     setData('');
+    setCodigoEvento('');
     setDescricao('');
     onClose();
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>Adicionar Nova Informação de RPI</h2>
-        </div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2>Adicionar RPI</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="rpi-data">Data</label>
-            <input
-              type="date"
-              id="rpi-data"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              placeholder="Selecione uma data"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="rpi-descricao">Descrição</label>
-            <textarea
-              id="rpi-descricao"
-              rows="4"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Descrição detalhada"
-              required
-            ></textarea>
-          </div>
+          <label htmlFor="rpi-data">Data</label>
+          <input
+            type="date"
+            id="rpi-data"
+            value={data}
+            onChange={(e) => setData(e.target.value)}
+            required
+          />
+
+          <label htmlFor="rpi-codigo">Código do Evento</label>
+          <input
+            type="number"
+            id="rpi-codigo"
+            value={codigoEvento}
+            onChange={(e) => setCodigoEvento(e.target.value)}
+            placeholder="Ex.: 2.1"
+            required
+          />
+
+          <label htmlFor="rpi-descricao">Descrição</label>
+          <textarea
+            id="rpi-descricao"
+            rows="4"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="Descrição detalhada do evento"
+            style={{ resize: 'vertical' }}
+            required
+          />
+
           <div className="modal-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+            <button type="button" className="cancel-btn" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="add-button">
+            <button type="submit" className="confirm-btn">
               Adicionar
             </button>
           </div>
