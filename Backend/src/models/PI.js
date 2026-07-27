@@ -24,8 +24,9 @@ const PI = sequelize.define('PI', {
     allowNull: true
   },
   titular: {
-    type: DataTypes.STRING(100),
-    allowNull: true
+    type: DataTypes.JSONB,
+    allowNull: false,
+    defaultValue: []
   },
   status: {
     type: DataTypes.ENUM(

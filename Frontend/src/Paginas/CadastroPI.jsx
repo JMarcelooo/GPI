@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, UserPlus, Search } from 'lucide-react';
+import { X, UserPlus, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
@@ -31,7 +31,7 @@ export default function CadastroPI() {
     titulo: '',
     depositante: '',
     parceiro: '',
-    titular: '',
+    titular: [''],
     status: 'em analise',
     protocolo: '',
     data_entrada: '',
@@ -56,6 +56,26 @@ export default function CadastroPI() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const handleTitularChange = (index, value) => {
+    setForm(prev => {
+      const updated = [...prev.titular];
+      updated[index] = value;
+      return { ...prev, titular: updated };
+    });
+  };
+
+  const addTitular = () => {
+    setForm(prev => ({ ...prev, titular: [...prev.titular, ''] }));
+  };
+
+  const removeTitular = (index) => {
+    if (form.titular.length <= 1) return;
+    setForm(prev => ({
+      ...prev,
+      titular: prev.titular.filter((_, i) => i !== index)
+    }));
   };
 
   const handleRegisterAuthorSuccess = async (newAuthorData) => {
@@ -95,6 +115,7 @@ export default function CadastroPI() {
         ...form,
         ano: form.ano ? Number(form.ano) : null,
         data_entrada: form.data_entrada || null,
+        titular: form.titular.filter(Boolean),
         autores: autoresSelecionados
       });
       setToast({ message: 'PI cadastrada com sucesso!', type: 'success' });
@@ -174,9 +195,36 @@ export default function CadastroPI() {
                 <label htmlFor="parceiro">Parceiro</label>
                 <input type="text" id="parceiro" name="parceiro" value={form.parceiro} onChange={handleChange} />
               </div>
-              <div className="form-group">
-                <label htmlFor="titular">Titular</label>
-                <input type="text" id="titular" name="titular" value={form.titular} onChange={handleChange} />
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Titulares</label>
+                {form.titular.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={t}
+                      onChange={e => handleTitularChange(i, e.target.value)}
+                      placeholder={`Titular ${i + 1}`}
+                      style={{ flex: 1 }}
+                    />
+                    {form.titular.length > 1 && (
+                      <button type="button" onClick={() => removeTitular(i)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: '#EF4444', padding: 4, display: 'flex'
+                      }}>
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={addTitular} style={{
+                  background: 'none', border: '1px dashed var(--color-border)',
+                  borderRadius: 'var(--radius-md)', padding: '8px 16px',
+                  cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--text-sm)',
+                  fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
+                  marginTop: 4
+                }}>
+                  <Plus size={14} /> Adicionar titular
+                </button>
               </div>
               <div className="form-group">
                 <label htmlFor="data_entrada">Data de Entrada</label>

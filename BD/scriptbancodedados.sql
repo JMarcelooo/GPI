@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS "pi" (
 	"titulo" varchar(200),
 	"depositante" varchar(100) NOT NULL,
 	"parceiro" varchar(100),
-	"titular" varchar(100),
+	"titular" jsonb NOT NULL DEFAULT '[]',
 	"status" varchar(50) NOT NULL,
 	"protocolo" varchar(50) NOT NULL UNIQUE,
 	"data_entrada" date,

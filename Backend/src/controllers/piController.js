@@ -62,7 +62,7 @@ exports.createPI = async (req, res) => {
       titulo: req.body.titulo || null,
       depositante: req.body.depositante,
       parceiro: req.body.parceiro || null,
-      titular: req.body.titular || null,
+      titular: Array.isArray(req.body.titular) ? req.body.titular : (req.body.titular ? [req.body.titular] : []),
       status: req.body.status || 'em analise',
       protocolo: req.body.protocolo,
       data_entrada: req.body.data_entrada || null,
@@ -257,7 +257,7 @@ exports.searchPIs = async (req, res) => {
         pi.protocolo.toLowerCase().includes(searchTerm) ||
         pi.depositante.toLowerCase().includes(searchTerm) ||
         (pi.parceiro && pi.parceiro.toLowerCase().includes(searchTerm)) ||
-        (pi.titular && pi.titular.toLowerCase().includes(searchTerm))
+        (pi.titular && Array.isArray(pi.titular) && pi.titular.some(t => t.toLowerCase().includes(searchTerm)))
       );
     }
 
@@ -347,7 +347,7 @@ exports.getTitularesByPI = async (req, res) => {
 
     res.json({
       success: true,
-      data: pi.titular || null
+      data: Array.isArray(pi.titular) ? pi.titular : (pi.titular ? [pi.titular] : [])
     });
   } catch (error) {
     console.error('Erro ao buscar titular:', error);
