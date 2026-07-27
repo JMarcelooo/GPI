@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Eye, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from '../Components/Sidebar';
 import "./PI.css";
 import "../Tela2.css";
 import { formatDate, formatStatus } from '../utils/formatDate';
+import FilterPIModal from '../Components/FilterPIModal';
 import Toast from '../Components/Toast';
 
 function normalizeStatus(status) {
@@ -17,8 +18,8 @@ function PropriedadesIntelectuais() {
   const [pis, setPis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState("");
-  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filters, setFilters] = useState({});
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [piToDelete, setPiToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -69,7 +70,7 @@ function PropriedadesIntelectuais() {
     }
   };
 
-  useEffect(() => { setCurrentPage(1); }, [searchTerm, filtroStatus, filtroTipo]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filters]);
 
   const sortedPIs = (() => {
     let list = pis.filter(pi => {
@@ -78,8 +79,8 @@ function PropriedadesIntelectuais() {
         pi.depositante.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (pi.parceiro && pi.parceiro.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      const matchStatus = !filtroStatus || pi.status === filtroStatus;
-            const matchTipo = !filtroTipo || pi.tipo === filtroTipo;
+      const matchStatus = !filters.status || pi.status === filters.status;
+      const matchTipo = !filters.tipo || pi.tipo === filters.tipo;
       return matchSearch && matchStatus && matchTipo;
     });
     if (sortField) {
@@ -122,31 +123,9 @@ function PropriedadesIntelectuais() {
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
-              <select
-                value={filtroTipo}
-                onChange={e => setFiltroTipo(e.target.value)}
-                style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.875rem" }}
-              >
-                <option value="">Todos os tipos</option>
-                <option value="patente de invencao">Patente de Invenção</option>
-                <option value="modelo de utilidade">Modelo de Utilidade</option>
-                <option value="marca">Marca</option>
-                <option value="programa de computador">Programa de Computador</option>
-              </select>
-              <select
-                value={filtroStatus}
-                onChange={e => setFiltroStatus(e.target.value)}
-                style={{ padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "0.875rem" }}
-              >
-                <option value="">Todos os status</option>
-                <option value="indeferida">Indeferida</option>
-                <option value="anulada">Anulada</option>
-                <option value="arquivada">Arquivada</option>
-                <option value="em analise">Em Análise</option>
-                <option value="deferida">Deferida</option>
-                <option value="registrada">Registrada</option>
-                <option value="carta patente">Carta Patente</option>
-              </select>
+              <button className="filter-button" onClick={() => setShowFilterModal(true)}>
+                <SlidersHorizontal size={16} className="filter-icon" /> Filtros
+              </button>
               <button className="btn-novo-pi" onClick={() => navigate("/cadastro-pi")}>
                 + Cadastrar Nova PI
               </button>
@@ -261,6 +240,13 @@ function PropriedadesIntelectuais() {
         </div>
       </div>
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+      {showFilterModal && (
+        <FilterPIModal
+          onClose={() => setShowFilterModal(false)}
+          onApplyFilters={setFilters}
+          currentFilters={filters}
+        />
+      )}
       {piToDelete && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',

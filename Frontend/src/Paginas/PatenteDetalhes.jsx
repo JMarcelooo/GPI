@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Edit2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdicionarRPIModal from '../Components/AdicionarRPIModal';
 import Sidebar from '../Components/Sidebar';
@@ -16,7 +16,10 @@ export default function PatenteDetalhes() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [pi, setPi] = useState(null);
+  const [loadingError, setLoadingError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
   const [activeTab, setActiveTab] = useState('geral');
   const [rpiEvents, setRpiEvents] = useState([]);
   const [deleting, setDeleting] = useState(false);
@@ -24,9 +27,20 @@ export default function PatenteDetalhes() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/pi/${id}`)
-      .then(res => setPi(res.data.data))
-      .catch(err => console.error("Erro ao buscar PI:", err));
+    const api = process.env.REACT_APP_API_URL;
+    axios.get(`${api}/api/pi/${id}`)
+      .then(res => {
+        setPi(res.data.data);
+        setLoadingError(null);
+      })
+      .catch(err => {
+        console.error("Erro ao buscar PI:", err);
+        setLoadingError(err.response?.status === 404 ? 'PI não encontrada.' : 'Erro ao carregar PI.');
+      });
+
+    axios.get(`${api}/api/pi/${id}/rpis`)
+      .then(res => setRpiEvents(res.data.data || []))
+      .catch(err => console.error("Erro ao buscar RPIs:", err));
   }, [id]);
 
   const handleDelete = async () => {
@@ -44,9 +58,78 @@ export default function PatenteDetalhes() {
     }
   };
 
-  const handleAddRPI = (newRPI) => {
-    setRpiEvents(prev => [...prev, newRPI]);
+  const handleAddRPI = async (newRPI) => {
+    try {
+      const api = process.env.REACT_APP_API_URL;
+      const res = await axios.post(`${api}/api/rpi`, { ...newRPI, pi_id: Number(id) });
+      setRpiEvents(prev => [...prev, res.data.data]);
+      setToast({ message: 'RPI adicionada com sucesso!', type: 'success' });
+    } catch (err) {
+      console.error("Erro ao adicionar RPI:", err);
+      setToast({ message: 'Erro ao adicionar RPI.', type: 'error' });
+    }
   };
+
+  const handleEditClick = (event, index) => {
+    setEditingEvent(event);
+    setEditingIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const handleUpdateRPI = async (updatedEvent) => {
+    try {
+      const rpiId = rpiEvents[editingIndex].id;
+      const api = process.env.REACT_APP_API_URL;
+      const res = await axios.put(`${api}/api/rpi/${rpiId}`, updatedEvent);
+      setRpiEvents(prev => prev.map((e, i) => i === editingIndex ? res.data.data : e));
+      setEditingEvent(null);
+      setEditingIndex(null);
+      setToast({ message: 'RPI atualizada com sucesso!', type: 'success' });
+    } catch (err) {
+      console.error("Erro ao atualizar RPI:", err);
+      setToast({ message: 'Erro ao atualizar RPI.', type: 'error' });
+    }
+  };
+
+  const handleDeleteRPI = async () => {
+    try {
+      const rpiId = rpiEvents[editingIndex].id;
+      const api = process.env.REACT_APP_API_URL;
+      await axios.delete(`${api}/api/rpi/${rpiId}`);
+      setRpiEvents(prev => prev.filter((_, i) => i !== editingIndex));
+      setEditingEvent(null);
+      setEditingIndex(null);
+      setToast({ message: 'RPI removida com sucesso!', type: 'success' });
+    } catch (err) {
+      console.error("Erro ao remover RPI:", err);
+      setToast({ message: 'Erro ao remover RPI.', type: 'error' });
+    }
+  };
+
+  const openAddModal = () => {
+    setEditingEvent(null);
+    setEditingIndex(null);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setEditingEvent(null);
+    setEditingIndex(null);
+    setIsModalOpen(false);
+  };
+
+  if (loadingError) return (
+    <div className="container">
+      <Sidebar />
+      <main style={{ flex: 1, padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+        <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{loadingError}</p>
+        <button onClick={() => navigate('/propriedade-intelectual')} style={{
+          background: '#7C3AED', color: '#fff', border: 'none', padding: '10px 24px',
+          borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer'
+        }}>Voltar para lista</button>
+      </main>
+    </div>
+  );
 
   if (!pi) return <div className="container"><Sidebar /><main style={{ flex: 1, padding: 30 }}>Carregando...</main></div>;
 
@@ -145,7 +228,7 @@ export default function PatenteDetalhes() {
                   <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Protocolo</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.protocolo || "-"}</span></div>
                   <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Depositante</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.depositante || "-"}</span></div>
                   <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parceiro</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.parceiro || "-"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Titular</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.titular || "-"}</span></div>
+                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Titulares</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{Array.isArray(pi.titular) ? pi.titular.filter(Boolean).join(', ') : (pi.titular || "-")}</span></div>
                   <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data de Entrada</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{formatDate(pi.data_entrada)}</span></div>
                   <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ano</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.ano || "-"}</span></div>
                   <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Termo de Cessão</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.termo_cessao ? "Sim" : "Não"}</span></div>
@@ -158,7 +241,7 @@ export default function PatenteDetalhes() {
                   <div className="title-section">
                     <h1>Informações de RPI</h1>
                   </div>
-                  <button className="add-rpi-button" onClick={() => setIsModalOpen(true)}>+ Adicionar RPI</button>
+                  <button className="add-rpi-button" onClick={openAddModal}>+ Adicionar RPI</button>
                 </div>
 
                 {rpiEvents.length === 0 ? (
@@ -167,10 +250,14 @@ export default function PatenteDetalhes() {
                   <div className="rpi-events-grid">
                     {rpiEvents.map((event, index) => (
                       <div key={index} className="rpi-card">
-                        <div className="card-header">
-                          <span>{event.date} - {event.version}</span>
+                        <div className="rpi-card-body">
+                          <p className="rpi-date">{formatDate(event.data)}</p>
+                          <span className="rpi-code">Código: {event.codigo_evento}</span>
+                          <p className="rpi-description">{event.descricao_do_evento}</p>
                         </div>
-                        <p>{event.description}</p>
+                        <button className="rpi-edit-btn" onClick={() => handleEditClick(event, index)} title="Editar RPI">
+                          <Edit2 size={16} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -190,7 +277,14 @@ export default function PatenteDetalhes() {
         </div>
       </main>
 
-      <AdicionarRPIModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onAddRPI={handleAddRPI} />
+      <AdicionarRPIModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onAddRPI={handleAddRPI}
+        onUpdateRPI={handleUpdateRPI}
+        onDeleteRPI={handleDeleteRPI}
+        event={editingEvent}
+      />
 
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
       {confirmDelete && (

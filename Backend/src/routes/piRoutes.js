@@ -31,4 +31,7 @@ router.route('/status/:status')
 router.route('/:id/titulares')
   .get(piController.getTitularesByPI);
 
+router.route('/:id/rpis')
+  .get(piController.getRPIsByPI);
+
 module.exports = router;

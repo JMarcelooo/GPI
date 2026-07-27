@@ -24,7 +24,7 @@ const formatPhone = (phone) => {
 export default function Autor() {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const authorsPerPage = 4;
+    const authorsPerPage = 10;
 
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);

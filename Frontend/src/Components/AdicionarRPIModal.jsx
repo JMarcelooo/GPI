@@ -1,61 +1,96 @@
 import React, { useState } from 'react';
+import { Trash2 } from 'lucide-react';
+import '../Paginas/Modal.css';
 
-import '../Paginas/Detalhe1.css';
-
-const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
-  const [data, setData] = useState('');
-  const [descricao, setDescricao] = useState('');
+const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI, onUpdateRPI, onDeleteRPI, event }) => {
+  const [data, setData] = useState(event ? event.data : '');
+  const [codigoEvento, setCodigoEvento] = useState(event ? String(event.codigo_evento) : '');
+  const [descricao, setDescricao] = useState(event ? event.descricao_do_evento : '');
 
   if (!isOpen) return null;
 
+  const isEditing = !!event;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const novaRPI = {
-      date: data,
-      version: 'Nova Versão', // Você pode precisar implementar uma lógica mais robusta para a versão
-      description: descricao,
+    const payload = {
+      data,
+      codigo_evento: Number(codigoEvento),
+      descricao_do_evento: descricao
     };
-    onAddRPI(novaRPI);
+    if (isEditing && onUpdateRPI) {
+      onUpdateRPI(payload);
+    } else if (onAddRPI) {
+      onAddRPI(payload);
+    }
     setData('');
+    setCodigoEvento('');
+    setDescricao('');
+    onClose();
+  };
+
+  const handleDelete = () => {
+    if (onDeleteRPI) {
+      onDeleteRPI();
+    }
+    setData('');
+    setCodigoEvento('');
     setDescricao('');
     onClose();
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>Adicionar Nova Informação de RPI</h2>
-        </div>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2>{isEditing ? 'Editar RPI' : 'Adicionar RPI'}</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="rpi-data">Data</label>
-            <input
-              type="date"
-              id="rpi-data"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-              placeholder="Selecione uma data"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="rpi-descricao">Descrição</label>
-            <textarea
-              id="rpi-descricao"
-              rows="4"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Descrição detalhada"
-              required
-            ></textarea>
-          </div>
+          <label htmlFor="rpi-data">Data</label>
+          <input
+            type="date"
+            id="rpi-data"
+            value={data}
+            onChange={(e) => setData(e.target.value)}
+            required
+          />
+
+          <label htmlFor="rpi-codigo">Código do Evento</label>
+          <input
+            type="number"
+            id="rpi-codigo"
+            value={codigoEvento}
+            onChange={(e) => setCodigoEvento(e.target.value)}
+            placeholder="Ex.: 123"
+            required
+          />
+
+          <label htmlFor="rpi-descricao">Descrição</label>
+          <textarea
+            id="rpi-descricao"
+            rows="4"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="Descrição detalhada do evento"
+            style={{ resize: 'vertical' }}
+            required
+          />
+
           <div className="modal-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+            {isEditing && (
+              <button
+                type="button"
+                className="confirm-btn"
+                style={{ background: '#EF4444', marginRight: 'auto' }}
+                onClick={handleDelete}
+              >
+                <Trash2 size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                Excluir
+              </button>
+            )}
+            <button type="button" className="cancel-btn" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="add-button">
-              Adicionar
+            <button type="submit" className="confirm-btn">
+              {isEditing ? 'Salvar' : 'Adicionar'}
             </button>
           </div>
         </form>

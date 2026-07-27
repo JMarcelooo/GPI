@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS "pi" (
 	"titulo" varchar(200),
 	"depositante" varchar(100) NOT NULL,
 	"parceiro" varchar(100),
-	"titular" varchar(100),
+	"titular" jsonb NOT NULL DEFAULT '[]',
 	"status" varchar(50) NOT NULL,
 	"protocolo" varchar(50) NOT NULL UNIQUE,
 	"data_entrada" date,
@@ -43,10 +43,9 @@ CREATE TABLE IF NOT EXISTS "controle_processos" (
 CREATE TABLE IF NOT EXISTS "RPI" (
 	"id" serial NOT NULL UNIQUE,
 	"data" date NOT NULL,
-	"pi_id" bigint NOT NULL,
+	"pi_id" integer NOT NULL,
 	"codigo_evento" double precision NOT NULL,
-	"tipo_de_evento" varchar(50) NOT NULL,
-	"descricao_do_evento" varchar(50),
+	"descricao_do_evento" varchar(255),
 	PRIMARY KEY ("id")
 );
 
