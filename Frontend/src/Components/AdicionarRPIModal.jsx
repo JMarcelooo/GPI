@@ -1,21 +1,38 @@
 import React, { useState } from 'react';
-
+import { Trash2 } from 'lucide-react';
 import '../Paginas/Modal.css';
 
-const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
-  const [data, setData] = useState('');
-  const [codigoEvento, setCodigoEvento] = useState('');
-  const [descricao, setDescricao] = useState('');
+const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI, onUpdateRPI, onDeleteRPI, event }) => {
+  const [data, setData] = useState(event ? event.data : '');
+  const [codigoEvento, setCodigoEvento] = useState(event ? String(event.codigo_evento) : '');
+  const [descricao, setDescricao] = useState(event ? event.descricao_do_evento : '');
 
   if (!isOpen) return null;
 
+  const isEditing = !!event;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAddRPI({
+    const payload = {
       data,
       codigo_evento: Number(codigoEvento),
       descricao_do_evento: descricao
-    });
+    };
+    if (isEditing && onUpdateRPI) {
+      onUpdateRPI(payload);
+    } else if (onAddRPI) {
+      onAddRPI(payload);
+    }
+    setData('');
+    setCodigoEvento('');
+    setDescricao('');
+    onClose();
+  };
+
+  const handleDelete = () => {
+    if (onDeleteRPI) {
+      onDeleteRPI();
+    }
     setData('');
     setCodigoEvento('');
     setDescricao('');
@@ -25,7 +42,7 @@ const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Adicionar RPI</h2>
+        <h2>{isEditing ? 'Editar RPI' : 'Adicionar RPI'}</h2>
         <form onSubmit={handleSubmit}>
           <label htmlFor="rpi-data">Data</label>
           <input
@@ -42,7 +59,7 @@ const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
             id="rpi-codigo"
             value={codigoEvento}
             onChange={(e) => setCodigoEvento(e.target.value)}
-            placeholder="Ex.: 2.1"
+            placeholder="Ex.: 123"
             required
           />
 
@@ -58,11 +75,22 @@ const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI }) => {
           />
 
           <div className="modal-actions">
+            {isEditing && (
+              <button
+                type="button"
+                className="confirm-btn"
+                style={{ background: '#EF4444', marginRight: 'auto' }}
+                onClick={handleDelete}
+              >
+                <Trash2 size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                Excluir
+              </button>
+            )}
             <button type="button" className="cancel-btn" onClick={onClose}>
               Cancelar
             </button>
             <button type="submit" className="confirm-btn">
-              Adicionar
+              {isEditing ? 'Salvar' : 'Adicionar'}
             </button>
           </div>
         </form>

@@ -15,6 +15,7 @@ app.use((req, res, next) => {
 // Rotas
 app.use('/api/pi', require('./routes/piRoutes'));
 app.use('/api/autores', require('./routes/autorRoutes'));
+app.use('/api/rpi', require('./routes/rpiRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {

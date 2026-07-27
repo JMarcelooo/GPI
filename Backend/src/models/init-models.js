@@ -1,10 +1,12 @@
 var DataTypes = require('sequelize').DataTypes;
 var _autor = require('./autor');
 var _PI = require('./PI');
+var _RPI = require('./RPI');
 
 function initModels(sequelize) {
   var autor = _autor(sequelize, DataTypes);
   var PI = _PI;
+  var RPI = _RPI;
 
   PI.belongsToMany(autor, {
     as: 'autores',
@@ -22,9 +24,20 @@ function initModels(sequelize) {
     timestamps: false
   });
 
+  PI.hasMany(RPI, {
+    as: 'rpis',
+    foreignKey: 'pi_id'
+  });
+
+  RPI.belongsTo(PI, {
+    as: 'pi',
+    foreignKey: 'pi_id'
+  });
+
   return {
     autor,
-    PI
+    PI,
+    RPI
   };
 }
 module.exports = initModels;

@@ -43,10 +43,9 @@ CREATE TABLE IF NOT EXISTS "controle_processos" (
 CREATE TABLE IF NOT EXISTS "RPI" (
 	"id" serial NOT NULL UNIQUE,
 	"data" date NOT NULL,
-	"pi_id" bigint NOT NULL,
+	"pi_id" integer NOT NULL,
 	"codigo_evento" double precision NOT NULL,
-	"tipo_de_evento" varchar(50) NOT NULL,
-	"descricao_do_evento" varchar(50),
+	"descricao_do_evento" varchar(255),
 	PRIMARY KEY ("id")
 );
 
