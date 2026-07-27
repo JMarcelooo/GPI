@@ -101,7 +101,16 @@ export default function CadastroPI() {
       setTimeout(() => navigate('/propriedade-intelectual'), 1200);
     } catch (err) {
       console.error("Erro ao cadastrar PI:", err);
-      setToast({ message: 'Erro ao cadastrar PI. Verifique os dados.', type: 'error' });
+      const data = err.response?.data;
+      let msg = 'Erro ao cadastrar PI. Verifique os dados.';
+      if (data?.errors && Array.isArray(data.errors)) {
+        msg = data.errors.join('. ');
+      } else if (data?.error) {
+        msg = data.error;
+      } else if (!err.response) {
+        msg = 'Erro de conexão com o servidor.';
+      }
+      setToast({ message: msg, type: 'error' });
     } finally {
       setSubmitting(false);
     }

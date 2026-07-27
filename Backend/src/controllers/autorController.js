@@ -1,5 +1,25 @@
 const { autor: Autor } = require('../models/index');
 
+function handleError(error, res, label) {
+  console.error(`Erro ao ${label}:`, error);
+  if (error.name === 'SequelizeUniqueConstraintError') {
+    return res.status(409).json({
+      success: false,
+      error: 'Registro duplicado. Verifique os dados únicos (email, etc).'
+    });
+  }
+  if (error.name === 'SequelizeValidationError') {
+    return res.status(400).json({
+      success: false,
+      errors: error.errors.map(e => e.message)
+    });
+  }
+  res.status(500).json({
+    success: false,
+    error: `Erro ao ${label}.`
+  });
+}
+
 // CREATE
 exports.createAutor = async (req, res) => {
   const { name } = req.body;
@@ -15,11 +35,7 @@ exports.createAutor = async (req, res) => {
     const novoAutor = await Autor.create(req.body);
     res.status(201).json({ success: true, data: novoAutor });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Erro ao criar autor',
-      details: error.message
-    });
+    handleError(error, res, 'criar autor');
   }
 };
 
@@ -28,12 +44,7 @@ exports.getAllAutores = async (req, res) => {
     const autores = await Autor.findAll();
     res.status(200).json({ success: true, data: autores });
   } catch (error) {
-    console.error('Erro ao buscar autores:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro ao buscar autores',
-      details: error.message
-    });
+    handleError(error, res, 'buscar autores');
   }
 };
 
@@ -47,12 +58,7 @@ exports.getAutorByID = async (req, res) => {
     }
     res.status(200).json({ success: true, data: autor });
   } catch (error) {
-    console.error('Erro ao buscar autores:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro ao buscar autores',
-      details: error.message
-    });
+    handleError(error, res, 'buscar autor');
   }
 };
 
@@ -70,12 +76,7 @@ exports.updateAutor = async (req, res) => {
     const autorAtualizado = await Autor.findByPk(id);
     return res.status(200).json({ success: true, data: autorAtualizado });
   } catch (error) {
-    console.error('Erro ao atualizar autor:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Erro ao atualizar autor',
-      details: error.message
-    });
+    handleError(error, res, 'atualizar autor');
   }
 };
 
@@ -90,11 +91,6 @@ exports.deleteAutor = async (req, res) => {
     await autor.destroy();
     return res.status(200).json({ success: true, message: 'Autor deletado com sucesso' });
   } catch (error) {
-    console.error('Erro ao deletar autor:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Erro ao deletar autor',
-      details: error.message
-    });
+    handleError(error, res, 'deletar autor');
   }
 };

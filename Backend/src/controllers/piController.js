@@ -80,10 +80,28 @@ exports.createPI = async (req, res) => {
 
     res.status(201).json({ success: true, data: newPI });
   } catch (error) {
+    console.error('Erro ao criar PI:', error);
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({
+        success: false,
+        error: 'Já existe uma PI cadastrada com este protocolo.'
+      });
+    }
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        errors: error.errors.map(e => e.message)
+      });
+    }
+    if (error.message && error.message.includes('does not exist')) {
+      return res.status(500).json({
+        success: false,
+        error: 'Erro interno: tabela não encontrada. Execute node scripts/init-db.js no backend.'
+      });
+    }
     res.status(500).json({
       success: false,
-      error: 'Erro ao criar PI',
-      details: error.message
+      error: 'Erro ao criar PI.'
     });
   }
 };
@@ -98,10 +116,10 @@ exports.getAllPIs = async (req, res) => {
       data: pis
     });
   } catch (error) {
+    console.error('Erro ao buscar PIs:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro ao buscar PIs',
-      details: error.message
+      error: 'Erro ao buscar PIs.'
     });
   }
 };
@@ -120,10 +138,10 @@ exports.getPIById = async (req, res) => {
     }
     res.json({ success: true, data: pi });
   } catch (error) {
+    console.error('Erro ao buscar PI:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro ao buscar PI',
-      details: error.message
+      error: 'Erro ao buscar PI.'
     });
   }
 };
@@ -181,10 +199,22 @@ exports.updatePI = async (req, res) => {
     });
     res.json({ success: true, data: updatedPI });
   } catch (error) {
+    console.error('Erro ao atualizar PI:', error);
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({
+        success: false,
+        error: 'Já existe uma PI cadastrada com este protocolo.'
+      });
+    }
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        errors: error.errors.map(e => e.message)
+      });
+    }
     res.status(500).json({
       success: false,
-      error: 'Erro ao atualizar PI',
-      details: error.message
+      error: 'Erro ao atualizar PI.'
     });
   }
 };
@@ -195,6 +225,7 @@ exports.deletePI = async (req, res) => {
     const pi = await PI.findByPk(req.params.id);
     if (!pi) {
       return res.status(404).json({
+        success: false,
         error: 'PI não encontrada'
       });
     }
@@ -206,9 +237,10 @@ exports.deletePI = async (req, res) => {
       message: 'PI removida com sucesso'
     });
   } catch (error) {
+    console.error('Erro ao remover PI:', error);
     res.status(500).json({
-      error: 'Erro ao remover PI',
-      details: error.message
+      success: false,
+      error: 'Erro ao remover PI.'
     });
   }
 };
@@ -243,10 +275,10 @@ exports.searchPIs = async (req, res) => {
       data: pis
     });
   } catch (error) {
+    console.error('Erro na busca:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro na busca',
-      details: error.message
+      error: 'Erro na busca.'
     });
   }
 };
@@ -268,10 +300,10 @@ exports.getPIsByStatus = async (req, res) => {
       data: pis
     });
   } catch (error) {
+    console.error('Erro ao buscar PIs por status:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro ao buscar PIs por status',
-      details: error.message
+      error: 'Erro ao buscar PIs por status.'
     });
   }
 };
@@ -292,10 +324,10 @@ exports.getTitularesByPI = async (req, res) => {
       data: pi.titular || null
     });
   } catch (error) {
+    console.error('Erro ao buscar titular:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro ao buscar titular',
-      details: error.message
+      error: 'Erro ao buscar titular.'
     });
   }
 };
