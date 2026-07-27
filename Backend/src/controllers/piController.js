@@ -54,7 +54,7 @@ exports.createPI = async (req, res) => {
   try {
     const errors = validatePIData(req.body);
     if (errors.length > 0) {
-      return res.status(400).json({ success: false, errors });
+      return res.status(400).json({ errors });
     }
 
     const piData = {
@@ -78,29 +78,25 @@ exports.createPI = async (req, res) => {
       await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
     }
 
-    res.status(201).json({ success: true, data: newPI });
+    res.status(201).json({ data: newPI });
   } catch (error) {
     console.error('Erro ao criar PI:', error);
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({
-        success: false,
         error: 'Já existe uma PI cadastrada com este protocolo.'
       });
     }
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
-        success: false,
         errors: error.errors.map(e => e.message)
       });
     }
     if (error.message && error.message.includes('does not exist')) {
       return res.status(500).json({
-        success: false,
         error: 'Erro interno: tabela não encontrada. Execute node scripts/init-db.js no backend.'
       });
     }
     res.status(500).json({
-      success: false,
       error: 'Erro ao criar PI.'
     });
   }
@@ -111,14 +107,12 @@ exports.getAllPIs = async (req, res) => {
   try {
     const pis = await PI.findAll();
     res.json({
-      success: true,
       count: pis.length,
       data: pis
     });
   } catch (error) {
     console.error('Erro ao buscar PIs:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro ao buscar PIs.'
     });
   }
@@ -132,15 +126,14 @@ exports.getPIById = async (req, res) => {
     });
     if (!pi) {
       return res.status(404).json({
-        success: false,
         error: 'PI não encontrada'
       });
     }
-    res.json({ success: true, data: pi });
+
+    res.json({ data: pi });
   } catch (error) {
     console.error('Erro ao buscar PI:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro ao buscar PI.'
     });
   }
@@ -151,13 +144,12 @@ exports.updatePI = async (req, res) => {
   try {
     const errors = validatePIData(req.body, true);
     if (errors.length > 0) {
-      return res.status(400).json({ success: false, errors });
+      return res.status(400).json({ errors });
     }
 
     const existingPI = await PI.findByPk(req.params.id);
     if (!existingPI) {
       return res.status(404).json({
-        success: false,
         error: 'PI não encontrada'
       });
     }
@@ -172,14 +164,12 @@ exports.updatePI = async (req, res) => {
 
     if (updateData.status && !STATUS_VALIDOS.includes(updateData.status)) {
       return res.status(400).json({
-        success: false,
         error: `Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`
       });
     }
 
     if (updateData.tipo && !TIPOS_VALIDOS.includes(updateData.tipo)) {
       return res.status(400).json({
-        success: false,
         error: `Tipo inválido. Use: ${TIPOS_VALIDOS.join(', ')}`
       });
     }
@@ -197,23 +187,21 @@ exports.updatePI = async (req, res) => {
     const updatedPI = await PI.findByPk(req.params.id, {
       include: [{ association: 'autores' }]
     });
-    res.json({ success: true, data: updatedPI });
+
+    res.json({ data: updatedPI });
   } catch (error) {
     console.error('Erro ao atualizar PI:', error);
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(409).json({
-        success: false,
         error: 'Já existe uma PI cadastrada com este protocolo.'
       });
     }
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
-        success: false,
         errors: error.errors.map(e => e.message)
       });
     }
     res.status(500).json({
-      success: false,
       error: 'Erro ao atualizar PI.'
     });
   }
@@ -225,7 +213,6 @@ exports.deletePI = async (req, res) => {
     const pi = await PI.findByPk(req.params.id);
     if (!pi) {
       return res.status(404).json({
-        success: false,
         error: 'PI não encontrada'
       });
     }
@@ -233,13 +220,11 @@ exports.deletePI = async (req, res) => {
     await pi.destroy();
 
     res.status(200).json({
-      success: true,
       message: 'PI removida com sucesso'
     });
   } catch (error) {
     console.error('Erro ao remover PI:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro ao remover PI.'
     });
   }
@@ -270,14 +255,12 @@ exports.searchPIs = async (req, res) => {
     }
 
     res.json({
-      success: true,
       count: pis.length,
       data: pis
     });
   } catch (error) {
     console.error('Erro na busca:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro na busca.'
     });
   }
@@ -288,21 +271,18 @@ exports.getPIsByStatus = async (req, res) => {
   try {
     if (!STATUS_VALIDOS.includes(req.params.status)) {
       return res.status(400).json({
-        success: false,
         error: `Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`
       });
     }
 
     const pis = await PI.findAll({ where: { status: req.params.status } });
     res.json({
-      success: true,
       count: pis.length,
       data: pis
     });
   } catch (error) {
     console.error('Erro ao buscar PIs por status:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro ao buscar PIs por status.'
     });
   }
@@ -314,7 +294,6 @@ exports.getRPIsByPI = async (req, res) => {
     const pi = await PI.findByPk(req.params.id);
     if (!pi) {
       return res.status(404).json({
-        success: false,
         error: 'PI não encontrada'
       });
     }
@@ -324,11 +303,10 @@ exports.getRPIsByPI = async (req, res) => {
       order: [['data', 'DESC']]
     });
 
-    res.json({ success: true, count: rpis.length, data: rpis });
+    res.json({ count: rpis.length, data: rpis });
   } catch (error) {
     console.error('Erro ao buscar RPIs da PI:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro ao buscar RPIs da PI.'
     });
   }
@@ -340,19 +318,16 @@ exports.getTitularesByPI = async (req, res) => {
     const pi = await PI.findByPk(req.params.id);
     if (!pi) {
       return res.status(404).json({
-        success: false,
         error: 'PI não encontrada'
       });
     }
 
     res.json({
-      success: true,
       data: Array.isArray(pi.titular) ? pi.titular : (pi.titular ? [pi.titular] : [])
     });
   } catch (error) {
     console.error('Erro ao buscar titular:', error);
     res.status(500).json({
-      success: false,
       error: 'Erro ao buscar titular.'
     });
   }

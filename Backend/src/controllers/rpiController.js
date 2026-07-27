@@ -6,10 +6,10 @@ exports.listRPI = async (req, res) => {
     const where = {};
     if (req.query.pi_id) where.pi_id = req.query.pi_id;
     const rpis = await RPI.findAll({ where, order: [['data', 'DESC']] });
-    res.json({ success: true, count: rpis.length, data: rpis });
+    res.json({ count: rpis.length, data: rpis });
   } catch (error) {
     console.error('Erro ao listar RPI:', error);
-    res.status(500).json({ success: false, error: 'Erro ao listar RPI.' });
+    res.status(500).json({ error: 'Erro ao listar RPI.' });
   }
 };
 
@@ -20,14 +20,13 @@ exports.createRPI = async (req, res) => {
 
     if (!data || !pi_id || codigo_evento === undefined || codigo_evento === null) {
       return res.status(400).json({
-        success: false,
         error: 'Os campos data, pi_id e codigo_evento são obrigatórios.'
       });
     }
 
     const pi = await PI.findByPk(pi_id);
     if (!pi) {
-      return res.status(404).json({ success: false, error: 'PI não encontrada.' });
+      return res.status(404).json({ error: 'PI não encontrada.' });
     }
 
     const rpi = await RPI.create({
@@ -37,16 +36,15 @@ exports.createRPI = async (req, res) => {
       descricao_do_evento: descricao_do_evento || null
     });
 
-    res.status(201).json({ success: true, data: rpi });
+    res.status(201).json({ data: rpi });
   } catch (error) {
     console.error('Erro ao criar RPI:', error);
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
-        success: false,
         errors: error.errors.map(e => e.message)
       });
     }
-    res.status(500).json({ success: false, error: 'Erro ao criar RPI.' });
+    res.status(500).json({ error: 'Erro ao criar RPI.' });
   }
 };
 
@@ -55,7 +53,7 @@ exports.updateRPI = async (req, res) => {
   try {
     const rpi = await RPI.findByPk(req.params.id);
     if (!rpi) {
-      return res.status(404).json({ success: false, error: 'RPI não encontrada.' });
+      return res.status(404).json({ error: 'RPI não encontrada.' });
     }
 
     const { data, codigo_evento, descricao_do_evento } = req.body;
@@ -67,16 +65,15 @@ exports.updateRPI = async (req, res) => {
     await RPI.update(updateData, { where: { id: req.params.id } });
 
     const updated = await RPI.findByPk(req.params.id);
-    res.json({ success: true, data: updated });
+    res.json({ data: updated });
   } catch (error) {
     console.error('Erro ao atualizar RPI:', error);
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({
-        success: false,
         errors: error.errors.map(e => e.message)
       });
     }
-    res.status(500).json({ success: false, error: 'Erro ao atualizar RPI.' });
+    res.status(500).json({ error: 'Erro ao atualizar RPI.' });
   }
 };
 
@@ -85,13 +82,13 @@ exports.deleteRPI = async (req, res) => {
   try {
     const rpi = await RPI.findByPk(req.params.id);
     if (!rpi) {
-      return res.status(404).json({ success: false, error: 'RPI não encontrada.' });
+      return res.status(404).json({ error: 'RPI não encontrada.' });
     }
 
     await rpi.destroy();
-    res.json({ success: true, message: 'RPI removida com sucesso.' });
+    res.json({ message: 'RPI removida com sucesso.' });
   } catch (error) {
     console.error('Erro ao remover RPI:', error);
-    res.status(500).json({ success: false, error: 'Erro ao remover RPI.' });
+    res.status(500).json({ error: 'Erro ao remover RPI.' });
   }
 };
