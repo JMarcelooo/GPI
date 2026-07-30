@@ -33,7 +33,16 @@ function Dashboard() {
       pis.forEach(p => {
         statusCount[p.status] = (statusCount[p.status] || 0) + 1;
         tipoCount[p.tipo] = (tipoCount[p.tipo] || 0) + 1;
-        const ano = p.ano || new Date(p.data_entrada).getFullYear() || '-';
+        let ano = p.ano;
+        if (!ano && p.data_entrada) {
+          const d = new Date(p.data_entrada);
+          if (!isNaN(d.getTime())) ano = d.getFullYear();
+        }
+        if (!ano) {
+          const d = new Date(p.createdAt);
+          if (!isNaN(d.getTime())) ano = d.getFullYear();
+        }
+        if (!ano) ano = '-';
         anoCount[ano] = (anoCount[ano] || 0) + 1;
       });
 
