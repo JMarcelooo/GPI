@@ -12,7 +12,7 @@
 /* ---- Sidebar ---- */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-end) 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -48,6 +48,7 @@
   border-radius: var(--radius-md);
   transition: all var(--transition);
   font-weight: 500;
+  font-family: var(--font-heading);
 }
 
 .sidebar button:hover {
@@ -74,6 +75,7 @@
   font-size: var(--text-2xl);
   color: var(--color-primary);
   margin: 0;
+  font-family: var(--font-heading);
 }
 
 /* ---- Cards row ---- */

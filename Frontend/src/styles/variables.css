@@ -35,6 +35,7 @@
 
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Bahnschrift', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -72,10 +73,51 @@
   --sidebar-width: 240px;
   --sidebar-bg: #7C3AED;
   --sidebar-hover: #6D28D9;
+  --sidebar-end: #4C1D95;
 
   /* Transitions */
   --transition: 150ms ease;
   --transition-slow: 250ms ease;
+}
+
+[data-theme="dark"] {
+  --color-primary: #A78BFA;
+  --color-primary-dark: #8B5CF6;
+  --color-primary-light: #C4B5FD;
+  --color-primary-lighter: #DDD6FE;
+  --color-primary-bg: #2E1065;
+  --color-primary-50: #2E1065;
+  --color-primary-100: #3B1F8E;
+
+  --color-bg: #0B1121;
+  --color-surface: #162032;
+  --color-border: #283548;
+  --color-border-light: #1D2A3D;
+  --color-text: #F1F5F9;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
+  --color-hover: #1D2A3D;
+
+  --color-success: #34D399;
+  --color-success-bg: #0A3D2B;
+  --color-warning: #FBBF24;
+  --color-warning-bg: #3D2E0A;
+  --color-error: #F87171;
+  --color-error-bg: #3D0A0A;
+  --color-info: #60A5FA;
+  --color-info-bg: #0A2A3D;
+  --color-accent: #FB923C;
+  --color-accent-bg: #3D1F0A;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+
+  --sidebar-bg: #140633;
+  --sidebar-hover: #2E1065;
+  --sidebar-end: #0B0120;
 }
 
 *, *::before, *::after {
@@ -90,6 +132,10 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, strong, th {
+  font-family: var(--font-heading);
 }
 
 input, select, textarea, button {

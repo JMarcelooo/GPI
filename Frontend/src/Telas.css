@@ -23,6 +23,7 @@
   font-size: var(--text-2xl);
   margin-bottom: var(--space-6);
   font-weight: 600;
+  font-family: var(--font-heading);
 }
 
 .tela input {

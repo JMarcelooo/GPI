@@ -2,11 +2,13 @@ import React from 'react';
 import { User, LogOut, Bell, Shield, Info, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
+import { useTheme } from '../contexts/ThemeContext';
 import '../Tela2.css';
 import './Configuracoes.css';
 
 function Configuracoes() {
   const navigate = useNavigate();
+  const { dark, toggleTheme } = useTheme();
 
   return (
     <div className="container">
@@ -70,7 +72,7 @@ function Configuracoes() {
               <p className="config-desc">Alternar entre tema claro e escuro</p>
             </div>
             <label className="config-toggle">
-              <input type="checkbox" />
+              <input type="checkbox" checked={dark} onChange={toggleTheme} />
               <span className="config-toggle-slider"></span>
             </label>
           </div>
