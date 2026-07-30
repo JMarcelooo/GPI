@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';

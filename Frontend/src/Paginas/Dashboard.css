@@ -21,7 +21,7 @@
 /* ---- Dashboard cards ---- */
 .dash-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-8);
 }
