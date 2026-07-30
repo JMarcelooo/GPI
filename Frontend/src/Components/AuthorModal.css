@@ -176,12 +176,12 @@
 }
 
 .save-button {
-  background: var(--color-primary);
+  background: var(--color-btn);
   color: #fff;
 }
 
 .save-button:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-btn-hover);
 }
 
 /* ==============================
@@ -201,13 +201,13 @@
 }
 
 .modal-view-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, #2E1065 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, #621563 100%);
   padding: var(--space-8) var(--space-8) var(--space-6);
   position: relative;
 }
 
 [data-theme="dark"] .modal-view-header {
-  background: linear-gradient(135deg, #4C1D95 0%, #2E1065 50%, #140633 100%);
+  background: linear-gradient(135deg, #7B1F78 0%, #2E1065 50%, #140633 100%);
 }
 
 .modal-view-close {

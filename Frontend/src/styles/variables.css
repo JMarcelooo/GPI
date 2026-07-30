@@ -1,12 +1,12 @@
 :root {
   /* Primary palette */
-  --color-primary: #7C3AED;
-  --color-primary-dark: #6D28D9;
-  --color-primary-light: #8B5CF6;
-  --color-primary-lighter: #A78BFA;
-  --color-primary-bg: #F5F3FF;
-  --color-primary-50: #F5F3FF;
-  --color-primary-100: #EDE9FE;
+  --color-primary: #93278F;
+  --color-primary-dark: #7B1F78;
+  --color-primary-light: #B849B4;
+  --color-primary-lighter: #D47DD0;
+  --color-primary-bg: #F5E8F4;
+  --color-primary-50: #F5E8F4;
+  --color-primary-100: #EBD1EA;
 
   /* Neutral palette */
   --color-bg: #F1F5F9;
@@ -21,17 +21,21 @@
   /* Status colors */
   --color-success: #10B981;
   --color-success-bg: #ECFDF5;
-  --color-warning: #F59E0B;
-  --color-warning-bg: #FFFBEB;
+  --color-warning: #D9E021;
+  --color-warning-bg: #FEFDE8;
   --color-error: #EF4444;
   --color-error-bg: #FEF2F2;
-  --color-info: #3B82F6;
-  --color-info-bg: #EFF6FF;
+  --color-info: #FA0183;
+  --color-info-bg: #FFF0F8;
 
   /* Accent */
-  --color-accent: #F97316;
-  --color-accent-dark: #EA580C;
+  --color-accent: #FA7F0C;
+  --color-accent-dark: #E06E00;
   --color-accent-bg: #FFF7ED;
+
+  /* Button */
+  --color-btn: #FA0183;
+  --color-btn-hover: #D0016E;
 
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -71,9 +75,9 @@
 
   /* Sidebar */
   --sidebar-width: 240px;
-  --sidebar-bg: #7C3AED;
-  --sidebar-hover: #6D28D9;
-  --sidebar-end: #4C1D95;
+  --sidebar-bg: #93278F;
+  --sidebar-hover: #7B1F78;
+  --sidebar-end: #621563;
 
   /* Transitions */
   --transition: 150ms ease;
@@ -81,12 +85,12 @@
 }
 
 [data-theme="dark"] {
-  --color-primary: #7C3AED;
-  --color-primary-dark: #6D28D9;
-  --color-primary-light: #8B5CF6;
-  --color-primary-lighter: #A78BFA;
-  --color-primary-bg: #2E1065;
-  --color-primary-50: #2E1065;
+  --color-primary: #B849B4;
+  --color-primary-dark: #93278F;
+  --color-primary-light: #D47DD0;
+  --color-primary-lighter: #E5B0E2;
+  --color-primary-bg: #2E105E;
+  --color-primary-50: #2E105E;
   --color-primary-100: #3B1F8E;
 
   --color-bg: #0B1121;
@@ -100,14 +104,18 @@
 
   --color-success: #34D399;
   --color-success-bg: #0A3D2B;
-  --color-warning: #FBBF24;
-  --color-warning-bg: #3D2E0A;
+  --color-warning: #D9E021;
+  --color-warning-bg: #3D3A0A;
   --color-error: #EF4444;
   --color-error-bg: #3D0A0A;
-  --color-info: #60A5FA;
-  --color-info-bg: #0A2A3D;
+  --color-info: #FA0183;
+  --color-info-bg: #3D0A2A;
   --color-accent: #FB923C;
+  --color-accent-dark: #EA580C;
   --color-accent-bg: #5B2A10;
+
+  --color-btn: #FA0183;
+  --color-btn-hover: #D0016E;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
@@ -115,9 +123,9 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 
-  --sidebar-bg: #140633;
-  --sidebar-hover: #2E1065;
-  --sidebar-end: #0B0120;
+  --sidebar-bg: #421941;
+  --sidebar-hover: #5B2358;
+  --sidebar-end: #2E0E2D;
 }
 
 *, *::before, *::after {

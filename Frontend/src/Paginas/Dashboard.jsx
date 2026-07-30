@@ -132,7 +132,7 @@ function Dashboard() {
             <div className="donut-container">
               <div className="donut" style={{
                 background: `conic-gradient(${stats.porStatus.map((s, i) => {
-                  const colors = ['#7C3AED', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#94A3B8', '#F97316'];
+                  const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#94A3B8'];
                   const total = stats.total || 1;
                   const pct = (s.value / total) * 100;
                   const start = stats.porStatus.slice(0, i).reduce((a, s) => a + (s.value / total) * 100, 0);
@@ -146,7 +146,7 @@ function Dashboard() {
               </div>
               <div className="donut-legend">
                 {stats.porStatus.map((s, i) => {
-                  const colors = ['#7C3AED', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#94A3B8', '#F97316'];
+                  const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#94A3B8'];
                   const Icon = statusIcons[s.label] || HelpCircle;
                   return (
                     <div key={i} className="legend-item">
@@ -163,15 +163,18 @@ function Dashboard() {
           <div className="chart-card">
             <h3 className="chart-title">PIs por Tipo</h3>
             <div className="bar-chart-h">
-              {stats.porTipo.map((t, i) => (
+              {stats.porTipo.map((t, i) => {
+                const highlightColors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021'];
+                return (
                 <div key={i} className="bar-row">
                   <span className="bar-label">{tipoIcons[t.label] || t.label}</span>
                   <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${(t.value / maxTipo) * 100}%` }} />
+                    <div className="bar-fill" style={{ width: `${(t.value / maxTipo) * 100}%`, background: highlightColors[i % highlightColors.length] }} />
                   </div>
                   <span className="bar-value">{t.value}</span>
                 </div>
-              ))}
+                );
+              })}
               {stats.porTipo.length === 0 && <p className="chart-empty">Nenhum dado</p>}
             </div>
           </div>
@@ -188,7 +191,7 @@ function Dashboard() {
                       return `${x},${y}`;
                     }).join(' ')}
                     fill="none"
-                    stroke="var(--color-primary)"
+                    stroke="#FA0183"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -198,7 +201,7 @@ function Dashboard() {
                     const y = 140 - (a.value / maxAno) * 110;
                     return (
                       <g key={i}>
-                        <circle cx={x} cy={y} r="4" fill="var(--color-surface)" stroke="var(--color-primary)" strokeWidth="2" />
+                        <circle cx={x} cy={y} r="4" fill="var(--color-surface)" stroke="#FA0183" strokeWidth="2" />
                         <text x={x} y={152} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a.label}</text>
                         <text x={x} y={y - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--color-text)">{a.value}</text>
                       </g>
@@ -213,15 +216,18 @@ function Dashboard() {
           <div className="chart-card">
             <h3 className="chart-title">Autores por Vínculo</h3>
             <div className="bar-chart-h">
-              {stats.autoresPorVinculo.map((v, i) => (
+              {stats.autoresPorVinculo.map((v, i) => {
+                const highlightColors = ['#FA0183', '#FA7F0C', '#D9E021', '#93278F'];
+                return (
                 <div key={i} className="bar-row">
                   <span className="bar-label">{v.label}</span>
                   <div className="bar-track">
-                    <div className="bar-fill bar-fill--accent" style={{ width: `${(v.value / maxVinculo) * 100}%` }} />
+                    <div className="bar-fill" style={{ width: `${(v.value / maxVinculo) * 100}%`, background: highlightColors[i % highlightColors.length] }} />
                   </div>
                   <span className="bar-value">{v.value}</span>
                 </div>
-              ))}
+                );
+              })}
               {stats.autoresPorVinculo.length === 0 && <p className="chart-empty">Nenhum dado</p>}
             </div>
           </div>
