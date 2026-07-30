@@ -1,10 +1,28 @@
-import React from 'react';
-import { User, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../Tela2.css';
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({ ativos: 0, emProcesso: 0, pendentes: 0, total: 0 });
+
+  useEffect(() => {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/pi`)
+      .then(res => {
+        const pis = res.data.data || [];
+        const total = pis.length;
+        const ativos = pis.filter(p =>
+          ['deferida', 'registrada', 'carta patente'].includes(p.status)
+        ).length;
+        const emProcesso = pis.filter(p => p.status === 'em analise').length;
+        const pendentes = pis.filter(p =>
+          ['indeferida', 'anulada', 'arquivada'].includes(p.status)
+        ).length;
+        setStats({ ativos, emProcesso, pendentes, total });
+      })
+      .catch(err => console.error("Erro ao buscar PIs:", err));
+  }, []);
 
   return (
     <div className="container">
@@ -26,31 +44,15 @@ function Dashboard() {
         </header>
 
         <div className="cards">
-          <div className="card ativo">Ativos<br /><strong>-</strong></div>
-          <div className="card processo">Em processo<br /><strong>-</strong></div>
-          <div className="card pendente">Pendentes<br /><strong>-</strong></div>
-          <div className="card total">Total<br /><strong>-</strong></div>
+          <div className="card ativo">Ativos<br /><strong>{stats.ativos}</strong></div>
+          <div className="card processo">Em processo<br /><strong>{stats.emProcesso}</strong></div>
+          <div className="card pendente">Pendentes<br /><strong>{stats.pendentes}</strong></div>
+          <div className="card total">Total<br /><strong>{stats.total}</strong></div>
         </div>
 
         <div className="graficos">
           <div className="grafico">Indicadores<br /><div className="grafico-pizza"></div></div>
           <div className="grafico">Indicadores<br /><div className="grafico-barra"></div></div>
-        </div>
-      </div>
-
-      <div className="painel-direito">
-        <div className="usuario">
-          <div><User size={18} style={{ marginRight: 6, verticalAlign: 'middle' }} /> Administrador</div>
-          <small>email@email.com</small>
-          <button className="sair" onClick={() => navigate("/login")}>Sair</button>
-        </div>
-
-        <div className="notificacoes">
-          <div className="topo-notificacoes">
-            <Bell size={18} />
-            <h4>Notificações</h4>
-          </div>
-          <p style={{ fontSize: 14, color: '#888' }}>Nenhuma notificação</p>
         </div>
       </div>
     </div>

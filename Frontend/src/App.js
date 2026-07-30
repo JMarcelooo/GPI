@@ -9,9 +9,12 @@ import CadastroPI from './Paginas/CadastroPI.jsx';
 import EditarPI from './Paginas/EditarPI';
 import Payments from './Paginas/Payments';
 import Autor from './Paginas/Autor';
+import Notificacoes from './Paginas/Notificacoes';
+import NotificationBell from './Components/NotificationBell';
 function App() {
   return (
     <Router>
+      <NotificationBell />
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
@@ -23,6 +26,7 @@ function App() {
         <Route path="/editar-pi/:id" element={<EditarPI />} />
          <Route path="/pagamentos" element={<Payments />} />
         <Route path="/autores" element={<Autor />} /> {/* Esta é a nova rota para o Autor.jsx */}
+        <Route path="/notificacoes" element={<Notificacoes />} />
 
       </Routes>
     </Router>
