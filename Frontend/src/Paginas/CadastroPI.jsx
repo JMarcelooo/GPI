@@ -281,7 +281,7 @@ export default function CadastroPI() {
                 onClick={() => setShowRegisterAuthorModal(true)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-                    background: 'var(--color-primary)', color: '#fff', border: 'none',
+                    background: 'var(--color-btn)', color: '#fff', border: 'none',
                   padding: '10px 16px', borderRadius: '8px', fontSize: '0.875rem',
                   fontWeight: 600, cursor: 'pointer'
                 }}
