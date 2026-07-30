@@ -140,7 +140,7 @@ export default function CadastroPI() {
   return (
     <div className="container">
       <Sidebar />
-      <main style={{ flex: 1, backgroundColor: "#f3f4f6", padding: "30px" }}>
+      <main style={{ flex: 1, padding: "30px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button
@@ -148,13 +148,12 @@ export default function CadastroPI() {
               style={{
                 background: "none", border: "none", fontSize: "18px", cursor: "pointer",
                 padding: "8px", borderRadius: "5px", transition: "background 0.2s",
+                color: "var(--color-text-secondary)"
               }}
-              onMouseEnter={e => (e.target.style.background = "#E5E7EB")}
-              onMouseLeave={e => (e.target.style.background = "none")}
             >
               ←
             </button>
-            <h2 style={{ fontSize: "20px", color: "#6B21A8" }}>Cadastro de Propriedade Intelectual</h2>
+            <h2 style={{ fontSize: "20px", color: "var(--color-primary)" }}>Cadastro de Propriedade Intelectual</h2>
           </div>
         </div>
 
@@ -259,19 +258,19 @@ export default function CadastroPI() {
                   onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                   style={{ width: '100%', padding: '10px 12px', paddingLeft: '36px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.875rem', boxSizing: 'border-box' }}
                 />
-                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
                 {showDropdown && searchAutor && autoresFiltrados.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid var(--color-border)', borderRadius: '8px', marginTop: '4px', maxHeight: '180px', overflowY: 'auto', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', marginTop: '4px', maxHeight: '180px', overflowY: 'auto', zIndex: 10, boxShadow: 'var(--shadow-md)' }}>
                     {autoresFiltrados.map(autor => (
                       <div
                         key={autor.id}
                         onMouseDown={() => adicionarAutorNaLista(autor)}
                         style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#F5F3FF'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--color-hover)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <span>{autor.name}</span>
-                        <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{autor.email}</span>
+                        <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>{autor.email}</span>
                       </div>
                     ))}
                   </div>
@@ -280,9 +279,9 @@ export default function CadastroPI() {
               <button
                 type="button"
                 onClick={() => setShowRegisterAuthorModal(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-                  background: '#7C3AED', color: '#fff', border: 'none',
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
+                    background: 'var(--color-primary)', color: '#fff', border: 'none',
                   padding: '10px 16px', borderRadius: '8px', fontSize: '0.875rem',
                   fontWeight: 600, cursor: 'pointer'
                 }}
@@ -297,7 +296,7 @@ export default function CadastroPI() {
                   const autor = autoresDisponiveis.find(a => a.id === id);
                   if (!autor) return null;
                   return (
-                    <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#EDE9FE', color: '#7C3AED', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <span key={id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--color-primary-100)', color: 'var(--color-primary)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
                       {autor.name}
                       <X size={14} style={{ cursor: 'pointer' }} onClick={() => removerAutorDaLista(id)} />
                     </span>
@@ -306,7 +305,7 @@ export default function CadastroPI() {
               </div>
             )}
             {autoresSelecionados.length === 0 && (
-              <p style={{ color: '#888', fontSize: '0.875rem', margin: 0 }}>Nenhum autor selecionado.</p>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', margin: 0 }}>Nenhum autor selecionado.</p>
             )}
           </div>
 
