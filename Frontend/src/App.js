@@ -10,6 +10,7 @@ import EditarPI from './Paginas/EditarPI';
 import Payments from './Paginas/Payments';
 import Autor from './Paginas/Autor';
 import Notificacoes from './Paginas/Notificacoes';
+import Configuracoes from './Paginas/Configuracoes';
 import NotificationBell from './Components/NotificationBell';
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
          <Route path="/pagamentos" element={<Payments />} />
         <Route path="/autores" element={<Autor />} /> {/* Esta é a nova rota para o Autor.jsx */}
         <Route path="/notificacoes" element={<Notificacoes />} />
+        <Route path="/configuracoes" element={<Configuracoes />} />
 
       </Routes>
     </Router>

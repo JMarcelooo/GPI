@@ -33,7 +33,7 @@ function Dashboard() {
           <button onClick={() => navigate("/propriedade-intelectual")}>Propriedades Intelectuais</button>
           <button onClick={() => navigate("/autores")}>Autores</button>
           <button onClick={() => navigate("/pagamentos")}>Pagamentos</button>
-          <button>Configurações</button>
+          <button onClick={() => navigate("/configuracoes")}>Configurações</button>
         </nav>
         <img src="/imagens/Inova-Rodape.png" alt="Rodapé" width="150" />
       </div>
