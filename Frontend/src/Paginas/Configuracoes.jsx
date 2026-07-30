@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, LogOut, Bell, Shield, Info, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';

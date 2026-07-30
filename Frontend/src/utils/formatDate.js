@@ -22,3 +22,14 @@ const STATUS_LABELS = {
 export function formatStatus(status) {
   return STATUS_LABELS[status] || status;
 }
+
+const TIPO_LABELS = {
+  'patente de invencao': 'Patente de Invenção',
+  'modelo de utilidade': 'Modelo de Utilidade',
+  'marca': 'Marca',
+  'programa de computador': 'Programa de Computador'
+};
+
+export function formatTipo(tipo) {
+  return TIPO_LABELS[tipo] || tipo;
+}

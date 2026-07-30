@@ -5,7 +5,7 @@ import AdicionarRPIModal from '../Components/AdicionarRPIModal';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
-import { formatDate, formatStatus } from '../utils/formatDate';
+import { formatDate, formatStatus, formatTipo } from '../utils/formatDate';
 import Toast from '../Components/Toast';
 
 function normalizeStatus(status) {
@@ -121,7 +121,7 @@ export default function PatenteDetalhes() {
   if (loadingError) return (
     <div className="container">
       <Sidebar />
-      <main style={{ flex: 1, padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+      <main style={{ flex: 1, padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)' }}>
         <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{loadingError}</p>
         <button onClick={() => navigate('/propriedade-intelectual')} style={{
           background: '#7C3AED', color: '#fff', border: 'none', padding: '10px 24px',
@@ -137,9 +137,8 @@ export default function PatenteDetalhes() {
     <div className="container">
       <Sidebar />
 
-      <main style={{ flex: 1, backgroundColor: "#f3f4f6", overflowY: 'auto' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #6B21A8 0%, #3B0764 100%)',
+      <main style={{ flex: 1, backgroundColor: "var(--color-bg)", overflowY: 'auto' }}>
+        <div className="detalhes-header" style={{
           padding: '40px 40px 32px',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -180,7 +179,7 @@ export default function PatenteDetalhes() {
               background: 'rgba(255,255,255,0.15)', color: '#fff', padding: '4px 14px',
               borderRadius: 20, fontSize: 13, fontWeight: 600, textTransform: 'capitalize'
             }}>
-              {pi.tipo}
+              {formatTipo(pi.tipo)}
             </span>
             <span className={`badge ${normalizeStatus(pi.status)}`} style={{ fontSize: 13 }}>
               {formatStatus(pi.status)}
@@ -195,15 +194,15 @@ export default function PatenteDetalhes() {
           <div style={{ marginBottom: 20 }}>
             <button onClick={() => setActiveTab('geral')} style={{
               padding: '10px 20px', borderRadius: 8,
-              backgroundColor: activeTab === 'geral' ? '#6B21A8' : 'transparent',
-              color: activeTab === 'geral' ? '#fff' : '#64748B',
+              backgroundColor: activeTab === 'geral' ? 'var(--color-primary)' : 'transparent',
+              color: activeTab === 'geral' ? '#fff' : 'var(--color-text-secondary)',
               fontWeight: 600, border: activeTab === 'geral' ? 'none' : '1px solid #E2E8F0',
               cursor: "pointer", marginRight: 10, fontSize: 14
             }}>Informações gerais</button>
             <button onClick={() => setActiveTab('historico')} style={{
               padding: '10px 20px', borderRadius: 8,
-              backgroundColor: activeTab === 'historico' ? '#6B21A8' : 'transparent',
-              color: activeTab === 'historico' ? '#fff' : '#64748B',
+              backgroundColor: activeTab === 'historico' ? 'var(--color-primary)' : 'transparent',
+              color: activeTab === 'historico' ? '#fff' : 'var(--color-text-secondary)',
               fontWeight: 600, border: activeTab === 'historico' ? 'none' : '1px solid #E2E8F0',
               cursor: "pointer", fontSize: 14
             }}>Histórico</button>
@@ -212,27 +211,27 @@ export default function PatenteDetalhes() {
           {activeTab === 'geral' && (
             <>
               <div style={{
-                background: '#fff', padding: '28px 32px', borderRadius: 12,
-                border: '1px solid #E2E8F0', marginBottom: 28
+                background: 'var(--color-surface)', padding: '28px 32px', borderRadius: 12,
+                border: '1px solid var(--color-border)', marginBottom: 28
               }}>
-                <h3 style={{ color: '#6B21A8', margin: '0 0 20px', fontSize: 16, fontWeight: 700 }}>
+                <h3 style={{ color: 'var(--color-primary)', margin: '0 0 20px', fontSize: 16, fontWeight: 700 }}>
                   Informações principais
                 </h3>
                 <div style={{
                   display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
                   gap: '20px 32px', fontSize: 14
                 }}>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo</strong><br /><span style={{ color: '#1E293B', fontWeight: 600, textTransform: 'capitalize' }}>{pi.tipo}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Título</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.titulo || "-"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{formatStatus(pi.status)}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Protocolo</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.protocolo || "-"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Depositante</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.depositante || "-"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parceiro</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.parceiro || "-"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Titulares</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{Array.isArray(pi.titular) ? pi.titular.filter(Boolean).join(', ') : (pi.titular || "-")}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data de Entrada</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{formatDate(pi.data_entrada)}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ano</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.ano || "-"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Termo de Cessão</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.termo_cessao ? "Sim" : "Não"}</span></div>
-                  <div><strong style={{ color: '#64748B', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data de Cadastro</strong><br /><span style={{ color: '#1E293B', fontWeight: 600 }}>{pi.createdAt ? new Date(pi.createdAt).toLocaleDateString("pt-BR") : "-"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{formatTipo(pi.tipo)}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Título</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.titulo || "-"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{formatStatus(pi.status)}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Protocolo</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.protocolo || "-"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Depositante</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.depositante || "-"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parceiro</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.parceiro || "-"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Titulares</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{Array.isArray(pi.titular) ? pi.titular.filter(Boolean).join(', ') : (pi.titular || "-")}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data de Entrada</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{formatDate(pi.data_entrada)}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ano</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.ano || "-"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Termo de Cessão</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.termo_cessao ? "Sim" : "Não"}</span></div>
+                  <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data de Cadastro</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.createdAt ? new Date(pi.createdAt).toLocaleDateString("pt-BR") : "-"}</span></div>
                 </div>
               </div>
 
@@ -294,11 +293,11 @@ export default function PatenteDetalhes() {
           zIndex: 1000
         }} onClick={() => !deleting && setConfirmDelete(false)}>
           <div style={{
-            background: '#fff', borderRadius: 12, padding: 32, maxWidth: 420,
+            background: 'var(--color-surface)', borderRadius: 12, padding: 32, maxWidth: 420,
             width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 8px', color: '#1E293B', fontSize: 18 }}>Confirmar exclusão</h3>
-            <p style={{ color: '#64748B', fontSize: 14, lineHeight: 1.5 }}>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--color-text)', fontSize: 18 }}>Confirmar exclusão</h3>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
               Tem certeza que deseja excluir a PI <strong>{pi.protocolo}</strong>?
               Esta ação não pode ser desfeita.
             </p>
@@ -307,8 +306,8 @@ export default function PatenteDetalhes() {
                 onClick={() => setConfirmDelete(false)}
                 disabled={deleting}
                 style={{
-                  padding: '10px 20px', borderRadius: 8, border: '1px solid #E2E8F0',
-                  background: '#fff', color: '#475569', fontSize: 14, fontWeight: 600,
+                  padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface)', color: 'var(--color-text-secondary)', fontSize: 14, fontWeight: 600,
                   cursor: 'pointer'
                 }}
               >Cancelar</button>

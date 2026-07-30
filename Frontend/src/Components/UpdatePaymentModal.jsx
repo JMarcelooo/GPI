@@ -1,4 +1,4 @@
-import React from 'react';
+
 import '../Paginas/Modal.css';
 
 export default function UpdatePaymentModal({ payment, onClose }) {

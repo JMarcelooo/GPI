@@ -1,4 +1,3 @@
-import React from 'react';
 import '../Telas.css';
 import { useNavigate } from 'react-router-dom'; // Importa o hook
 

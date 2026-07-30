@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Calendar } from 'lucide-react';
 import './PaymentList.css'; // Estilos específicos da lista de pagamentos
 

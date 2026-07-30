@@ -1,6 +1,4 @@
-import React from 'react';
 import { Clock, CheckCircle, Calendar } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
 import '../Tela2.css';
 import './Notificacoes.css';
@@ -36,8 +34,6 @@ const notifications = [
 ];
 
 function Notificacoes() {
-  const navigate = useNavigate();
-
   return (
     <div className="container">
       <Sidebar />

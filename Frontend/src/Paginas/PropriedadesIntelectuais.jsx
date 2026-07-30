@@ -5,7 +5,7 @@ import axios from "axios";
 import Sidebar from '../Components/Sidebar';
 import "./PI.css";
 import "../Tela2.css";
-import { formatDate, formatStatus } from '../utils/formatDate';
+import { formatDate, formatStatus, formatTipo } from '../utils/formatDate';
 import FilterPIModal from '../Components/FilterPIModal';
 import Toast from '../Components/Toast';
 
@@ -171,7 +171,7 @@ function PropriedadesIntelectuais() {
                 ) : (
                   currentPIs.map(pi => (
                     <tr key={pi.id}>
-                      <td style={{ textTransform: 'capitalize' }}>{pi.tipo}</td>
+                      <td>{formatTipo(pi.tipo)}</td>
                       <td>{pi.titulo || "-"}</td>
                       <td>
                         <span className={`badge ${normalizeStatus(pi.status)}`}>

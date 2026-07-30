@@ -10,74 +10,89 @@
   justify-content: center;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   padding: var(--space-6);
+  position: relative;
 }
 
-.tela img {
-  max-width: 180px;
+/* ---- Login Card ---- */
+.login-card {
+  background: #4C1D95;
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-6);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.login-logo {
+  max-width: 200px;
   height: auto;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
-.tela h2 {
-  color: #fff;
-  font-size: var(--text-2xl);
-  margin-bottom: var(--space-6);
+.login-card h2 {
+  color: #E0E7FF;
+  font-size: var(--text-xl);
+  margin: 0 0 var(--space-6);
   font-weight: 600;
   font-family: var(--font-heading);
 }
 
-.tela input {
+.login-card input {
   width: 100%;
-  max-width: 360px;
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-3);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-md);
-  font-size: var(--text-base);
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  transition: background var(--transition);
+  font-size: var(--text-sm);
+  background: rgba(255, 255, 255, 0.08);
+  color: #F1F5F9;
+  box-sizing: border-box;
+  transition: border-color var(--transition), background var(--transition);
 }
 
-.tela input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+.login-card input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.tela input:focus {
+.login-card input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.25);
+  border-color: #A78BFA;
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.tela .entrar {
+.login-card .entrar {
   width: 100%;
-  max-width: 360px;
   padding: var(--space-3);
   margin-top: var(--space-2);
   border: none;
   border-radius: var(--radius-md);
-  font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-  background: #fff;
-  color: var(--color-primary);
-  transition: all var(--transition);
-}
-
-.tela .entrar:hover {
-  background: var(--color-primary-50);
-}
-
-.tela button {
-  margin: var(--space-2) var(--space-2);
-  padding: var(--space-3) var(--space-5);
-  border: none;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  cursor: pointer;
   font-size: var(--text-sm);
-  transition: all var(--transition);
+  font-weight: 600;
+  cursor: pointer;
+  background: #7C3AED;
+  color: #fff;
+  transition: background var(--transition);
+  font-family: var(--font-heading);
 }
 
+.login-card .entrar:hover {
+  background: #6D28D9;
+}
+
+/* ---- Footer ---- */
+.login-footer {
+  max-width: 180px;
+  height: auto;
+  opacity: 0.9;
+  position: absolute;
+  bottom: var(--space-6);
+}
+
+/* ---- Old Cadastro styles (kept for Cadastro.jsx) ---- */
 .botoes {
   display: flex;
   gap: var(--space-3);
@@ -100,25 +115,4 @@
 
 .cadastrar:hover {
   background: var(--color-primary-50);
-}
-
-.botao-link {
-  display: inline-block;
-  padding: var(--space-2) var(--space-4);
-  color: #fff;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: var(--text-sm);
-  opacity: 0.85;
-  transition: opacity var(--transition);
-}
-
-.botao-link:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-
-.tela p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: var(--text-sm);
 }

@@ -2,6 +2,14 @@
    DETALHES / CADASTRO PI
    ============================== */
 
+.detalhes-header {
+  background: linear-gradient(135deg, #6B21A8 0%, #3B0764 100%);
+}
+
+[data-theme="dark"] .detalhes-header {
+  background: linear-gradient(135deg, #4C1D95 0%, #1E0A3C 100%);
+}
+
 /* ---- Sections (card-form) ---- */
 .card-form-section {
   background: var(--color-surface);

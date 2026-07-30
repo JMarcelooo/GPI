@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { FileText, Users, BookOpen, TrendingUp, Download, Clock, CheckCircle, AlertTriangle, XCircle, Award, HelpCircle } from 'lucide-react';
 import axios from 'axios';
+import Sidebar from '../Components/Sidebar';
 import '../Tela2.css';
 import './Dashboard.css';
+import { formatTipo } from '../utils/formatDate';
 
 function Dashboard() {
-  const navigate = useNavigate();
   const [stats, setStats] = useState({
     ativos: 0, emProcesso: 0, pendentes: 0, total: 0,
     porStatus: [], porTipo: [], porAno: [],
     totalAutores: 0, autoresPorVinculo: []
   });
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     Promise.all([
       axios.get(`${process.env.REACT_APP_API_URL}/api/pi`),
@@ -55,15 +53,13 @@ function Dashboard() {
       setStats({
         ativos, emProcesso, pendentes, total,
         porStatus: Object.entries(statusCount).map(([k, v]) => ({ label: k, value: v })),
-        porTipo: Object.entries(tipoCount).map(([k, v]) => ({ label: k, value: v })),
+        porTipo: Object.entries(tipoCount).map(([k, v]) => ({ label: formatTipo(k), value: v })),
         porAno: Object.entries(anoCount).sort((a, b) => a[0] - b[0]).map(([k, v]) => ({ label: k, value: v })),
         totalAutores: autores.length,
         autoresPorVinculo: Object.entries(vinculoCount).map(([k, v]) => ({ label: k, value: v }))
       });
-      setLoading(false);
     }).catch(err => {
       console.error("Erro ao carregar dados:", err);
-      setLoading(false);
     });
   }, []);
 
@@ -108,17 +104,7 @@ function Dashboard() {
 
   return (
     <div className="container">
-      <div className="sidebar">
-        <img src="/imagens/Sistema-Logo.png" alt="UERN inova" width="150" />
-        <nav className="nav">
-          <button onClick={() => navigate("/dashboard")}>Inicio</button>
-          <button onClick={() => navigate("/propriedade-intelectual")}>Propriedades Intelectuais</button>
-          <button onClick={() => navigate("/autores")}>Autores</button>
-          <button onClick={() => navigate("/pagamentos")}>Pagamentos</button>
-          <button onClick={() => navigate("/configuracoes")}>Configurações</button>
-        </nav>
-        <img src="/imagens/Inova-Rodape.png" alt="Rodapé" width="150" />
-      </div>
+      <Sidebar />
 
       <div className="main">
         <header className="topbar">

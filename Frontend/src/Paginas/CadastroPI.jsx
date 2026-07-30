@@ -208,7 +208,7 @@ export default function CadastroPI() {
                     {form.titular.length > 1 && (
                       <button type="button" onClick={() => removeTitular(i)} style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        color: '#EF4444', padding: 4, display: 'flex'
+                        color: 'var(--color-error)', padding: 4, display: 'flex'
                       }}>
                         <X size={16} />
                       </button>
