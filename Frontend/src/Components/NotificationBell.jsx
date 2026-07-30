@@ -7,7 +7,7 @@ function NotificationBell() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (location.pathname === '/notificacoes') return null;
+  if (location.pathname === '/notificacoes' || location.pathname === '/cadastro-pi') return null;
 
   return (
     <div className="notification-bell-float" onClick={() => navigate('/notificacoes')}>
