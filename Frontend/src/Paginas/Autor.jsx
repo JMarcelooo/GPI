@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
 import FilterAuthorModal from '../Components/FilterAuthorModal';
 import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
-import ViewAuthorModal from '../Components/ViewAuthorModal';
 import axios from 'axios';
 import './Autor.css';
 
@@ -22,6 +22,7 @@ const formatPhone = (phone) => {
 };
 
 export default function Autor() {
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const authorsPerPage = 10;
@@ -30,10 +31,8 @@ export default function Autor() {
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showViewModal, setShowViewModal] = useState(false);
     const [selectedAuthor, setSelectedAuthor] = useState(null);
     const [authorToDelete, setAuthorToDelete] = useState(null);
-    const [authorToView, setAuthorToView] = useState(null);
     const [filters, setFilters] = useState({});
     const [sortField, setSortField] = useState(null);
     const [sortDir, setSortDir] = useState('asc');
@@ -117,19 +116,8 @@ export default function Autor() {
     };
     const handleCloseUpdateModal = () => setShowUpdateModal(false);
 
-    const handleOpenViewModal = async (author) => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/autores/${author.id}`);
-        setAuthorToView(response.data.data);
-      } catch (error) {
-        console.error("Erro ao buscar autor:", error);
-        setAuthorToView(author);
-      }
-      setShowViewModal(true);
-    };
-    const handleCloseViewModal = () => {
-      setAuthorToView(null);
-      setShowViewModal(false);
+    const handleOpenViewModal = (author) => {
+      navigate(`/autores/${author.id}`);
     };
 
     const handleOpenDeleteModal = (author) => {
@@ -305,13 +293,6 @@ export default function Autor() {
                 />
             )}
 
-            {/* Modal de visualização */}
-            {showViewModal && authorToView && (
-                <ViewAuthorModal
-                    onClose={handleCloseViewModal}
-                    author={authorToView}
-                />
-            )}
         </div>
     );
 }

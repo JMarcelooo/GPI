@@ -8,6 +8,7 @@ import CadastroPI from './Paginas/CadastroPI.jsx';
 import EditarPI from './Paginas/EditarPI';
 import Payments from './Paginas/Payments';
 import Autor from './Paginas/Autor';
+import AutorDetalhes from './Paginas/AutorDetalhes';
 import Notificacoes from './Paginas/Notificacoes';
 import Configuracoes from './Paginas/Configuracoes';
 import NotificationBell from './Components/NotificationBell';
@@ -27,7 +28,8 @@ function App() {
         <Route path="/cadastro-pi" element={<CadastroPI />} />
         <Route path="/editar-pi/:id" element={<EditarPI />} />
          <Route path="/pagamentos" element={<Payments />} />
-        <Route path="/autores" element={<Autor />} /> {/* Esta é a nova rota para o Autor.jsx */}
+        <Route path="/autores" element={<Autor />} />
+        <Route path="/autores/:id" element={<AutorDetalhes />} />
         <Route path="/notificacoes" element={<Notificacoes />} />
         <Route path="/configuracoes" element={<Configuracoes />} />
 
