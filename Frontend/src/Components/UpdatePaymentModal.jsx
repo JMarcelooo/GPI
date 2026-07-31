@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import PISelector from './PISelector';
-import { STATUS_PAGAMENTO } from '../utils/formatDate';
+import { STATUS_PAGAMENTO, addDaysToDate, todayString } from '../utils/formatDate';
 import '../Paginas/Modal.css';
 
 export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelete }) {
   const [piId, setPiId] = useState(payment.pi_id);
   const [form, setForm] = useState({
     tipo_de_pagamento: payment.tipo_de_pagamento || '',
-    data_de_vencimento: payment.data_de_vencimento || '',
+    data_informada: payment.data_informada || payment.data_de_vencimento || '',
     valor: payment.valor ?? '',
     status: payment.status || 'aguardando prazo',
+    prazo_dias: payment.prazo_dias ?? '',
     processo_sei: payment.processo_sei || '',
     observacao: payment.observacao || ''
   });
@@ -20,6 +21,9 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
+
+  const dataInformada = form.data_informada || todayString();
+  const dataCalculada = addDaysToDate(dataInformada, form.prazo_dias);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,9 +36,11 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
       await onUpdate({
         pi_id: Number(piId),
         tipo_de_pagamento: form.tipo_de_pagamento,
-        data_de_vencimento: form.data_de_vencimento,
+        data_informada: dataInformada,
+        data_de_vencimento: dataCalculada,
         valor: Number(form.valor),
         status: form.status,
+        prazo_dias: form.prazo_dias ? Number(form.prazo_dias) : null,
         processo_sei: form.processo_sei,
         observacao: form.observacao
       });
@@ -91,15 +97,42 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
             required
           />
 
-          <label htmlFor="pay-data-edit">Data</label>
+          <label htmlFor="pay-data-edit">Data Informada</label>
           <input
             id="pay-data-edit"
             type="date"
-            name="data_de_vencimento"
-            value={form.data_de_vencimento}
+            name="data_informada"
+            value={form.data_informada}
             onChange={handleChange}
-            required
           />
+
+          <label htmlFor="pay-prazo-edit">Prazo (dias)</label>
+          <input
+            id="pay-prazo-edit"
+            type="number"
+            name="prazo_dias"
+            min="1"
+            step="1"
+            value={form.prazo_dias}
+            onChange={handleChange}
+            placeholder="Ex.: 60"
+          />
+
+          <div style={{
+            background: 'var(--color-primary-100, rgba(37, 99, 235, 0.08))',
+            padding: '10px 12px',
+            borderRadius: 8,
+            marginBottom: 12,
+            fontSize: 13,
+            lineHeight: 1.5
+          }}>
+            Data informada: <strong>{new Date(dataInformada + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
+            {form.prazo_dias && (
+              <>
+                {' '}→ Data calculada com o prazo: <strong>{new Date(dataCalculada + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
+              </>
+            )}
+          </div>
 
           <label htmlFor="pay-status-edit">Status</label>
           <select

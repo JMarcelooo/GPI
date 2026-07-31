@@ -14,6 +14,10 @@ const Pagamento = sequelize.define('Pagamento', {
     type: DataTypes.DATEONLY,
     allowNull: false
   },
+  data_informada: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
   valor: {
     type: DataTypes.FLOAT,
     allowNull: false
@@ -22,6 +26,10 @@ const Pagamento = sequelize.define('Pagamento', {
     type: DataTypes.STRING(50),
     allowNull: false,
     defaultValue: 'aguardando prazo'
+  },
+  prazo_dias: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   },
   processo_sei: {
     type: DataTypes.STRING(100),

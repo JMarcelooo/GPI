@@ -6,7 +6,7 @@ import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
-import { formatDate, formatStatus, formatTipo, formatStatusPagamento } from '../utils/formatDate';
+import { formatDate, formatStatus, formatTipo, formatStatusPagamento, daysUntil } from '../utils/formatDate';
 import Toast from '../Components/Toast';
 
 function normalizeStatus(status) {
@@ -320,7 +320,7 @@ export default function PatenteDetalhes() {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                     <thead>
                       <tr>
-                        {['Tipo', 'Valor', 'Data', 'Status', 'Processo SEI', 'Observações'].map(h => (
+                        {['Tipo', 'Valor', 'Data Calculada', 'Status', 'Prazo', 'Processo SEI', 'Observações'].map(h => (
                           <th key={h} style={{
                             textAlign: 'left', padding: '10px 12px', fontSize: 12,
                             textTransform: 'uppercase', letterSpacing: '0.5px',
@@ -347,6 +347,11 @@ export default function PatenteDetalhes() {
                           </td>
                           <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
                             {formatDate(p.data_de_vencimento)}
+                            {p.data_informada && p.data_informada !== p.data_de_vencimento && (
+                              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                                Informada: {formatDate(p.data_informada)}
+                              </div>
+                            )}
                           </td>
                           <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)' }}>
                             <span style={{
@@ -356,6 +361,16 @@ export default function PatenteDetalhes() {
                             }}>
                               {formatStatusPagamento(p.status)}
                             </span>
+                          </td>
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
+                            {p.prazo_dias ? `${p.prazo_dias} dia${p.prazo_dias !== 1 ? 's' : ''}` : '-'}
+                            {p.data_de_vencimento && (() => {
+                              const diff = daysUntil(p.data_de_vencimento);
+                              if (diff === null) return null;
+                              const text = diff > 0 ? `${diff}d` : diff === 0 ? 'hoje' : `${Math.abs(diff)}d atrasado`;
+                              const color = diff > 0 ? 'var(--color-success)' : diff === 0 ? 'var(--color-warning)' : 'var(--color-error)';
+                              return <div style={{ fontSize: 12, fontWeight: 600, color, marginTop: 2 }}>{text}</div>;
+                            })()}
                           </td>
                           <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
                             {p.processo_sei || '-'}

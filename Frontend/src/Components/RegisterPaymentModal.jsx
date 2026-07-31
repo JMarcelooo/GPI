@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import PISelector from './PISelector';
-import { STATUS_PAGAMENTO } from '../utils/formatDate';
+import { STATUS_PAGAMENTO, addDaysToDate, todayString } from '../utils/formatDate';
 import '../Paginas/Modal.css';
 
 export default function RegisterPaymentModal({ onClose, onRegister }) {
   const [piId, setPiId] = useState(null);
   const [form, setForm] = useState({
     tipo_de_pagamento: '',
-    data_de_vencimento: '',
+    data_informada: '',
     valor: '',
     status: 'aguardando prazo',
+    prazo_dias: '',
     processo_sei: '',
     observacao: ''
   });
@@ -19,6 +20,9 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
+
+  const dataInformada = form.data_informada || todayString();
+  const dataCalculada = addDaysToDate(dataInformada, form.prazo_dias);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,9 +35,11 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
       await onRegister({
         pi_id: Number(piId),
         tipo_de_pagamento: form.tipo_de_pagamento,
-        data_de_vencimento: form.data_de_vencimento,
+        data_informada: dataInformada,
+        data_de_vencimento: dataCalculada,
         valor: Number(form.valor),
         status: form.status,
+        prazo_dias: form.prazo_dias ? Number(form.prazo_dias) : null,
         processo_sei: form.processo_sei,
         observacao: form.observacao
       });
@@ -46,6 +52,8 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
       );
     }
   };
+
+  const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -79,15 +87,42 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             required
           />
 
-          <label htmlFor="pay-data">Data</label>
+          <label htmlFor="pay-data">Data Informada</label>
           <input
             id="pay-data"
             type="date"
-            name="data_de_vencimento"
-            value={form.data_de_vencimento}
+            name="data_informada"
+            value={form.data_informada}
             onChange={handleChange}
-            required
           />
+
+          <label htmlFor="pay-prazo">Prazo (dias)</label>
+          <input
+            id="pay-prazo"
+            type="number"
+            name="prazo_dias"
+            min="1"
+            step="1"
+            value={form.prazo_dias}
+            onChange={handleChange}
+            placeholder="Ex.: 60"
+          />
+
+          <div style={{
+            background: 'var(--color-primary-100, rgba(37, 99, 235, 0.08))',
+            padding: '10px 12px',
+            borderRadius: 8,
+            marginBottom: 12,
+            fontSize: 13,
+            lineHeight: 1.5
+          }}>
+            Data informada: <strong>{fmt(dataInformada)}</strong>
+            {form.prazo_dias && (
+              <>
+                {' '}→ Data calculada com o prazo: <strong>{fmt(dataCalculada)}</strong>
+              </>
+            )}
+          </div>
 
           <label htmlFor="pay-status">Status</label>
           <select

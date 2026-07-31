@@ -336,6 +336,14 @@
   font-weight: 600;
 }
 
+.payments-table td.td-pi {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 160px;
+  max-width: 260px;
+}
+
 .td-value {
   font-weight: 700;
   font-family: var(--font-heading);

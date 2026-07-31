@@ -25,8 +25,10 @@ CREATE TABLE IF NOT EXISTS "pagamentos" (
 	"pi_id" bigint NOT NULL,
 	"tipo_de_pagamento" varchar(50) NOT NULL,
 	"data_de_vencimento" date NOT NULL,
+	"data_informada" date,
 	"valor" double precision NOT NULL,
 	"status" varchar(50) NOT NULL DEFAULT 'aguardando prazo',
+	"prazo_dias" integer,
 	"processo_sei" varchar(100),
 	"observacao" varchar(255) NOT NULL,
 	PRIMARY KEY ("id")
@@ -86,6 +88,8 @@ ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") R
 -- Migração para tabelas existentes (adiciona novos campos de pagamento)
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "status" varchar(50) NOT NULL DEFAULT 'aguardando prazo';
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "processo_sei" varchar(100);
+ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "prazo_dias" integer;
+ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "data_informada" date;
 ALTER TABLE "controle_processos" ADD CONSTRAINT "controle_processos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
 ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
 

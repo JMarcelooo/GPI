@@ -35,7 +35,7 @@ exports.getPagamentoById = async (req, res) => {
 // POST /api/pagamentos
 exports.createPagamento = async (req, res) => {
   try {
-    const { pi_id, tipo_de_pagamento, data_de_vencimento, valor, status, processo_sei, observacao } = req.body;
+    const { pi_id, tipo_de_pagamento, data_de_vencimento, data_informada, valor, status, prazo_dias, processo_sei, observacao } = req.body;
 
     if (!pi_id || !tipo_de_pagamento || !data_de_vencimento || valor === undefined || valor === null) {
       return res.status(400).json({
@@ -53,6 +53,11 @@ exports.createPagamento = async (req, res) => {
       });
     }
 
+    if (prazo_dias !== undefined && prazo_dias !== null &&
+      (isNaN(Number(prazo_dias)) || Number(prazo_dias) < 1)) {
+      return res.status(400).json({ error: 'Prazo inválido. Informe um número de dias maior que zero.' });
+    }
+
     const pi = await PI.findByPk(pi_id);
     if (!pi) {
       return res.status(404).json({ error: 'PI não encontrada.' });
@@ -62,8 +67,10 @@ exports.createPagamento = async (req, res) => {
       pi_id,
       tipo_de_pagamento,
       data_de_vencimento,
+      data_informada: data_informada || null,
       valor: Number(valor),
       status: status || 'aguardando prazo',
+      prazo_dias: prazo_dias || null,
       processo_sei: processo_sei || null,
       observacao: observacao || null
     });
@@ -88,11 +95,12 @@ exports.updatePagamento = async (req, res) => {
       return res.status(404).json({ error: 'Pagamento não encontrado.' });
     }
 
-    const { pi_id, tipo_de_pagamento, data_de_vencimento, valor, status, processo_sei, observacao } = req.body;
+    const { pi_id, tipo_de_pagamento, data_de_vencimento, data_informada, valor, status, prazo_dias, processo_sei, observacao } = req.body;
     const updateData = {};
     if (pi_id !== undefined) updateData.pi_id = pi_id;
     if (tipo_de_pagamento !== undefined) updateData.tipo_de_pagamento = tipo_de_pagamento;
     if (data_de_vencimento !== undefined) updateData.data_de_vencimento = data_de_vencimento;
+    if (data_informada !== undefined) updateData.data_informada = data_informada;
     if (valor !== undefined) {
       if (isNaN(Number(valor)) || Number(valor) < 0) {
         return res.status(400).json({ error: 'Valor inválido.' });
@@ -106,6 +114,12 @@ exports.updatePagamento = async (req, res) => {
         });
       }
       updateData.status = status;
+    }
+    if (prazo_dias !== undefined && prazo_dias !== null) {
+      if (isNaN(Number(prazo_dias)) || Number(prazo_dias) < 1) {
+        return res.status(400).json({ error: 'Prazo inválido. Informe um número de dias maior que zero.' });
+      }
+      updateData.prazo_dias = Number(prazo_dias);
     }
     if (processo_sei !== undefined) updateData.processo_sei = processo_sei;
     if (observacao !== undefined) updateData.observacao = observacao;

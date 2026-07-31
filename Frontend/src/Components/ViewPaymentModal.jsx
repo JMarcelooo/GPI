@@ -1,5 +1,5 @@
-import { Calendar, DollarSign, FileText, Tag, ShieldCheck } from 'lucide-react';
-import { formatStatusPagamento } from '../utils/formatDate';
+import { Calendar, DollarSign, FileText, Tag, ShieldCheck, Timer } from 'lucide-react';
+import { formatStatusPagamento, daysUntil } from '../utils/formatDate';
 import '../Paginas/Modal.css';
 
 const formatCurrency = (val) =>
@@ -56,11 +56,14 @@ export default function ViewPaymentModal({ payment, onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Calendar size={16} style={{ color: 'var(--color-primary)' }} />
                 <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Data
+                  Data Calculada
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)', fontWeight: 600 }}>
                 {formatDate(payment.dueDate || payment.data_de_vencimento)}
+              </p>
+              <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                Informada: {formatDate(payment.data_informada || payment.data_de_vencimento)}
               </p>
             </div>
           </div>
@@ -89,6 +92,24 @@ export default function ViewPaymentModal({ payment, onClose }) {
               </p>
             </div>
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Timer size={16} style={{ color: 'var(--color-primary)' }} />
+            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+              Prazo
+            </span>
+          </div>
+          <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: 'var(--color-text)' }}>
+            {payment.prazo_dias ? `${payment.prazo_dias} dia${payment.prazo_dias !== 1 ? 's' : ''}` : '-'}
+            {payment.prazo_dias && payment.data_de_vencimento && (() => {
+              const diff = daysUntil(payment.data_de_vencimento);
+              if (diff === null) return null;
+              if (diff > 0) return <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{` · Vence em ${diff} dia${diff !== 1 ? 's' : ''}`}</span>;
+              if (diff === 0) return <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>{' · Vence hoje'}</span>;
+              const abs = Math.abs(diff);
+              return <span style={{ color: 'var(--color-error)', fontWeight: 600 }}>{` · Venceu há ${abs} dia${abs !== 1 ? 's' : ''}`}</span>;
+            })()}
+          </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <FileText size={16} style={{ color: 'var(--color-primary)' }} />

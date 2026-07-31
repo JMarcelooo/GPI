@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, AlertTriangle, DollarSign, Eye, Pencil } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import Calendar from '../Components/Calendar';
@@ -7,7 +7,7 @@ import RegisterPaymentModal from '../Components/RegisterPaymentModal';
 import UpdatePaymentModal from '../Components/UpdatePaymentModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Toast from '../Components/Toast';
-import { formatStatusPagamento } from '../utils/formatDate';
+import { formatStatusPagamento, daysUntil } from '../utils/formatDate';
 import './Payments.css';
 
 const API = process.env.REACT_APP_API_URL;
@@ -57,18 +57,39 @@ export default function Payments() {
   today.setHours(0, 0, 0, 0);
 
   const totalValue = enrichedPayments.reduce((acc, p) => acc + (Number(p.valor) || 0), 0);
-  const upcomingCount = enrichedPayments.filter(p => p.dueDate && p.dueDate >= today).length;
-  const overdueCount = enrichedPayments.filter(p => p.dueDate && p.dueDate < today).length;
+  const statusCount = (status) =>
+    enrichedPayments.filter(p => (p.status || 'aguardando prazo') === status).length;
 
   const stats = {
     total: enrichedPayments.length,
     valorTotal: totalValue,
-    proximos: upcomingCount,
-    vencidos: overdueCount
+    aguardandoPrazo: statusCount('aguardando prazo'),
+    emAndamento: statusCount('em andamento'),
+    pago: statusCount('pago')
   };
 
   const formatCurrency = (val) =>
     `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+
+  const renderDaysLeft = (p) => {
+    if (!p.data_de_vencimento) return null;
+    const diff = daysUntil(p.data_de_vencimento);
+    if (diff === null) return null;
+    let text;
+    let color;
+    if (diff > 0) {
+      text = `Vence em ${diff} dia${diff !== 1 ? 's' : ''}`;
+      color = 'var(--color-success)';
+    } else if (diff === 0) {
+      text = 'Vence hoje';
+      color = 'var(--color-warning)';
+    } else {
+      const abs = Math.abs(diff);
+      text = `Venceu há ${abs} dia${abs !== 1 ? 's' : ''}`;
+      color = 'var(--color-error)';
+    }
+    return <div style={{ fontSize: 12, color, fontWeight: 600, marginTop: 2 }}>{text}</div>;
+  };
 
   const upcomingPayments = [...enrichedPayments]
     .filter(p => p.dueDate && p.dueDate >= today)
@@ -133,33 +154,34 @@ export default function Payments() {
             <div className="stat-info">
               <span className="stat-value">{stats.total}</span>
               <span className="stat-label">Total</span>
-            </div>
-          </div>
-          <div className="stat-card stat-card--paid">
-            <div className="stat-icon" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
-              <DollarSign size={20} />
-            </div>
-            <div className="stat-info">
-              <span className="stat-value">{formatCurrency(stats.valorTotal)}</span>
-              <span className="stat-label">Valor total</span>
+              <span className="stat-amount">{formatCurrency(stats.valorTotal)}</span>
             </div>
           </div>
           <div className="stat-card stat-card--pending">
             <div className="stat-icon" style={{ background: 'var(--color-warning-bg)', color: 'var(--color-warning)' }}>
+              <Clock size={20} />
+            </div>
+            <div className="stat-info">
+              <span className="stat-value">{stats.aguardandoPrazo}</span>
+              <span className="stat-label">Aguardando prazo</span>
+            </div>
+          </div>
+          <div className="stat-card stat-card--andamento">
+            <div className="stat-icon" style={{ background: 'var(--color-primary-bg)', color: 'var(--color-primary)' }}>
               <TrendingUp size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-value">{stats.proximos}</span>
-              <span className="stat-label">A vencer</span>
+              <span className="stat-value">{stats.emAndamento}</span>
+              <span className="stat-label">Em andamento</span>
             </div>
           </div>
-          <div className="stat-card stat-card--overdue">
-            <div className="stat-icon" style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)' }}>
-              <AlertTriangle size={20} />
+          <div className="stat-card stat-card--paid">
+            <div className="stat-icon" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
+              <CheckCircle2 size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-value">{stats.vencidos}</span>
-              <span className="stat-label">Vencidos</span>
+              <span className="stat-value">{stats.pago}</span>
+              <span className="stat-label">Pago</span>
             </div>
           </div>
         </div>
@@ -186,7 +208,8 @@ export default function Payments() {
                       <th>Tipo</th>
                       <th>PI</th>
                       <th>Valor</th>
-                      <th>Data</th>
+                      <th>Data Informada</th>
+                      <th>Data Final</th>
                       <th>Status</th>
                       <th></th>
                     </tr>
@@ -195,9 +218,15 @@ export default function Payments() {
                     {filteredPayments.map((p, i) => (
                       <tr key={i}>
                         <td className="td-desc">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</td>
-                        <td>{p.pi}</td>
+                        <td className="td-pi">{p.pi}</td>
                         <td className="td-value">{formatCurrency(parseFloat(p.valor) || 0)}</td>
-                        <td>{p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}</td>
+                        <td>
+                          <div>{p.data_informada ? toLocalDate(p.data_informada)?.toLocaleDateString('pt-BR') : '-'}</div>
+                        </td>
+                        <td>
+                          <div>{p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}</div>
+                          {renderDaysLeft(p)}
+                        </td>
                         <td>
                           <span className={`status-badge status-badge--${(p.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '')}`}>
                             {formatStatusPagamento(p.status)}
@@ -217,7 +246,7 @@ export default function Payments() {
                     ))}
                     {filteredPayments.length === 0 && (
                       <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
+                        <td colSpan={7} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
                           Nenhum pagamento encontrado.
                         </td>
                       </tr>
@@ -247,6 +276,15 @@ export default function Payments() {
                           <CalendarIcon size={12} />
                           {p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}
                         </span>
+                        {renderDaysLeft(p)}
+                        {p.data_informada && p.data_informada !== p.data_de_vencimento && (() => {
+                          const info = toLocalDate(p.data_informada);
+                          return info ? (
+                            <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                              Informada: {info.toLocaleDateString('pt-BR')}
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                       <div className="upcoming-right">
                         <span className={`upcoming-status status-badge--${(p.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '')}`}>
