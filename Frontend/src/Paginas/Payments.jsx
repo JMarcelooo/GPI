@@ -92,7 +92,13 @@ export default function Payments() {
   };
 
   const upcomingPayments = [...enrichedPayments]
-    .filter(p => p.dueDate && p.dueDate >= today)
+    .filter(p => {
+      if (!p.dueDate || p.dueDate < today) return false;
+      if (!p.prazo_dias) return false;
+      const diff = daysUntil(p.data_de_vencimento);
+      if (diff === null) return false;
+      return diff < Number(p.prazo_dias);
+    })
     .sort((a, b) => a.dueDate - b.dueDate)
     .slice(0, 5);
 
