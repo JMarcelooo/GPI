@@ -2,15 +2,26 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeft, Pencil, Trash2, Edit2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdicionarRPIModal from '../Components/AdicionarRPIModal';
+import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
-import { formatDate, formatStatus, formatTipo } from '../utils/formatDate';
+import { formatDate, formatStatus, formatTipo, formatStatusPagamento } from '../utils/formatDate';
 import Toast from '../Components/Toast';
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
 }
+
+function formatCurrency(val) {
+  return `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+}
+
+const STATUS_PAGAMENTO_COLORS = {
+  'aguardando prazo': { bg: 'var(--color-warning-bg)', color: 'var(--color-warning)' },
+  'em andamento': { bg: 'var(--color-primary-bg)', color: 'var(--color-primary)' },
+  'pago': { bg: 'var(--color-success-bg)', color: 'var(--color-success)' }
+};
 
 export default function PatenteDetalhes() {
   const navigate = useNavigate();
@@ -22,6 +33,8 @@ export default function PatenteDetalhes() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [activeTab, setActiveTab] = useState('geral');
   const [rpiEvents, setRpiEvents] = useState([]);
+  const [pagamentos, setPagamentos] = useState([]);
+  const [viewPayment, setViewPayment] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [toast, setToast] = useState(null);
@@ -41,6 +54,10 @@ export default function PatenteDetalhes() {
     axios.get(`${api}/api/pi/${id}/rpis`)
       .then(res => setRpiEvents(res.data.data || []))
       .catch(err => console.error("Erro ao buscar RPIs:", err));
+
+    axios.get(`${api}/api/pi/${id}/pagamentos`)
+      .then(res => setPagamentos(res.data.data || []))
+      .catch(err => console.error("Erro ao buscar pagamentos:", err));
   }, [id]);
 
   const handleDelete = async () => {
@@ -56,6 +73,10 @@ export default function PatenteDetalhes() {
       setDeleting(false);
       setConfirmDelete(false);
     }
+  };
+
+  const openPaymentDetails = (p) => {
+    setViewPayment({ ...p, pi: (pi.titulo || pi.protocolo || `PI ${pi.id}`) });
   };
 
   const handleAddRPI = async (newRPI) => {
@@ -191,13 +212,13 @@ export default function PatenteDetalhes() {
         </div>
 
         <div style={{ padding: '24px 40px' }}>
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 20, display: 'flex', gap: 10 }}>
             <button onClick={() => setActiveTab('geral')} style={{
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'geral' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'geral' ? '#fff' : 'var(--color-text-secondary)',
               fontWeight: 600, border: activeTab === 'geral' ? 'none' : '1px solid #E2E8F0',
-              cursor: "pointer", marginRight: 10, fontSize: 14
+              cursor: "pointer", fontSize: 14
             }}>Informações gerais</button>
             <button onClick={() => setActiveTab('historico')} style={{
               padding: '10px 20px', borderRadius: 8,
@@ -206,6 +227,13 @@ export default function PatenteDetalhes() {
               fontWeight: 600, border: activeTab === 'historico' ? 'none' : '1px solid #E2E8F0',
               cursor: "pointer", fontSize: 14
             }}>Histórico</button>
+            <button onClick={() => setActiveTab('pagamentos')} style={{
+              padding: '10px 20px', borderRadius: 8,
+              backgroundColor: activeTab === 'pagamentos' ? 'var(--color-primary)' : 'transparent',
+              color: activeTab === 'pagamentos' ? '#fff' : 'var(--color-text-secondary)',
+              fontWeight: 600, border: activeTab === 'pagamentos' ? 'none' : '1px solid #E2E8F0',
+              cursor: "pointer", fontSize: 14
+            }}>Pagamentos</button>
           </div>
 
           {activeTab === 'geral' && (
@@ -273,6 +301,76 @@ export default function PatenteDetalhes() {
               <p style={{ padding: 16, color: '#888' }}>Nenhum evento registrado</p>
             </div>
           )}
+
+          {activeTab === 'pagamentos' && (
+            <div style={{
+              background: 'var(--color-surface)', padding: '28px 32px', borderRadius: 12,
+              border: '1px solid var(--color-border)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h3 style={{ color: 'var(--color-primary)', margin: 0, fontSize: 16, fontWeight: 700 }}>
+                  Pagamentos vinculados
+                </h3>
+              </div>
+
+              {pagamentos.length === 0 ? (
+                <p style={{ padding: 16, color: '#888' }}>Nenhum pagamento registrado para esta PI</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                    <thead>
+                      <tr>
+                        {['Tipo', 'Valor', 'Data', 'Status', 'Processo SEI', 'Observações'].map(h => (
+                          <th key={h} style={{
+                            textAlign: 'left', padding: '10px 12px', fontSize: 12,
+                            textTransform: 'uppercase', letterSpacing: '0.5px',
+                            color: 'var(--color-text-secondary)', borderBottom: '2px solid var(--color-border)'
+                          }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pagamentos.map(p => (
+                        <tr
+                          key={p.id}
+                          onClick={() => openPaymentDetails(p)}
+                          title="Clique para ver detalhes"
+                          onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-hover)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', fontWeight: 600, color: 'var(--color-text)' }}>
+                            {p.tipo_de_pagamento || '-'}
+                          </td>
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', fontWeight: 700, color: 'var(--color-text)' }}>
+                            {formatCurrency(p.valor)}
+                          </td>
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
+                            {formatDate(p.data_de_vencimento)}
+                          </td>
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)' }}>
+                            <span style={{
+                              display: 'inline-block', padding: '4px 10px', borderRadius: 20,
+                              fontSize: 12, fontWeight: 600,
+                              ...(STATUS_PAGAMENTO_COLORS[p.status] || { background: 'var(--color-border)', color: 'var(--color-text-secondary)' })
+                            }}>
+                              {formatStatusPagamento(p.status)}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
+                            {p.processo_sei || '-'}
+                          </td>
+                          <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
+                            {p.observacao || '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
@@ -286,6 +384,9 @@ export default function PatenteDetalhes() {
       />
 
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+      {viewPayment && (
+        <ViewPaymentModal payment={viewPayment} onClose={() => setViewPayment(null)} />
+      )}
       {confirmDelete && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
