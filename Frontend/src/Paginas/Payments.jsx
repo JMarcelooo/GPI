@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar as CalendarIcon, Plus, Search, List, BarChart3, TrendingUp, AlertTriangle, DollarSign, Eye, Pencil } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, AlertTriangle, DollarSign, Eye, Pencil } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import Calendar from '../Components/Calendar';
-import PaymentList from '../Components/PaymentList';
 import RegisterPaymentModal from '../Components/RegisterPaymentModal';
 import UpdatePaymentModal from '../Components/UpdatePaymentModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
@@ -23,7 +22,6 @@ export default function Payments() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
-  const [activeTab, setActiveTab] = useState('list');
   const [calendarSelectedDate, setCalendarSelectedDate] = useState(new Date());
   const [allPayments, setAllPayments] = useState([]);
   const [pis, setPis] = useState([]);
@@ -71,18 +69,6 @@ export default function Payments() {
   const formatCurrency = (val) =>
     `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
-  const getPaymentsForCalendarMonth = (year, month) =>
-    enrichedPayments.filter(p =>
-      p.dueDate &&
-      p.dueDate.getFullYear() === year &&
-      p.dueDate.getMonth() === month
-    );
-
-  const currentMonthPayments = getPaymentsForCalendarMonth(
-    calendarSelectedDate.getFullYear(),
-    calendarSelectedDate.getMonth()
-  );
-
   const upcomingPayments = [...enrichedPayments]
     .filter(p => p.dueDate && p.dueDate >= today)
     .sort((a, b) => a.dueDate - b.dueDate)
@@ -115,11 +101,6 @@ export default function Payments() {
     await loadPayments();
     setToast({ message: 'Pagamento removido com sucesso!', type: 'success' });
   };
-
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
 
   const filteredPayments = enrichedPayments.filter(p =>
     !searchTerm ||
@@ -182,114 +163,96 @@ export default function Payments() {
           </div>
         </div>
 
-        {upcomingPayments.length > 0 && (
-          <div className="upcoming-section">
-            <h2 className="section-title">Próximos Vencimentos</h2>
-            <div className="upcoming-grid">
-              {upcomingPayments.map((p, i) => (
-                <div key={i} className="upcoming-item">
-                  <div className="upcoming-left">
-                    <p className="upcoming-title">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</p>
-                    <span className="upcoming-date">
-                      <CalendarIcon size={12} />
-                      {p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}
-                    </span>
-                  </div>
-                  <div className="upcoming-right">
-                    <span className="upcoming-value">
-                      {formatCurrency(parseFloat(p.valor) || 0)}
-                    </span>
-                  </div>
+        <div className="payments-layout">
+          <div className="payments-main">
+            <div className="table-section">
+              <div className="table-toolbar">
+                <div className="search-wrapper">
+                  <Search size={16} className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Buscar pagamentos..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="payments-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'list' ? 'tab-btn--active' : ''}`}
-            onClick={() => setActiveTab('list')}
-          >
-            <List size={16} /> Lista
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'calendar' ? 'tab-btn--active' : ''}`}
-            onClick={() => setActiveTab('calendar')}
-          >
-            <CalendarIcon size={16} /> Calendário
-          </button>
-        </div>
-
-        {activeTab === 'list' ? (
-          <div className="table-section">
-            <div className="table-toolbar">
-              <div className="search-wrapper">
-                <Search size={16} className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Buscar pagamentos..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
+              </div>
+              <div className="table-scroll">
+                <table className="payments-table">
+                  <thead>
+                    <tr>
+                      <th>Tipo</th>
+                      <th>PI</th>
+                      <th>Valor</th>
+                      <th>Data</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPayments.map((p, i) => (
+                      <tr key={i}>
+                        <td className="td-desc">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</td>
+                        <td>{p.pi}</td>
+                        <td className="td-value">{formatCurrency(parseFloat(p.valor) || 0)}</td>
+                        <td>{p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="btn-acao" title="Visualizar" onClick={() => handleOpenViewModal(p)}>
+                              <Eye size={18} />
+                            </button>
+                            <button className="btn-acao" title="Editar" onClick={() => handleOpenUpdateModal(p)}>
+                              <Pencil size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredPayments.length === 0 && (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
+                          Nenhum pagamento encontrado.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="table-scroll">
-              <table className="payments-table">
-                <thead>
-                  <tr>
-                    <th>Tipo</th>
-                    <th>PI</th>
-                    <th>Valor</th>
-                    <th>Data</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPayments.map((p, i) => (
-                    <tr key={i}>
-                      <td className="td-desc">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</td>
-                      <td>{p.pi}</td>
-                      <td className="td-value">{formatCurrency(parseFloat(p.valor) || 0)}</td>
-                      <td>{p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn-acao" title="Visualizar" onClick={() => handleOpenViewModal(p)}>
-                            <Eye size={18} />
-                          </button>
-                          <button className="btn-acao" title="Editar" onClick={() => handleOpenUpdateModal(p)}>
-                            <Pencil size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredPayments.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
-                        Nenhum pagamento encontrado.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
           </div>
-        ) : (
-          <div className="calendar-view">
+
+          <aside className="payments-side">
             <Calendar
               selectedDate={calendarSelectedDate}
               setSelectedDate={setCalendarSelectedDate}
-              payments={currentMonthPayments}
+              payments={enrichedPayments}
             />
-            <PaymentList
-              payments={currentMonthPayments}
-              monthName={monthNames[calendarSelectedDate.getMonth()]}
-              year={calendarSelectedDate.getFullYear()}
-            />
-          </div>
-        )}
+
+            {upcomingPayments.length > 0 && (
+              <div className="upcoming-section">
+                <h2 className="section-title">Próximos Vencimentos</h2>
+                <div className="upcoming-grid">
+                  {upcomingPayments.map((p, i) => (
+                    <div key={i} className="upcoming-item">
+                      <div className="upcoming-left">
+                        <p className="upcoming-title">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</p>
+                        <span className="upcoming-date">
+                          <CalendarIcon size={12} />
+                          {p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}
+                        </span>
+                      </div>
+                      <div className="upcoming-right">
+                        <span className="upcoming-value">
+                          {formatCurrency(parseFloat(p.valor) || 0)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
+        </div>
 
         {showRegisterModal && (
           <RegisterPaymentModal

@@ -7,7 +7,7 @@
 .payments-content {
   flex: 1;
   padding: var(--space-8);
-  max-width: 1240px;
+  width: 100%;
   overflow-y: auto;
 }
 
@@ -187,6 +187,24 @@
   font-size: var(--text-sm);
   font-weight: 700;
   color: var(--color-text);
+}
+
+/* ---- Layout ---- */
+.payments-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.payments-main {
+  min-width: 0;
+}
+
+.payments-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 /* ---- Tabs ---- */
@@ -390,6 +408,12 @@
 }
 
 /* ---- Responsive ---- */
+@media (max-width: 1200px) {
+  .payments-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1024px) {
   .payments-stats {
     grid-template-columns: repeat(2, 1fr);
