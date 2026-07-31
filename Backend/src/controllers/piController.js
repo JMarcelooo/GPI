@@ -1,4 +1,4 @@
-const { PI, RPI } = require('../models/index');
+const { PI, RPI, Pagamento } = require('../models/index');
 
 const TIPOS_VALIDOS = [
   'patente de invencao',
@@ -308,6 +308,30 @@ exports.getRPIsByPI = async (req, res) => {
     console.error('Erro ao buscar RPIs da PI:', error);
     res.status(500).json({
       error: 'Erro ao buscar RPIs da PI.'
+    });
+  }
+};
+
+// GET PAGAMENTOS BY PI
+exports.getPagamentosByPI = async (req, res) => {
+  try {
+    const pi = await PI.findByPk(req.params.id);
+    if (!pi) {
+      return res.status(404).json({
+        error: 'PI não encontrada'
+      });
+    }
+
+    const pagamentos = await Pagamento.findAll({
+      where: { pi_id: req.params.id },
+      order: [['data_de_vencimento', 'DESC']]
+    });
+
+    res.json({ count: pagamentos.length, data: pagamentos });
+  } catch (error) {
+    console.error('Erro ao buscar pagamentos da PI:', error);
+    res.status(500).json({
+      error: 'Erro ao buscar pagamentos da PI.'
     });
   }
 };

@@ -34,4 +34,7 @@ router.route('/:id/titulares')
 router.route('/:id/rpis')
   .get(piController.getRPIsByPI);
 
+router.route('/:id/pagamentos')
+  .get(piController.getPagamentosByPI);
+
 module.exports = router;

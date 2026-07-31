@@ -1,48 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Plus, Search, List, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar as CalendarIcon, Plus, Search, List, BarChart3, TrendingUp, AlertTriangle, DollarSign, Eye, Pencil } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import Calendar from '../Components/Calendar';
 import PaymentList from '../Components/PaymentList';
 import RegisterPaymentModal from '../Components/RegisterPaymentModal';
 import UpdatePaymentModal from '../Components/UpdatePaymentModal';
+import ViewPaymentModal from '../Components/ViewPaymentModal';
+import Toast from '../Components/Toast';
 import './Payments.css';
+
+const API = process.env.REACT_APP_API_URL;
+
+const toLocalDate = (str) => {
+  if (!str) return null;
+  const [y, m, d] = String(str).slice(0, 10).split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+};
 
 export default function Payments() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [activeTab, setActiveTab] = useState('list');
   const [calendarSelectedDate, setCalendarSelectedDate] = useState(new Date());
   const [allPayments, setAllPayments] = useState([]);
+  const [pis, setPis] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/pagamentos`)
-      .then(res => setAllPayments(res.data.data || []))
-      .catch(err => console.error("Erro ao buscar pagamentos:", err));
+  const loadPayments = useCallback(async () => {
+    const res = await axios.get(`${API}/api/pagamentos`);
+    setAllPayments(res.data.data || []);
   }, []);
 
+  useEffect(() => {
+    loadPayments().catch(err => console.error("Erro ao buscar pagamentos:", err));
+    axios.get(`${API}/api/pi`)
+      .then(res => setPis(res.data.data || []))
+      .catch(err => console.error("Erro ao buscar PIs:", err));
+  }, [loadPayments]);
+
+  const piMap = {};
+  pis.forEach(pi => { piMap[pi.id] = pi; });
+
+  const enrichedPayments = allPayments.map(p => {
+    const pi = piMap[p.pi_id];
+    return {
+      ...p,
+      pi: pi ? (pi.titulo || pi.protocolo || `PI ${p.pi_id}`) : `PI ${p.pi_id}`,
+      dueDate: toLocalDate(p.data_de_vencimento)
+    };
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const totalValue = enrichedPayments.reduce((acc, p) => acc + (Number(p.valor) || 0), 0);
+  const upcomingCount = enrichedPayments.filter(p => p.dueDate && p.dueDate >= today).length;
+  const overdueCount = enrichedPayments.filter(p => p.dueDate && p.dueDate < today).length;
+
   const stats = {
-    total: allPayments.length,
-    pendentes: allPayments.filter(p => p.status === 'pendente').length,
-    realizados: allPayments.filter(p => p.status === 'pago').length,
-    atrasados: allPayments.filter(p => p.status === 'atrasado').length,
-    valorPendente: allPayments
-      .filter(p => p.status === 'pendente' || p.status === 'atrasado')
-      .reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0),
-    valorRealizado: allPayments
-      .filter(p => p.status === 'pago')
-      .reduce((acc, p) => acc + (parseFloat(p.amount) || 0), 0),
+    total: enrichedPayments.length,
+    valorTotal: totalValue,
+    proximos: upcomingCount,
+    vencidos: overdueCount
   };
 
   const formatCurrency = (val) =>
-    `R$ ${val.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+    `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
   const getPaymentsForCalendarMonth = (year, month) =>
-    allPayments.filter(p =>
-      new Date(p.dueDate).getFullYear() === year &&
-      new Date(p.dueDate).getMonth() === month
+    enrichedPayments.filter(p =>
+      p.dueDate &&
+      p.dueDate.getFullYear() === year &&
+      p.dueDate.getMonth() === month
     );
 
   const currentMonthPayments = getPaymentsForCalendarMonth(
@@ -50,9 +83,9 @@ export default function Payments() {
     calendarSelectedDate.getMonth()
   );
 
-  const upcomingPayments = [...allPayments]
-    .filter(p => p.status !== 'pago')
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+  const upcomingPayments = [...enrichedPayments]
+    .filter(p => p.dueDate && p.dueDate >= today)
+    .sort((a, b) => a.dueDate - b.dueDate)
     .slice(0, 5);
 
   const handleOpenUpdateModal = (payment) => {
@@ -60,10 +93,39 @@ export default function Payments() {
     setShowUpdateModal(true);
   };
 
+  const handleOpenViewModal = (payment) => {
+    setSelectedPayment(payment);
+    setShowViewModal(true);
+  };
+
+  const handleRegister = async (payload) => {
+    await axios.post(`${API}/api/pagamentos`, payload);
+    await loadPayments();
+    setToast({ message: 'Pagamento registrado com sucesso!', type: 'success' });
+  };
+
+  const handleUpdate = async (payload) => {
+    await axios.put(`${API}/api/pagamentos/${selectedPayment.id}`, payload);
+    await loadPayments();
+    setToast({ message: 'Pagamento atualizado com sucesso!', type: 'success' });
+  };
+
+  const handleDelete = async () => {
+    await axios.delete(`${API}/api/pagamentos/${selectedPayment.id}`);
+    await loadPayments();
+    setToast({ message: 'Pagamento removido com sucesso!', type: 'success' });
+  };
+
   const monthNames = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
+
+  const filteredPayments = enrichedPayments.filter(p =>
+    !searchTerm ||
+    (p.tipo_de_pagamento || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.pi || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="payments-page">
@@ -91,33 +153,31 @@ export default function Payments() {
               <span className="stat-label">Total</span>
             </div>
           </div>
-          <div className="stat-card stat-card--pending">
-            <div className="stat-icon" style={{ background: 'var(--color-warning-bg)', color: 'var(--color-warning)' }}>
-              <List size={20} />
-            </div>
-            <div className="stat-info">
-              <span className="stat-value">{stats.pendentes}</span>
-              <span className="stat-label">Pendentes</span>
-              <span className="stat-amount">{formatCurrency(stats.valorPendente)}</span>
-            </div>
-          </div>
           <div className="stat-card stat-card--paid">
             <div className="stat-icon" style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
-              <List size={20} />
+              <DollarSign size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-value">{stats.realizados}</span>
-              <span className="stat-label">Realizados</span>
-              <span className="stat-amount">{formatCurrency(stats.valorRealizado)}</span>
+              <span className="stat-value">{formatCurrency(stats.valorTotal)}</span>
+              <span className="stat-label">Valor total</span>
+            </div>
+          </div>
+          <div className="stat-card stat-card--pending">
+            <div className="stat-icon" style={{ background: 'var(--color-warning-bg)', color: 'var(--color-warning)' }}>
+              <TrendingUp size={20} />
+            </div>
+            <div className="stat-info">
+              <span className="stat-value">{stats.proximos}</span>
+              <span className="stat-label">A vencer</span>
             </div>
           </div>
           <div className="stat-card stat-card--overdue">
             <div className="stat-icon" style={{ background: 'var(--color-error-bg)', color: 'var(--color-error)' }}>
-              <List size={20} />
+              <AlertTriangle size={20} />
             </div>
             <div className="stat-info">
-              <span className="stat-value">{stats.atrasados}</span>
-              <span className="stat-label">Atrasados</span>
+              <span className="stat-value">{stats.vencidos}</span>
+              <span className="stat-label">Vencidos</span>
             </div>
           </div>
         </div>
@@ -129,18 +189,15 @@ export default function Payments() {
               {upcomingPayments.map((p, i) => (
                 <div key={i} className="upcoming-item">
                   <div className="upcoming-left">
-                    <p className="upcoming-title">{p.description || `Pagamento #${p.id}`}</p>
+                    <p className="upcoming-title">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</p>
                     <span className="upcoming-date">
                       <CalendarIcon size={12} />
-                      {new Date(p.dueDate).toLocaleDateString('pt-BR')}
+                      {p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}
                     </span>
                   </div>
                   <div className="upcoming-right">
-                    <span className={`upcoming-status status-${(p.status || '').toLowerCase().replace(/\s/g, '')}`}>
-                      {p.status}
-                    </span>
                     <span className="upcoming-value">
-                      {formatCurrency(parseFloat(p.amount) || 0)}
+                      {formatCurrency(parseFloat(p.valor) || 0)}
                     </span>
                   </div>
                 </div>
@@ -182,35 +239,39 @@ export default function Payments() {
               <table className="payments-table">
                 <thead>
                   <tr>
-                    <th>Descrição</th>
+                    <th>Tipo</th>
                     <th>PI</th>
                     <th>Valor</th>
-                    <th>Vencimento</th>
-                    <th>Status</th>
+                    <th>Data</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {allPayments
-                    .filter(p => !searchTerm || (p.description || '').toLowerCase().includes(searchTerm.toLowerCase()))
-                    .map((p, i) => (
-                      <tr key={i}>
-                        <td className="td-desc">{p.description || `Pagamento #${p.id}`}</td>
-                        <td>{p.pi || '-'}</td>
-                        <td className="td-value">{formatCurrency(parseFloat(p.amount) || 0)}</td>
-                        <td>{p.dueDate ? new Date(p.dueDate).toLocaleDateString('pt-BR') : '-'}</td>
-                        <td>
-                          <span className={`status-badge status-badge--${(p.status || '').toLowerCase().replace(/\s/g, '')}`}>
-                            {p.status}
-                          </span>
-                        </td>
-                        <td>
-                          <button className="edit-btn" onClick={() => handleOpenUpdateModal(p)}>
-                            Editar
+                  {filteredPayments.map((p, i) => (
+                    <tr key={i}>
+                      <td className="td-desc">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</td>
+                      <td>{p.pi}</td>
+                      <td className="td-value">{formatCurrency(parseFloat(p.valor) || 0)}</td>
+                      <td>{p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button className="btn-acao" title="Visualizar" onClick={() => handleOpenViewModal(p)}>
+                            <Eye size={18} />
                           </button>
-                        </td>
-                      </tr>
-                    ))}
+                          <button className="btn-acao" title="Editar" onClick={() => handleOpenUpdateModal(p)}>
+                            <Pencil size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPayments.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
+                        Nenhum pagamento encontrado.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -231,15 +292,28 @@ export default function Payments() {
         )}
 
         {showRegisterModal && (
-          <RegisterPaymentModal onClose={() => setShowRegisterModal(false)} />
+          <RegisterPaymentModal
+            onClose={() => setShowRegisterModal(false)}
+            onRegister={handleRegister}
+          />
         )}
         {showUpdateModal && (
           <UpdatePaymentModal
             payment={selectedPayment}
             onClose={() => setShowUpdateModal(false)}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
+        )}
+        {showViewModal && (
+          <ViewPaymentModal
+            payment={selectedPayment}
+            onClose={() => setShowViewModal(false)}
           />
         )}
       </div>
+
+      <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
     </div>
   );
 }
