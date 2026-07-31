@@ -13,7 +13,7 @@ function Dashboard() {
     ativos: 0, emProcesso: 0, pendentes: 0, total: 0,
     porStatus: [], porTipo: [], porAno: [],
     totalAutores: 0, autoresPorVinculo: [],
-    totalPagamentos: 0, pagamentosPagos: 0, pagamentosPendentes: 0
+    totalPagamentos: 0, pagamentosPagos: 0, pagamentosAguardando: 0, pagamentosAndamento: 0
   });
   useEffect(() => {
     Promise.all([
@@ -57,7 +57,8 @@ function Dashboard() {
 
       const totalPagamentos = pagamentos.length;
       const pagamentosPagos = pagamentos.filter(p => p.status === 'pago').length;
-      const pagamentosPendentes = pagamentos.filter(p => p.status === 'pendente').length;
+      const pagamentosAguardando = pagamentos.filter(p => (p.status || 'aguardando prazo') === 'aguardando prazo').length;
+      const pagamentosAndamento = pagamentos.filter(p => p.status === 'em andamento').length;
 
       setStats({
         ativos, emProcesso, pendentes, total,
@@ -66,7 +67,7 @@ function Dashboard() {
         porAno: Object.entries(anoCount).sort((a, b) => a[0] - b[0]).map(([k, v]) => ({ label: k, value: v })),
         totalAutores: autores.length,
         autoresPorVinculo: Object.entries(vinculoCount).map(([k, v]) => ({ label: k, value: v })),
-        totalPagamentos, pagamentosPagos, pagamentosPendentes
+        totalPagamentos, pagamentosPagos, pagamentosAguardando, pagamentosAndamento
       });
     }).catch(err => {
       console.error("Erro ao carregar dados:", err);
@@ -117,30 +118,36 @@ function Dashboard() {
     'programa de computador': 'PC'
   };
 
-  const sections = [
-    ...(showPI ? [
-      { label: 'Ativos', value: stats.ativos, color: 'var(--color-success)', icon: TrendingUp },
-      { label: 'Em Processo', value: stats.emProcesso, color: 'var(--color-warning)', icon: BookOpen },
-      { label: 'Pendentes', value: stats.pendentes, color: 'var(--color-error)', icon: FileText },
-      { label: 'Total de PIs', value: stats.total, color: 'var(--color-primary)', icon: FileText },
-    ] : []),
-    ...(showAutores ? [
-      { label: 'Autores', value: stats.totalAutores, color: 'var(--color-accent)', icon: Users },
-    ] : []),
-    ...(showPagamentos ? [
-      { label: 'Total Pagamentos', value: stats.totalPagamentos, color: 'var(--color-info)', icon: DollarSign },
-      { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)', icon: CheckCircle },
-      { label: 'Pendentes', value: stats.pagamentosPendentes, color: 'var(--color-warning)', icon: Clock },
-    ] : []),
-  ];
+  const piCards = showPI ? [
+    { label: 'Total de PIs', value: stats.total, color: 'var(--color-primary)', icon: FileText, bg: 'var(--color-primary-bg)' },
+    { label: 'Ativas', value: stats.ativos, color: 'var(--color-success)', icon: TrendingUp, bg: 'var(--color-success-bg)' },
+    { label: 'Em Processo', value: stats.emProcesso, color: 'var(--color-warning)', icon: BookOpen, bg: 'var(--color-warning-bg)' },
+    { label: 'Pendentes', value: stats.pendentes, color: 'var(--color-error)', icon: AlertTriangle, bg: 'var(--color-error-bg)' },
+  ] : [];
+
+  const payCards = showPagamentos ? [
+    { label: 'Total', value: stats.totalPagamentos, color: 'var(--color-info)', icon: DollarSign, bg: 'var(--color-info-bg)' },
+    { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: 'var(--color-warning)', icon: Clock, bg: 'var(--color-warning-bg)' },
+    { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)', icon: TrendingUp, bg: 'var(--color-primary-bg)' },
+    { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)', icon: CheckCircle, bg: 'var(--color-success-bg)' },
+  ] : [];
+
+  const autorCards = showAutores ? [
+    { label: 'Autores', value: stats.totalAutores, color: 'var(--color-accent)', icon: Users, bg: 'var(--color-accent-bg)' },
+  ] : [];
 
   return (
     <div className="container">
       <Sidebar />
 
       <div className="main">
-        <header className="topbar">
-          <h2>Dashboard</h2>
+        <header className="dash-header">
+          <div>
+            <h1 className="dash-title">Dashboard</h1>
+            <p className="dash-subtitle">
+              Visão geral da gestão de propriedade intelectual · {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div style={{ position: 'relative' }}>
               <button
@@ -182,22 +189,116 @@ function Dashboard() {
           </div>
         </header>
 
-        <div className="cards dash-cards">
-          {sections.map(s => (
-            <div key={s.label} className="dash-card" style={{ borderLeftColor: s.color }}>
-              <div className="dash-card-icon" style={{ color: s.color }}>
-                <s.icon size={22} />
-              </div>
-              <span className="dash-card-label">{s.label}</span>
-              <strong className="dash-card-value" style={{ color: s.color }}>{s.value}</strong>
+        {(piCards.length > 0 || autorCards.length > 0) && (
+          <section className="dash-section">
+            <div className="dash-section-head">
+              <h3 className="dash-section-title">Propriedade Intelectual</h3>
+              <p className="dash-section-sub">Portfólio de PIs e autores cadastrados</p>
             </div>
-          ))}
-        </div>
+            <div className="kpi-grid">
+              {[...piCards, ...autorCards].map(s => (
+                <div key={s.label} className="pay-kpi-card">
+                  <div className="pay-kpi-icon" style={{ background: s.bg, color: s.color }}>
+                    <s.icon size={20} />
+                  </div>
+                  <div className="pay-kpi-info">
+                    <strong className="pay-kpi-value" style={{ color: s.color }}>{s.value}</strong>
+                    <span className="pay-kpi-label">{s.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <div className="dashboard-grid">
+        {payCards.length > 0 && (
+          <section className="dash-section">
+            <div className="dash-section-head">
+              <h3 className="dash-section-title">Pagamentos</h3>
+              <p className="dash-section-sub">Situação dos pagamentos por status</p>
+            </div>
+            <div className="pay-panel">
+              <div className="pay-kpis">
+                {payCards.map(s => (
+                  <div key={s.label} className="pay-kpi-card">
+                    <div className="pay-kpi-icon" style={{ background: s.bg, color: s.color }}>
+                      <s.icon size={20} />
+                    </div>
+                    <div className="pay-kpi-info">
+                      <strong className="pay-kpi-value" style={{ color: s.color }}>{s.value}</strong>
+                      <span className="pay-kpi-label">{s.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pay-side">
+                <div className="chart-card">
+                  <h3 className="chart-title">
+                    <DollarSign size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+                    Pagamentos por Status
+                  </h3>
+                  {stats.totalPagamentos > 0 ? (
+                    <div className="donut-container">
+                      <div className="donut" style={{
+                        background: `conic-gradient(${(() => {
+                          const rows = [
+                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: '#D9E021' },
+                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: '#93278F' },
+                            { label: 'Pagos', value: stats.pagamentosPagos, color: '#10B981' }
+                          ];
+                          const total = stats.totalPagamentos || 1;
+                          return rows.map((r, i) => {
+                            const pct = (r.value / total) * 100;
+                            const start = rows.slice(0, i).reduce((a, s) => a + (s.value / total) * 100, 0);
+                            return `${r.color} ${start}% ${start + pct}%`;
+                          }).join(', ');
+                        })()})`
+                      }}>
+                        <div className="donut-center">
+                          <strong>{stats.totalPagamentos}</strong>
+                          <span>Total</span>
+                        </div>
+                      </div>
+                      <div className="donut-legend">
+                        {(() => {
+                          const rows = [
+                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: '#D9E021' },
+                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: '#93278F' },
+                            { label: 'Pagos', value: stats.pagamentosPagos, color: '#10B981' }
+                          ];
+                          return rows.map((r, i) => (
+                            <div key={i} className="legend-item">
+                              <span className="legend-dot" style={{ background: r.color }} />
+                              <span className="legend-label">{r.label}</span>
+                              <span className="legend-value">
+                                {r.value}
+                                <span className="legend-pct"> · {Math.round((r.value / stats.totalPagamentos) * 100)}%</span>
+                              </span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+                  ) : <p className="chart-empty">Nenhum dado de pagamento</p>}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="dash-section">
+          <div className="dash-section-head">
+            <h3 className="dash-section-title">Análises</h3>
+            <p className="dash-section-sub">Distribuição do portfólio de propriedade intelectual</p>
+          </div>
+          <div className="dashboard-grid">
           {showPI && (
             <div className="chart-card">
-              <h3 className="chart-title">PIs por Status</h3>
+              <h3 className="chart-title">
+                <FileText size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+                PIs por Status
+              </h3>
               <div className="donut-container">
                 <div className="donut" style={{
                   background: `conic-gradient(${stats.porStatus.map((s, i) => {
@@ -221,7 +322,10 @@ function Dashboard() {
                       <div key={i} className="legend-item">
                         <Icon size={14} style={{ color: colors[i % colors.length], flexShrink: 0 }} />
                         <span className="legend-label">{statusLabels[s.label] || s.label}</span>
-                        <span className="legend-value">{s.value}</span>
+                        <span className="legend-value">
+                          {s.value}
+                          {stats.total > 0 && <span className="legend-pct"> · {Math.round((s.value / stats.total) * 100)}%</span>}
+                        </span>
                       </div>
                     );
                   })}
@@ -232,7 +336,10 @@ function Dashboard() {
 
           {showPI && (
             <div className="chart-card">
-              <h3 className="chart-title">PIs por Tipo</h3>
+              <h3 className="chart-title">
+                <BookOpen size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+                PIs por Tipo
+              </h3>
               <div className="bar-chart-h">
                 {stats.porTipo.map((t, i) => {
                   const highlightColors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021'];
@@ -253,7 +360,10 @@ function Dashboard() {
 
           {showPI && (
             <div className="chart-card">
-              <h3 className="chart-title">PIs por Ano</h3>
+              <h3 className="chart-title">
+                <TrendingUp size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+                PIs por Ano
+              </h3>
               <div className="line-chart">
                 {stats.porAno.length > 0 ? (
                   <svg viewBox="0 0 400 160" className="line-chart-svg">
@@ -289,7 +399,10 @@ function Dashboard() {
 
           {showAutores && (
             <div className="chart-card">
-              <h3 className="chart-title">Autores por Vínculo</h3>
+              <h3 className="chart-title">
+                <Users size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-accent)' }} />
+                Autores por Vínculo
+              </h3>
               <div className="bar-chart-h">
                 {stats.autoresPorVinculo.map((v, i) => {
                   const highlightColors = ['#FA0183', '#FA7F0C', '#D9E021', '#93278F'];
@@ -307,30 +420,8 @@ function Dashboard() {
               </div>
             </div>
           )}
-
-          {showPagamentos && (
-            <div className="chart-card">
-              <h3 className="chart-title">Pagamentos por Status</h3>
-              <div className="bar-chart-h">
-                <div className="bar-row">
-                  <span className="bar-label">Pagos</span>
-                  <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${stats.totalPagamentos > 0 ? (stats.pagamentosPagos / stats.totalPagamentos) * 100 : 0}%`, background: '#10B981' }} />
-                  </div>
-                  <span className="bar-value">{stats.pagamentosPagos}</span>
-                </div>
-                <div className="bar-row">
-                  <span className="bar-label">Pendentes</span>
-                  <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${stats.totalPagamentos > 0 ? (stats.pagamentosPendentes / stats.totalPagamentos) * 100 : 0}%`, background: '#D9E021' }} />
-                  </div>
-                  <span className="bar-value">{stats.pagamentosPendentes}</span>
-                </div>
-                {stats.totalPagamentos === 0 && <p className="chart-empty">Nenhum dado de pagamento</p>}
-              </div>
-            </div>
-          )}
         </div>
+        </section>
       </div>
     </div>
   );
