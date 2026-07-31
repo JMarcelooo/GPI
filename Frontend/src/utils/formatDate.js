@@ -33,3 +33,15 @@ const TIPO_LABELS = {
 export function formatTipo(tipo) {
   return TIPO_LABELS[tipo] || tipo;
 }
+
+export const STATUS_PAGAMENTO = ['aguardando prazo', 'em andamento', 'pago'];
+
+const PAGAMENTO_STATUS_LABELS = {
+  'aguardando prazo': 'Aguardando prazo',
+  'em andamento': 'Em andamento',
+  'pago': 'Pago'
+};
+
+export function formatStatusPagamento(status) {
+  return PAGAMENTO_STATUS_LABELS[status] || status || '-';
+}

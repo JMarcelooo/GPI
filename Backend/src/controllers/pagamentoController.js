@@ -1,5 +1,7 @@
 const { Pagamento, PI } = require('../models/index');
 
+const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
+
 // GET /api/pagamentos?pi_id=
 exports.listPagamentos = async (req, res) => {
   try {
@@ -33,7 +35,7 @@ exports.getPagamentoById = async (req, res) => {
 // POST /api/pagamentos
 exports.createPagamento = async (req, res) => {
   try {
-    const { pi_id, tipo_de_pagamento, data_de_vencimento, valor, observacao } = req.body;
+    const { pi_id, tipo_de_pagamento, data_de_vencimento, valor, status, processo_sei, observacao } = req.body;
 
     if (!pi_id || !tipo_de_pagamento || !data_de_vencimento || valor === undefined || valor === null) {
       return res.status(400).json({
@@ -43,6 +45,12 @@ exports.createPagamento = async (req, res) => {
 
     if (isNaN(Number(valor)) || Number(valor) < 0) {
       return res.status(400).json({ error: 'Valor inválido.' });
+    }
+
+    if (status && !STATUS_VALIDOS.includes(status)) {
+      return res.status(400).json({
+        error: `Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`
+      });
     }
 
     const pi = await PI.findByPk(pi_id);
@@ -55,6 +63,8 @@ exports.createPagamento = async (req, res) => {
       tipo_de_pagamento,
       data_de_vencimento,
       valor: Number(valor),
+      status: status || 'aguardando prazo',
+      processo_sei: processo_sei || null,
       observacao: observacao || null
     });
 
@@ -78,7 +88,7 @@ exports.updatePagamento = async (req, res) => {
       return res.status(404).json({ error: 'Pagamento não encontrado.' });
     }
 
-    const { pi_id, tipo_de_pagamento, data_de_vencimento, valor, observacao } = req.body;
+    const { pi_id, tipo_de_pagamento, data_de_vencimento, valor, status, processo_sei, observacao } = req.body;
     const updateData = {};
     if (pi_id !== undefined) updateData.pi_id = pi_id;
     if (tipo_de_pagamento !== undefined) updateData.tipo_de_pagamento = tipo_de_pagamento;
@@ -89,6 +99,15 @@ exports.updatePagamento = async (req, res) => {
       }
       updateData.valor = Number(valor);
     }
+    if (status !== undefined) {
+      if (!STATUS_VALIDOS.includes(status)) {
+        return res.status(400).json({
+          error: `Status inválido. Use: ${STATUS_VALIDOS.join(', ')}`
+        });
+      }
+      updateData.status = status;
+    }
+    if (processo_sei !== undefined) updateData.processo_sei = processo_sei;
     if (observacao !== undefined) updateData.observacao = observacao;
 
     if (updateData.pi_id !== undefined) {

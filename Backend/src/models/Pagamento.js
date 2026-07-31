@@ -18,6 +18,15 @@ const Pagamento = sequelize.define('Pagamento', {
     type: DataTypes.FLOAT,
     allowNull: false
   },
+  status: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    defaultValue: 'aguardando prazo'
+  },
+  processo_sei: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
   observacao: {
     type: DataTypes.STRING(255),
     allowNull: true

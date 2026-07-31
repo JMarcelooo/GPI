@@ -1,4 +1,5 @@
-import { Calendar, DollarSign, FileText, Tag } from 'lucide-react';
+import { Calendar, DollarSign, FileText, Tag, ShieldCheck } from 'lucide-react';
+import { formatStatusPagamento } from '../utils/formatDate';
 import '../Paginas/Modal.css';
 
 const formatCurrency = (val) =>
@@ -60,6 +61,31 @@ export default function ViewPaymentModal({ payment, onClose }) {
               </div>
               <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
                 {formatDate(payment.dueDate || payment.data_de_vencimento)}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Tag size={16} style={{ color: 'var(--color-primary)' }} />
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                  Status
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
+                {formatStatusPagamento(payment.status)}
+              </p>
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <ShieldCheck size={16} style={{ color: 'var(--color-primary)' }} />
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
+                  Processo SEI
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
+                {payment.processo_sei || '-'}
               </p>
             </div>
           </div>

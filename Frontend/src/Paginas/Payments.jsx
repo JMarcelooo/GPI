@@ -7,6 +7,7 @@ import RegisterPaymentModal from '../Components/RegisterPaymentModal';
 import UpdatePaymentModal from '../Components/UpdatePaymentModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Toast from '../Components/Toast';
+import { formatStatusPagamento } from '../utils/formatDate';
 import './Payments.css';
 
 const API = process.env.REACT_APP_API_URL;
@@ -186,6 +187,7 @@ export default function Payments() {
                       <th>PI</th>
                       <th>Valor</th>
                       <th>Data</th>
+                      <th>Status</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -196,6 +198,11 @@ export default function Payments() {
                         <td>{p.pi}</td>
                         <td className="td-value">{formatCurrency(parseFloat(p.valor) || 0)}</td>
                         <td>{p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}</td>
+                        <td>
+                          <span className={`status-badge status-badge--${(p.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '')}`}>
+                            {formatStatusPagamento(p.status)}
+                          </span>
+                        </td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
                             <button className="btn-acao" title="Visualizar" onClick={() => handleOpenViewModal(p)}>
@@ -210,7 +217,7 @@ export default function Payments() {
                     ))}
                     {filteredPayments.length === 0 && (
                       <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
+                        <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
                           Nenhum pagamento encontrado.
                         </td>
                       </tr>
@@ -242,6 +249,9 @@ export default function Payments() {
                         </span>
                       </div>
                       <div className="upcoming-right">
+                        <span className={`upcoming-status status-badge--${(p.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '')}`}>
+                          {formatStatusPagamento(p.status)}
+                        </span>
                         <span className="upcoming-value">
                           {formatCurrency(parseFloat(p.valor) || 0)}
                         </span>

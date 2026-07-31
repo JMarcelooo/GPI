@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import PISelector from './PISelector';
+import { STATUS_PAGAMENTO } from '../utils/formatDate';
 import '../Paginas/Modal.css';
 
 export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelete }) {
@@ -9,6 +10,8 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
     tipo_de_pagamento: payment.tipo_de_pagamento || '',
     data_de_vencimento: payment.data_de_vencimento || '',
     valor: payment.valor ?? '',
+    status: payment.status || 'aguardando prazo',
+    processo_sei: payment.processo_sei || '',
     observacao: payment.observacao || ''
   });
   const [error, setError] = useState('');
@@ -31,6 +34,8 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
         tipo_de_pagamento: form.tipo_de_pagamento,
         data_de_vencimento: form.data_de_vencimento,
         valor: Number(form.valor),
+        status: form.status,
+        processo_sei: form.processo_sei,
         observacao: form.observacao
       });
       onClose();
@@ -94,6 +99,28 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
             value={form.data_de_vencimento}
             onChange={handleChange}
             required
+          />
+
+          <label htmlFor="pay-status-edit">Status</label>
+          <select
+            id="pay-status-edit"
+            name="status"
+            value={form.status}
+            onChange={handleChange}
+          >
+            {STATUS_PAGAMENTO.map(s => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+
+          <label htmlFor="pay-sei-edit">Processo SEI</label>
+          <input
+            id="pay-sei-edit"
+            type="text"
+            name="processo_sei"
+            value={form.processo_sei}
+            onChange={handleChange}
+            placeholder="Número do processo SEI (opcional)"
           />
 
           <label htmlFor="pay-obs-edit">Observações</label>

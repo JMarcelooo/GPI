@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PISelector from './PISelector';
+import { STATUS_PAGAMENTO } from '../utils/formatDate';
 import '../Paginas/Modal.css';
 
 export default function RegisterPaymentModal({ onClose, onRegister }) {
@@ -8,6 +9,8 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
     tipo_de_pagamento: '',
     data_de_vencimento: '',
     valor: '',
+    status: 'aguardando prazo',
+    processo_sei: '',
     observacao: ''
   });
   const [error, setError] = useState('');
@@ -30,6 +33,8 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
         tipo_de_pagamento: form.tipo_de_pagamento,
         data_de_vencimento: form.data_de_vencimento,
         valor: Number(form.valor),
+        status: form.status,
+        processo_sei: form.processo_sei,
         observacao: form.observacao
       });
       onClose();
@@ -82,6 +87,28 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             value={form.data_de_vencimento}
             onChange={handleChange}
             required
+          />
+
+          <label htmlFor="pay-status">Status</label>
+          <select
+            id="pay-status"
+            name="status"
+            value={form.status}
+            onChange={handleChange}
+          >
+            {STATUS_PAGAMENTO.map(s => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+
+          <label htmlFor="pay-sei">Processo SEI</label>
+          <input
+            id="pay-sei"
+            type="text"
+            name="processo_sei"
+            value={form.processo_sei}
+            onChange={handleChange}
+            placeholder="Número do processo SEI (opcional)"
           />
 
           <label htmlFor="pay-obs">Observações</label>

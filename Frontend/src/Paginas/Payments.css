@@ -365,6 +365,16 @@
   color: var(--color-warning);
 }
 
+.status-badge--aguardandoprazo {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.status-badge--emandamento {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
 .edit-btn {
   background: none;
   border: 1px solid var(--color-border);
