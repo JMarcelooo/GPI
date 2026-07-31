@@ -16,6 +16,10 @@
   z-index: 1000;
 }
 
+[data-theme="dark"] .notification-bell-float {
+  background: var(--sidebar-bg);
+}
+
 .notification-bell-float:hover {
   transform: scale(1.08);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
