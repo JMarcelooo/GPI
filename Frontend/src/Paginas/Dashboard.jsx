@@ -302,7 +302,7 @@ function Dashboard() {
               <div className="donut-container">
                 <div className="donut" style={{
                   background: `conic-gradient(${stats.porStatus.map((s, i) => {
-                    const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#94A3B8'];
+                    const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#009FDF', '#94A3B8'];
                     const total = stats.total || 1;
                     const pct = (s.value / total) * 100;
                     const start = stats.porStatus.slice(0, i).reduce((a, s) => a + (s.value / total) * 100, 0);
@@ -316,7 +316,7 @@ function Dashboard() {
                 </div>
                 <div className="donut-legend">
                   {stats.porStatus.map((s, i) => {
-                    const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#94A3B8'];
+                    const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#009FDF', '#94A3B8'];
                     const Icon = statusIcons[s.label] || HelpCircle;
                     return (
                       <div key={i} className="legend-item">
@@ -342,7 +342,7 @@ function Dashboard() {
               </h3>
               <div className="bar-chart-h">
                 {stats.porTipo.map((t, i) => {
-                  const highlightColors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021'];
+                  const highlightColors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#009FDF'];
                   return (
                   <div key={i} className="bar-row">
                     <span className="bar-label">{tipoIcons[t.label] || t.label}</span>
@@ -405,7 +405,7 @@ function Dashboard() {
               </h3>
               <div className="bar-chart-h">
                 {stats.autoresPorVinculo.map((v, i) => {
-                  const highlightColors = ['#FA0183', '#FA7F0C', '#D9E021', '#93278F'];
+                  const highlightColors = ['#FA0183', '#FA7F0C', '#D9E021', '#93278F', '#009FDF'];
                   return (
                   <div key={i} className="bar-row">
                     <span className="bar-label">{v.label}</span>

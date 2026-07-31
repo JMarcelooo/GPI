@@ -13,55 +13,77 @@
   position: relative;
 }
 
+/* ---- Decorative squares ---- */
+.dec-squares {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dec-square {
+  position: absolute;
+  border-radius: 10px;
+}
+
 /* ---- Login Card ---- */
 .login-card {
-  background: var(--color-primary-dark);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8) var(--space-6);
   width: 100%;
   max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1;
 }
 
 .login-logo {
+  position: absolute;
+  top: calc(6% + 70px);
+  left: 50%;
+  transform: translateX(-50%);
   max-width: 200px;
   height: auto;
-  margin-bottom: var(--space-6);
 }
 
 .login-card h2 {
-  color: #E0E7FF;
+  color: #009FDF;
   font-size: var(--text-xl);
-  margin: 0 0 var(--space-6);
+  margin: 0 0 var(--space-3);
   font-weight: 600;
   font-family: var(--font-heading);
+}
+
+.login-card label {
+  align-self: flex-start;
+  color: #009FDF;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin: var(--space-1) 0 var(--space-1);
 }
 
 .login-card input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: var(--space-2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
-  background: rgba(255, 255, 255, 0.08);
-  color: #F1F5F9;
+  background: #fff;
+  color: #1F2937;
   box-sizing: border-box;
   transition: border-color var(--transition), background var(--transition);
 }
 
 .login-card input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: #9CA3AF;
 }
 
 .login-card input:focus {
   outline: none;
   border-color: var(--color-primary-lighter);
-  background: rgba(255, 255, 255, 0.12);
+  background: #fff;
 }
 
 .login-card .entrar {
@@ -73,14 +95,14 @@
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  background: var(--color-btn);
+  background: #009FDF;
   color: #fff;
   transition: background var(--transition);
   font-family: var(--font-heading);
 }
 
 .login-card .entrar:hover {
-  background: var(--color-btn-hover);
+  background: #0087BC;
 }
 
 /* ---- Footer ---- */
