@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
-import axios from 'axios';
+import { getPis } from '../services/piApi';
 
 const PISelector = ({ value, onChange }) => {
   const [pis, setPis] = useState([]);
@@ -10,10 +10,12 @@ const PISelector = ({ value, onChange }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/pi`)
-      .then(res => setPis(res.data.data || []))
-      .catch(() => setError('Erro ao carregar PIs.'))
-      .finally(() => setLoading(false));
+    let active = true;
+    getPis()
+      .then(list => { if (active) setPis(list); })
+      .catch(() => { if (active) setError('Erro ao carregar PIs.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   const selected = pis.find(p => p.id === value) || null;

@@ -8,6 +8,7 @@ import UpdatePaymentModal from '../Components/UpdatePaymentModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Toast from '../Components/Toast';
 import { formatStatusPagamento, daysUntil } from '../utils/formatDate';
+import { getPis } from '../services/piApi';
 import './Payments.css';
 
 const API = process.env.REACT_APP_API_URL;
@@ -36,8 +37,8 @@ export default function Payments() {
 
   useEffect(() => {
     loadPayments().catch(err => console.error("Erro ao buscar pagamentos:", err));
-    axios.get(`${API}/api/pi`)
-      .then(res => setPis(res.data.data || []))
+    getPis()
+      .then(list => setPis(list))
       .catch(err => console.error("Erro ao buscar PIs:", err));
   }, [loadPayments]);
 

@@ -8,6 +8,7 @@ import "../Tela2.css";
 import { formatDate, formatStatus, formatTipo } from '../utils/formatDate';
 import FilterPIModal from '../Components/FilterPIModal';
 import Toast from '../Components/Toast';
+import { invalidatePis } from '../services/piApi';
 
 const API = process.env.REACT_APP_API_URL;
 const PAGE_SIZE = 10;
@@ -88,6 +89,7 @@ function PropriedadesIntelectuais() {
     setDeleting(true);
     try {
       await axios.delete(`${API}/api/pi/${piToDelete.id}`);
+      invalidatePis();
       setPiToDelete(null);
       setToast({ message: 'PI excluída com sucesso!', type: 'success' });
       if (pis.length === 1 && currentPage > 1) {

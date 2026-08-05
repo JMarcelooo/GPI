@@ -8,6 +8,7 @@ import axios from 'axios';
 import './Detalhe1.css';
 import { formatDate, formatStatus, formatTipo, formatStatusPagamento, daysUntil } from '../utils/formatDate';
 import Toast from '../Components/Toast';
+import { invalidatePis } from '../services/piApi';
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
@@ -64,6 +65,7 @@ export default function PatenteDetalhes() {
     setDeleting(true);
     try {
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/pi/${id}`);
+      invalidatePis();
       setToast({ message: 'PI excluída com sucesso!', type: 'success' });
       setTimeout(() => navigate('/propriedade-intelectual'), 1200);
     } catch (err) {

@@ -5,6 +5,7 @@ import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import Toast from '../Components/Toast';
+import { invalidatePis } from '../services/piApi';
 import './Detalhe1.css';
 
 const TIPOS_PI = [
@@ -118,6 +119,7 @@ export default function CadastroPI() {
         titular: form.titular.filter(Boolean),
         autores: autoresSelecionados
       });
+      invalidatePis();
       setToast({ message: 'PI cadastrada com sucesso!', type: 'success' });
       setTimeout(() => navigate('/propriedade-intelectual'), 1200);
     } catch (err) {

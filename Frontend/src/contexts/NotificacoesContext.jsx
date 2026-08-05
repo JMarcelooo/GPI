@@ -38,8 +38,26 @@ export function NotificacoesProvider({ children }) {
   }, [refresh, location.pathname]);
 
   useEffect(() => {
-    const id = setInterval(() => refresh(), 30000);
-    return () => clearInterval(id);
+    let id;
+    const start = () => {
+      clearInterval(id);
+      id = setInterval(() => refresh(), 60000);
+    };
+    const stop = () => clearInterval(id);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refresh();
+        start();
+      } else {
+        stop();
+      }
+    };
+    if (document.visibilityState === 'visible') start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [refresh]);
 
   return (
