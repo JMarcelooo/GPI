@@ -1,12 +1,12 @@
 :root {
   /* Primary palette */
-  --color-primary: #7C3AED;
-  --color-primary-dark: #6D28D9;
-  --color-primary-light: #8B5CF6;
-  --color-primary-lighter: #A78BFA;
-  --color-primary-bg: #F5F3FF;
-  --color-primary-50: #F5F3FF;
-  --color-primary-100: #EDE9FE;
+  --color-primary: #93278F;
+  --color-primary-dark: #7B1F78;
+  --color-primary-light: #B849B4;
+  --color-primary-lighter: #D47DD0;
+  --color-primary-bg: #F5E8F4;
+  --color-primary-50: #F5E8F4;
+  --color-primary-100: #EBD1EA;
 
   /* Neutral palette */
   --color-bg: #F1F5F9;
@@ -21,20 +21,25 @@
   /* Status colors */
   --color-success: #10B981;
   --color-success-bg: #ECFDF5;
-  --color-warning: #F59E0B;
-  --color-warning-bg: #FFFBEB;
+  --color-warning: #D9E021;
+  --color-warning-bg: #FEFDE8;
   --color-error: #EF4444;
   --color-error-bg: #FEF2F2;
-  --color-info: #3B82F6;
-  --color-info-bg: #EFF6FF;
+  --color-info: #FA0183;
+  --color-info-bg: #FFF0F8;
 
   /* Accent */
-  --color-accent: #F97316;
-  --color-accent-dark: #EA580C;
+  --color-accent: #FA7F0C;
+  --color-accent-dark: #E06E00;
   --color-accent-bg: #FFF7ED;
+
+  /* Button */
+  --color-btn: #FA0183;
+  --color-btn-hover: #D0016E;
 
   /* Typography */
   --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Bahnschrift', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -70,12 +75,57 @@
 
   /* Sidebar */
   --sidebar-width: 240px;
-  --sidebar-bg: #7C3AED;
-  --sidebar-hover: #6D28D9;
+  --sidebar-bg: #93278F;
+  --sidebar-hover: #7B1F78;
+  --sidebar-end: #621563;
 
   /* Transitions */
   --transition: 150ms ease;
   --transition-slow: 250ms ease;
+}
+
+[data-theme="dark"] {
+  --color-primary: #B849B4;
+  --color-primary-dark: #93278F;
+  --color-primary-light: #D47DD0;
+  --color-primary-lighter: #E5B0E2;
+  --color-primary-bg: #2E105E;
+  --color-primary-50: #2E105E;
+  --color-primary-100: #3B1F8E;
+
+  --color-bg: #0B1121;
+  --color-surface: #162032;
+  --color-border: #283548;
+  --color-border-light: #1D2A3D;
+  --color-text: #F1F5F9;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
+  --color-hover: #1D2A3D;
+
+  --color-success: #34D399;
+  --color-success-bg: #0A3D2B;
+  --color-warning: #D9E021;
+  --color-warning-bg: #3D3A0A;
+  --color-error: #EF4444;
+  --color-error-bg: #3D0A0A;
+  --color-info: #FA0183;
+  --color-info-bg: #3D0A2A;
+  --color-accent: #FB923C;
+  --color-accent-dark: #EA580C;
+  --color-accent-bg: #5B2A10;
+
+  --color-btn: #FA0183;
+  --color-btn-hover: #D0016E;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+
+  --sidebar-bg: #421941;
+  --sidebar-hover: #5B2358;
+  --sidebar-end: #2E0E2D;
 }
 
 *, *::before, *::after {
@@ -90,6 +140,10 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, strong, th {
+  font-family: var(--font-heading);
 }
 
 input, select, textarea, button {

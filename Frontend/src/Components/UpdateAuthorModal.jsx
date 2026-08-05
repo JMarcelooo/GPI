@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './AuthorModal.css';
 import Toast from './Toast';
 
@@ -12,7 +12,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const [university, setUniversity] = useState(author?.university || '');
     const [gender, setGender] = useState(author?.gender || 'Nao informado');
     const [phone, setPhone] = useState(author?.phone || '');
-    const [phoneError, setPhoneError] = useState('');
     const [toast, setToast] = useState(null);
 
     // Efeito para atualizar o estado se o prop 'author' mudar
@@ -26,7 +25,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
             setUniversity(author.university);
             setGender(author.gender || 'Nao informado');
             setPhone(author.phone ? author.phone.replace(/\D/g, '').slice(0, 11) : '');
-            setPhoneError('');
         }
     }, [author]);
 
@@ -35,7 +33,6 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
     const handlePhoneChange = (e) => {
       const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
       setPhone(digits);
-      if (phoneError) setPhoneError('');
     };
 
     const handleSubmit = async (e) => {
@@ -103,13 +100,7 @@ export default function UpdateAuthorModal({ onClose, author, onUpdateSuccess }) 
                             onChange={handlePhoneChange}
                             placeholder="11999999999"
                             maxLength={11}
-                            style={phoneError ? { borderColor: '#dc3545' } : {}}
                         />
-                        {phoneError && (
-                          <span style={{ color: '#dc3545', fontSize: 'var(--text-xs)', marginTop: 4, display: 'block' }}>
-                            {phoneError}
-                          </span>
-                        )}
                     </div>
                     <div className="form-group">
                         <label>Vínculo</label>

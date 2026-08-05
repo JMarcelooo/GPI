@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import './Calendar.css';
 
 const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
   const [currentMonth, setCurrentMonth] = useState(selectedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(selectedDate.getFullYear());
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerYear, setPickerYear] = useState(selectedDate.getFullYear());
 
   useEffect(() => {
     // Atualiza o calendário quando a prop selectedDate muda (ex: do componente pai)
     setCurrentMonth(selectedDate.getMonth());
     setCurrentYear(selectedDate.getFullYear());
+    setPickerYear(selectedDate.getFullYear());
   }, [selectedDate]);
 
   // Função para obter o número de dias em um determinado mês
@@ -27,7 +30,6 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     const newDate = new Date(currentYear, currentMonth - 1, 1);
     setCurrentMonth(newDate.getMonth());
     setCurrentYear(newDate.getFullYear());
-    // Opcionalmente, atualiza selectedDate para o primeiro dia do novo mês
     setSelectedDate(new Date(newDate.getFullYear(), newDate.getMonth(), 1));
   };
 
@@ -35,8 +37,24 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     const newDate = new Date(currentYear, currentMonth + 1, 1);
     setCurrentMonth(newDate.getMonth());
     setCurrentYear(newDate.getFullYear());
-    // Opcionalmente, atualiza selectedDate para o primeiro dia do novo mês
     setSelectedDate(new Date(newDate.getFullYear(), newDate.getMonth(), 1));
+  };
+
+  const togglePicker = () => {
+    setPickerYear(currentYear);
+    setShowPicker(prev => !prev);
+  };
+
+  const handlePickerYearStep = (delta) => {
+    setPickerYear(prev => prev + delta);
+  };
+
+  const handleSelectMonth = (month) => {
+    const newDate = new Date(pickerYear, month, 1);
+    setCurrentMonth(month);
+    setCurrentYear(pickerYear);
+    setSelectedDate(newDate);
+    setShowPicker(false);
   };
 
   const handleDayClick = (day) => {
@@ -102,10 +120,34 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
   return (
     <div className="calendar-container">
       <div className="calendar-nav">
-        <button onClick={handlePrevMonth}><ChevronLeft size={20} /></button>
-        <h3>{monthNames[currentMonth]} {currentYear}</h3>
-        <button onClick={handleNextMonth}><ChevronRight size={20} /></button>
+        <button onClick={handlePrevMonth} title="Mês anterior"><ChevronLeft size={20} /></button>
+        <button className="calendar-title" onClick={togglePicker} title="Alterar mês e ano">
+          {monthNames[currentMonth]} de {currentYear} <ChevronDown size={14} />
+        </button>
+        <button onClick={handleNextMonth} title="Próximo mês"><ChevronRight size={20} /></button>
       </div>
+
+      {showPicker && (
+        <div className="calendar-picker">
+          <div className="calendar-picker-year">
+            <button onClick={() => handlePickerYearStep(-1)} title="Ano anterior"><ChevronLeft size={16} /></button>
+            <span>{pickerYear}</span>
+            <button onClick={() => handlePickerYearStep(1)} title="Próximo ano"><ChevronRight size={16} /></button>
+          </div>
+          <div className="calendar-picker-months">
+            {monthNames.map((name, i) => (
+              <button
+                key={i}
+                className={`calendar-picker-month ${i === currentMonth && pickerYear === currentYear ? 'selected' : ''}`}
+                onClick={() => handleSelectMonth(i)}
+              >
+                {name.slice(0, 3)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="calendar-grid">
         {dayLabels.map((label, index) => (
           <div key={index} className="day-label">

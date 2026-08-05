@@ -1,4 +1,3 @@
-import React from 'react';
 import './AuthorModal.css';
 
 export default function ConfirmDeleteModal({ onClose, onConfirm, authorName }) {

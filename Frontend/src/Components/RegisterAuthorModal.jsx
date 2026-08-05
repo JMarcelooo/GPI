@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './AuthorModal.css'; // O CSS compartilhado para os modais
 
 export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
@@ -10,12 +10,9 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [university, setUniversity] = useState('');
     const [gender, setGender] = useState('Nao informado');
     const [phone, setPhone] = useState('');
-    const [phoneError, setPhoneError] = useState('');
-
     const handlePhoneChange = (e) => {
       const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
       setPhone(digits);
-      if (phoneError) setPhoneError('');
     };
 
     const handleSubmit = async (e) => {
@@ -71,13 +68,7 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                             onChange={handlePhoneChange}
                             placeholder="11999999999"
                             maxLength={11}
-                            style={phoneError ? { borderColor: '#dc3545' } : {}}
                         />
-                        {phoneError && (
-                          <span style={{ color: '#dc3545', fontSize: 'var(--text-xs)', marginTop: 4, display: 'block' }}>
-                            {phoneError}
-                          </span>
-                        )}
                     </div>
                     <div className="form-group">
                         <label>Vínculo</label>

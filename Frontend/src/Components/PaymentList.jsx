@@ -1,15 +1,15 @@
-import React from 'react';
 import { Calendar } from 'lucide-react';
-import './PaymentList.css'; // Estilos específicos da lista de pagamentos
+import './PaymentList.css';
 
 const PaymentList = ({ payments, monthName, year }) => {
   const formatCurrency = (amount) => {
-    return `R$ ${amount.toFixed(2).replace('.', ',')}`; // Formata para BRL
+    return `R$ ${Number(amount || 0).toFixed(2).replace('.', ',')}`;
   };
 
   const formatDate = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) return '-';
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Meses são 0-indexados, então +1
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
@@ -20,20 +20,17 @@ const PaymentList = ({ payments, monthName, year }) => {
       <div className="payment-items">
         {payments.length > 0 ? (
           payments.map(payment => (
-            <div key={payment.id} className={`payment-item status-${payment.status.replace(/\s/g, '')}`}>
+            <div key={payment.id} className="payment-item">
               <div className="payment-details">
-                <p className="description">{payment.description}</p>
+                <p className="description">{payment.tipo_de_pagamento || `Pagamento #${payment.id}`}</p>
                 <div className="date-and-course">
                   <Calendar size={14} className="date-icon" />
-                  <span>Vencimento: {formatDate(payment.dueDate)}</span>
-                  <span>{payment.course}</span>
+                  <span>Data: {formatDate(payment.dueDate)}</span>
+                  <span>{payment.pi}</span>
                 </div>
               </div>
               <div className="payment-amount">
-                {formatCurrency(payment.amount)}
-              </div>
-              <div className={`payment-status status-${payment.status.replace(/\s/g, '')}`}>
-                {payment.status}
+                {formatCurrency(payment.valor)}
               </div>
             </div>
           ))
