@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
+import UpdateAuthorModal from '../Components/UpdateAuthorModal';
 import axios from 'axios';
 import './Detalhe1.css';
 import { formatStatus, formatTipo } from '../utils/formatDate';
@@ -29,6 +30,7 @@ export default function AutorDetalhes() {
   const [autor, setAutor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   useEffect(() => {
     const api = process.env.REACT_APP_API_URL;
@@ -43,6 +45,12 @@ export default function AutorDetalhes() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleUpdateSuccess = async (updatedAuthor) => {
+    const api = process.env.REACT_APP_API_URL;
+    await axios.put(`${api}/api/autores/${updatedAuthor.id}`, updatedAuthor);
+    setAutor(updatedAuthor);
+  };
 
   const infoItems = [
     { label: 'E-mail', value: autor?.email },
@@ -91,7 +99,7 @@ export default function AutorDetalhes() {
               <ArrowLeft size={16} /> Voltar
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => navigate(`/autores/editar/${id}`)} style={{
+              <button onClick={() => setShowUpdateModal(true)} style={{
                 background: 'rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer',
                 padding: '8px 14px', borderRadius: 8, display: 'inline-flex',
                 alignItems: 'center', gap: 6, color: '#fff', fontSize: 13, fontWeight: 500,
@@ -161,6 +169,14 @@ export default function AutorDetalhes() {
           </div>
         </div>
       </main>
+
+      {showUpdateModal && (
+        <UpdateAuthorModal
+          author={autor}
+          onClose={() => setShowUpdateModal(false)}
+          onUpdateSuccess={handleUpdateSuccess}
+        />
+      )}
     </div>
   );
 }

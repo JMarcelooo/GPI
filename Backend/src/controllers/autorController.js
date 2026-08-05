@@ -15,6 +15,11 @@ function handleError(error, res, label) {
       error: 'Registro duplicado. Verifique os dados únicos (email, etc).'
     });
   }
+  if (error.name === 'SequelizeForeignKeyConstraintError') {
+    return res.status(409).json({
+      error: 'Registro possui vínculos (ex.: propriedade intelectual). Remova os vínculos antes de excluir.'
+    });
+  }
   if (error.name === 'SequelizeValidationError') {
     return res.status(400).json({
       errors: error.errors.map(e => e.message)

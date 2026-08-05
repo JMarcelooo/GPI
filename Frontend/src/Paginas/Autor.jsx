@@ -6,6 +6,7 @@ import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
 import FilterAuthorModal from '../Components/FilterAuthorModal';
 import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
+import Toast from '../Components/Toast';
 import axios from 'axios';
 import './Autor.css';
 
@@ -47,6 +48,7 @@ export default function Autor() {
     const [filters, setFilters] = useState({});
     const [sortField, setSortField] = useState(null);
     const [sortDir, setSortDir] = useState('asc');
+    const [toast, setToast] = useState(null);
 
     const handleSort = (field) => {
       if (sortField === field) {
@@ -135,40 +137,39 @@ export default function Autor() {
 
     // Funções de callback para quando o modal de cadastro/edição tiver sucesso
     const handleRegisterSuccess = async (newAuthor) => {
-    try {
         await axios.post(`${API}/api/autores`, newAuthor);
         setCurrentPage(1);
         loadAuthors(1, searchTerm, filters, sortField, sortDir);
         handleCloseRegisterModal();
-    } catch (error) {
-        console.error("Erro ao cadastrar autor:", error);
-    }
-};
+    };
 
     const handleUpdateSuccess = async (updatedAuthor) => {
-    try {
         await axios.put(`${API}/api/autores/${updatedAuthor.id}`, updatedAuthor);
         loadAuthors(currentPage, searchTerm, filters, sortField, sortDir);
         handleCloseUpdateModal();
-    } catch (error) {
-        console.error("Erro ao atualizar autor:", error);
-    }
-};
+    };
 
     const handleDeleteAuthor = async () => {
     if (!authorToDelete) return;
     try {
         await axios.delete(`${API}/api/autores/${authorToDelete.id}`);
         handleCloseDeleteModal();
+        setToast({ message: 'Autor excluído com sucesso!', type: 'success' });
         if (authors.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         } else {
           loadAuthors(currentPage, searchTerm, filters, sortField, sortDir);
         }
     } catch (error) {
+        handleCloseDeleteModal();
+        const status = error.response?.status;
+        const msg = (status === 400 || status === 409) && error.response?.data?.error
+          ? error.response.data.error
+          : 'Erro ao excluir autor. Verifique se ele não está vinculado a uma PI.';
+        setToast({ message: msg, type: 'error' });
         console.error("Erro ao deletar autor:", error);
     }
-};
+    };
 
 
     return (
@@ -306,6 +307,8 @@ export default function Autor() {
                     authorName={authorToDelete.name}
                 />
             )}
+
+            <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
 
         </div>
     );
