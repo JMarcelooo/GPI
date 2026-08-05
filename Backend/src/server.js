@@ -1,5 +1,6 @@
 const app = require('./app');
 const PORT = process.env.PORT || 3000;
+const { sincronizarNotificacoes } = require('./services/notificacaoService');
 
 // Função para listar rotas (só funciona APÓS o app.listen)
 const listRoutes = (app) => {
@@ -21,6 +22,11 @@ const listRoutes = (app) => {
 // Inicie o servidor
 const server = app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+
+  // Gera as notificações iniciais a partir dos pagamentos
+  sincronizarNotificacoes().catch(err => {
+    console.error('Erro ao gerar notificações:', err);
+  });
 
   // Agora podemos listar as rotas (opcional)
   if (process.env.NODE_ENV !== 'production') {

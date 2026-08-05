@@ -13,10 +13,12 @@ import Notificacoes from './Paginas/Notificacoes';
 import Configuracoes from './Paginas/Configuracoes';
 import NotificationBell from './Components/NotificationBell';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificacoesProvider } from './contexts/NotificacoesContext';
 function App() {
   return (
     <Router>
       <ThemeProvider>
+      <NotificacoesProvider>
       <NotificationBell />
       <Routes>
         <Route path="/" element={<Login />} />
@@ -34,6 +36,7 @@ function App() {
         <Route path="/configuracoes" element={<Configuracoes />} />
 
       </Routes>
+      </NotificacoesProvider>
       </ThemeProvider>
     </Router>
   );

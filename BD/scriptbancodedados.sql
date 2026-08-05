@@ -81,6 +81,19 @@ CREATE TABLE IF NOT EXISTS "autor_pi" (
 	"autor_id" bigint NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "notificacoes" (
+	"id" serial NOT NULL UNIQUE,
+	"pagamento_id" integer NOT NULL UNIQUE,
+	"pi_id" integer,
+	"tipo" varchar(50) NOT NULL DEFAULT 'prazo',
+	"mensagem" varchar(255) NOT NULL,
+	"data_vencimento" date,
+	"lida" boolean NOT NULL DEFAULT false,
+	"createdAt" timestamp with time zone,
+	"updatedAt" timestamp with time zone,
+	PRIMARY KEY ("id")
+);
+
 
 
 ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
