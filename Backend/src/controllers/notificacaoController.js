@@ -1,10 +1,8 @@
 const { Notificacao } = require('../models/index');
-const { sincronizarNotificacoes } = require('../services/notificacaoService');
 
 // GET /api/notificacoes
 exports.listNotificacoes = async (req, res) => {
   try {
-    await sincronizarNotificacoes();
     const data = await Notificacao.findAll({
       order: [['lida', 'ASC'], ['createdAt', 'DESC']]
     });
@@ -19,7 +17,6 @@ exports.listNotificacoes = async (req, res) => {
 // GET /api/notificacoes/count
 exports.countNotificacoes = async (req, res) => {
   try {
-    await sincronizarNotificacoes();
     const unreadCount = await Notificacao.count({ where: { lida: false } });
     res.json({ unreadCount });
   } catch (error) {
@@ -41,6 +38,21 @@ exports.markNotificacaoLida = async (req, res) => {
   } catch (error) {
     console.error('Erro ao atualizar notificação:', error);
     res.status(500).json({ error: 'Erro ao atualizar notificação.' });
+  }
+};
+
+// DELETE /api/notificacoes/:id
+exports.deleteNotificacao = async (req, res) => {
+  try {
+    const notificacao = await Notificacao.findByPk(req.params.id);
+    if (!notificacao) {
+      return res.status(404).json({ error: 'Notificação não encontrada.' });
+    }
+    await notificacao.destroy();
+    res.json({ message: 'Notificação removida com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao remover notificação:', error);
+    res.status(500).json({ error: 'Erro ao remover notificação.' });
   }
 };
 

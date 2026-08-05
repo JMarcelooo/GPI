@@ -61,7 +61,7 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     if (day) { // Garante que o dia não seja nulo (para dias inativos)
       setSelectedDate(new Date(currentYear, currentMonth, day));
     }
-  }, [currentYear, currentMonth]);
+  }, [currentYear, currentMonth, setSelectedDate]);
 
   // Conjunto de datas (yyyy-mm-dd) com vencimento -> lookup O(1) por célula
   const paymentDates = useMemo(() => {

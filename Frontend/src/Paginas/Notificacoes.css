@@ -12,6 +12,12 @@
   color: var(--color-text-secondary);
 }
 
+.notificacoes-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .notificacoes-mark-all {
   display: flex;
   align-items: center;
@@ -31,6 +37,40 @@
   filter: brightness(0.9);
 }
 
+.notificacoes-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filter-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
 .notificacoes-list {
   display: flex;
   flex-direction: column;
@@ -39,7 +79,7 @@
 
 .notificacao-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-4);
   background: var(--color-surface);
   padding: var(--space-5);
@@ -48,6 +88,20 @@
   border-left: 4px solid var(--color-warning);
   box-shadow: var(--shadow-sm);
   transition: box-shadow var(--transition);
+}
+
+.notificacao-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-md);
 }
 
 .notificacao-item:not(.is-read) {
@@ -140,10 +194,11 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  align-self: center;
+  gap: var(--space-2);
 }
 
-.notificacao-eye {
+.notificacao-eye,
+.notificacao-trash {
   width: 36px;
   height: 36px;
   display: flex;
@@ -157,10 +212,16 @@
   transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
 
-.notificacao-eye:hover {
+.notificacao-eye:hover,
+.notificacao-trash:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
+}
+
+.notificacao-trash:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
 }
 
 .notificacoes-empty {

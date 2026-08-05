@@ -26,12 +26,6 @@ function montarMensagem(p, diff) {
   return `O pagamento "${p.tipo_de_pagamento}" da PI "${piTitulo}" vence em ${diff} dia(s).`;
 }
 
-// Invalida o cache para que a próxima leitura force uma nova sincronização.
-// Chamado ao criar/atualizar/remover um pagamento.
-function invalidarCacheNotificacoes() {
-  ultimaSync = 0;
-}
-
 // Gera/mantém as notificações a partir dos pagamentos próximos do prazo.
 // Idempotente e em lote (sem N+1). O resultado é cacheado por ~1 min para
 // que um polling de N clientes não dispare N sincronizações.
@@ -97,4 +91,4 @@ async function sincronizarNotificacoes(forcar = false) {
   }
 }
 
-module.exports = { sincronizarNotificacoes, invalidarCacheNotificacoes };
+module.exports = { sincronizarNotificacoes };

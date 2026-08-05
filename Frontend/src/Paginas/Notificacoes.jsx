@@ -1,6 +1,7 @@
-import { Clock, Eye, EyeOff, CheckCircle2, MailOpen, CheckCheck, CalendarDays } from 'lucide-react';
+import { Clock, Eye, EyeOff, CheckCircle2, MailOpen, CheckCheck, CalendarDays, Trash2, Bell, BellOff } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
 import { useNotificacoes } from '../contexts/NotificacoesContext';
 import '../Tela2.css';
@@ -34,6 +35,8 @@ function Notificacoes() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filter, setFilter] = useState('todas');
+  const navigate = useNavigate();
   const { refresh, markAllRead } = useNotificacoes();
 
   const load = useCallback(async () => {
@@ -63,12 +66,38 @@ function Notificacoes() {
     }
   };
 
+  const handleDelete = async (n) => {
+    try {
+      await axios.delete(`${API}/api/notificacoes/${n.id}`);
+      setNotifications(prev => prev.filter(x => x.id !== n.id));
+      refresh();
+    } catch (err) {
+      console.error('Erro ao excluir notificação:', err);
+    }
+  };
+
   const handleMarkAllRead = async () => {
     await markAllRead();
     setNotifications(prev => prev.map(n => ({ ...n, lida: true })));
   };
 
+  const handleOpenPayment = (n) => {
+    navigate(`/pagamentos?pagamento=${n.pagamento_id}`);
+  };
+
   const unreadCount = notifications.filter(n => !n.lida).length;
+
+  const filtered = notifications.filter(n => {
+    if (filter === 'nao-lidas') return !n.lida;
+    if (filter === 'lidas') return n.lida;
+    return true;
+  });
+
+  const filters = [
+    { key: 'todas', label: 'Todas' },
+    { key: 'nao-lidas', label: 'Não lidas' },
+    { key: 'lidas', label: 'Lidas' }
+  ];
 
   return (
     <div className="container">
@@ -84,54 +113,79 @@ function Notificacoes() {
               ? `${unreadCount} notificação${unreadCount !== 1 ? 'ões' : ''} não lida${unreadCount !== 1 ? 's' : ''}`
               : 'Nenhuma notificação pendente'}
           </p>
-          {unreadCount > 0 && (
-            <button className="notificacoes-mark-all" onClick={handleMarkAllRead}>
-              <CheckCheck size={16} /> Marcar todas como lidas
+          <div className="notificacoes-header-actions">
+            {unreadCount > 0 && (
+              <button className="notificacoes-mark-all" onClick={handleMarkAllRead}>
+                <CheckCheck size={16} /> Marcar todas como lidas
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="notificacoes-filters">
+          {filters.map(f => (
+            <button
+              key={f.key}
+              className={`filter-btn${filter === f.key ? ' filter-btn--active' : ''}`}
+              onClick={() => setFilter(f.key)}
+            >
+              {f.key === 'todas' ? <Bell size={15} /> : f.key === 'lidas' ? <CheckCircle2 size={15} /> : <BellOff size={15} />}
+              {f.label}
             </button>
-          )}
+          ))}
         </div>
 
         {error && <p className="notificacoes-error">{error}</p>}
 
         {loading ? (
           <p className="notificacoes-empty">Carregando...</p>
-        ) : notifications.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="notificacoes-empty">
             <MailOpen size={40} />
-            <p>Nenhuma notificação. Os avisos de pagamentos próximos do prazo aparecerão aqui.</p>
+            <p>
+              {filter === 'todas'
+                ? 'Nenhuma notificação. Os avisos de pagamentos próximos do prazo aparecerão aqui.'
+                : `Nenhuma notificação ${filter === 'nao-lidas' ? 'não lida' : 'lida'} no momento.`}
+            </p>
           </div>
         ) : (
           <div className="notificacoes-list">
-            {notifications.map((n) => (
+            {filtered.map((n) => (
               <div
                 key={n.id}
                 className={`notificacao-item${n.lida ? ' is-read' : ''}`}
               >
-                <div className={`notificacao-icon${n.lida ? ' notificacao-icon--read' : ''}`} style={n.lida ? {} : { color: 'var(--color-warning)' }}>
-                  <Clock size={16} />
-                </div>
+                <button
+                  className="notificacao-open"
+                  onClick={() => handleOpenPayment(n)}
+                  title="Abrir pagamento"
+                >
+                  <div className={`notificacao-icon${n.lida ? ' notificacao-icon--read' : ''}`} style={n.lida ? {} : { color: 'var(--color-warning)' }}>
+                    <Clock size={16} />
+                  </div>
 
-                <div className="notificacao-content">
-                  <div className="notificacao-title">
-                    Prazo se aproximando
-                    {!n.lida && <span className="notificacao-dot" />}
+                  <div className="notificacao-content">
+                    <div className="notificacao-title">
+                      Prazo se aproximando
+                      {!n.lida && <span className="notificacao-dot" />}
+                    </div>
+                    <p className="notificacao-message">{n.mensagem}</p>
+                    <div className="notificacao-meta">
+                      <span className="notificacao-time">{timeAgo(n.createdAt)}</span>
+                      {n.data_vencimento && (
+                        <span className="notificacao-vencimento">
+                          <CalendarDays size={12} />
+                          Vence em {formatDate(n.data_vencimento)}
+                        </span>
+                      )}
+                      {n.lida && (
+                        <span className="notificacao-read-tag">
+                          <CheckCircle2 size={12} /> Lida
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className="notificacao-message">{n.mensagem}</p>
-                  <div className="notificacao-meta">
-                    <span className="notificacao-time">{timeAgo(n.createdAt)}</span>
-                    {n.data_vencimento && (
-                      <span className="notificacao-vencimento">
-                        <CalendarDays size={12} />
-                        Vence em {formatDate(n.data_vencimento)}
-                      </span>
-                    )}
-                    {n.lida && (
-                      <span className="notificacao-read-tag">
-                        <CheckCircle2 size={12} /> Lida
-                      </span>
-                    )}
-                  </div>
-                </div>
+                </button>
 
                 <div className="notificacao-actions">
                   <button
@@ -140,6 +194,13 @@ function Notificacoes() {
                     onClick={() => handleToggleRead(n)}
                   >
                     {n.lida ? <Eye size={18} /> : <EyeOff size={18} />}
+                  </button>
+                  <button
+                    className="notificacao-trash"
+                    title="Excluir notificação"
+                    onClick={() => handleDelete(n)}
+                  >
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>

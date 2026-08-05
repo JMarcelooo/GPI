@@ -10,5 +10,6 @@ router.route('/')
 router.post('/marcar-todas-lidas', notificacaoController.markAllNotificacoesLidas);
 
 router.patch('/:id', notificacaoController.markNotificacaoLida);
+router.delete('/:id', notificacaoController.deleteNotificacao);
 
 module.exports = router;
