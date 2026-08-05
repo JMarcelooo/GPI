@@ -3,16 +3,36 @@ const { invalidarCacheNotificacoes } = require('../services/notificacaoService')
 
 const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
 
-// GET /api/pagamentos?pi_id=
+// GET /api/pagamentos?pi_id=&limit=&offset=
 exports.listPagamentos = async (req, res) => {
   try {
     const where = {};
     if (req.query.pi_id) where.pi_id = req.query.pi_id;
-    const pagamentos = await Pagamento.findAll({
-      where,
-      order: [['data_de_vencimento', 'DESC']]
-    });
-    res.json({ count: pagamentos.length, data: pagamentos });
+    const order = [['data_de_vencimento', 'DESC']];
+
+    const limitRaw = req.query.limit;
+    const offsetRaw = req.query.offset;
+    const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
+
+    if (isPaginated) {
+      const total = await Pagamento.count({ where });
+      const rows = await Pagamento.findAll({
+        where,
+        order,
+        limit: Math.min(Number(limitRaw) || 10, 100),
+        offset: Number(offsetRaw) || 0
+      });
+      return res.json({
+        count: rows.length,
+        total,
+        limit: Number(limitRaw),
+        offset: Number(offsetRaw) || 0,
+        data: rows
+      });
+    }
+
+    const pagamentos = await Pagamento.findAll({ where, order });
+    res.json({ count: pagamentos.length, total: pagamentos.length, data: pagamentos });
   } catch (error) {
     console.error('Erro ao listar pagamentos:', error);
     res.status(500).json({ error: 'Erro ao listar pagamentos.' });

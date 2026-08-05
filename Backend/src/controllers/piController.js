@@ -1,4 +1,14 @@
+const { Op } = require('sequelize');
 const { PI, RPI, Pagamento } = require('../models/index');
+
+const SORT_COLS = {
+  tipo: 'tipo',
+  titulo: 'titulo',
+  status: 'status',
+  protocolo: 'protocolo',
+  depositante: 'depositante',
+  data_entrada: 'data_entrada'
+};
 
 const TIPOS_VALIDOS = [
   'patente de invencao',
@@ -102,14 +112,52 @@ exports.createPI = async (req, res) => {
   }
 };
 
-// READ (All)
+// READ (All) — com busca ILIKE, filtros e paginação opcionais
+// Query: ?q=&status=&tipo=&sort=&order=&limit=&offset=
 exports.getAllPIs = async (req, res) => {
   try {
-    const pis = await PI.findAll();
-    res.json({
-      count: pis.length,
-      data: pis
-    });
+    const { q, status, tipo, sort, order } = req.query;
+    const where = {};
+
+    if (q) {
+      const term = `%${q}%`;
+      where[Op.or] = [
+        { protocolo: { [Op.iLike]: term } },
+        { depositante: { [Op.iLike]: term } },
+        { parceiro: { [Op.iLike]: term } },
+        { titulo: { [Op.iLike]: term } }
+      ];
+    }
+    if (status) where.status = status;
+    if (tipo) where.tipo = tipo;
+
+    const orderCol = SORT_COLS[sort] || null;
+    const orderDir = (order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+    const orderClause = orderCol ? [[orderCol, orderDir]] : [['id', 'ASC']];
+
+    const limitRaw = req.query.limit;
+    const offsetRaw = req.query.offset;
+    const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
+
+    if (isPaginated) {
+      const total = await PI.count({ where });
+      const rows = await PI.findAll({
+        where,
+        order: orderClause,
+        limit: Math.min(Number(limitRaw) || 10, 100),
+        offset: Number(offsetRaw) || 0
+      });
+      return res.json({
+        count: rows.length,
+        total,
+        limit: Number(limitRaw),
+        offset: Number(offsetRaw) || 0,
+        data: rows
+      });
+    }
+
+    const rows = await PI.findAll({ where, order: orderClause });
+    res.json({ count: rows.length, total: rows.length, data: rows });
   } catch (error) {
     console.error('Erro ao buscar PIs:', error);
     res.status(500).json({
@@ -226,42 +274,6 @@ exports.deletePI = async (req, res) => {
     console.error('Erro ao remover PI:', error);
     res.status(500).json({
       error: 'Erro ao remover PI.'
-    });
-  }
-};
-
-// SEARCH
-exports.searchPIs = async (req, res) => {
-  try {
-    const { q, status, tipo } = req.query;
-    let pis = await PI.findAll();
-
-    if (q) {
-      const searchTerm = q.toLowerCase();
-      pis = pis.filter(pi =>
-        pi.protocolo.toLowerCase().includes(searchTerm) ||
-        pi.depositante.toLowerCase().includes(searchTerm) ||
-        (pi.parceiro && pi.parceiro.toLowerCase().includes(searchTerm)) ||
-        (pi.titular && Array.isArray(pi.titular) && pi.titular.some(t => t.toLowerCase().includes(searchTerm)))
-      );
-    }
-
-    if (status) {
-      pis = pis.filter(pi => pi.status === status);
-    }
-
-    if (tipo) {
-      pis = pis.filter(pi => pi.tipo === tipo);
-    }
-
-    res.json({
-      count: pis.length,
-      data: pis
-    });
-  } catch (error) {
-    console.error('Erro na busca:', error);
-    res.status(500).json({
-      error: 'Erro na busca.'
     });
   }
 };
