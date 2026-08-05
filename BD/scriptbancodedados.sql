@@ -81,6 +81,19 @@ CREATE TABLE IF NOT EXISTS "autor_pi" (
 	"autor_id" bigint NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS "notificacoes" (
+	"id" serial NOT NULL UNIQUE,
+	"pagamento_id" integer NOT NULL UNIQUE,
+	"pi_id" integer,
+	"tipo" varchar(50) NOT NULL DEFAULT 'prazo',
+	"mensagem" varchar(255) NOT NULL,
+	"data_vencimento" date,
+	"lida" boolean NOT NULL DEFAULT false,
+	"createdAt" timestamp with time zone,
+	"updatedAt" timestamp with time zone,
+	PRIMARY KEY ("id")
+);
+
 
 
 ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
@@ -97,3 +110,9 @@ ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk0" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
 
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk1" FOREIGN KEY ("autor_id") REFERENCES "autor"("id");
+
+-- Índices de performance (Fase 1)
+CREATE INDEX IF NOT EXISTS "idx_pagamentos_pi_id" ON "pagamentos" ("pi_id");
+CREATE INDEX IF NOT EXISTS "idx_pagamentos_data_de_vencimento" ON "pagamentos" ("data_de_vencimento");
+CREATE INDEX IF NOT EXISTS "idx_pagamentos_status" ON "pagamentos" ("status");
+CREATE INDEX IF NOT EXISTS "idx_autor_pi_pi_id_autor_id" ON "autor_pi" ("pi_id", "autor_id");

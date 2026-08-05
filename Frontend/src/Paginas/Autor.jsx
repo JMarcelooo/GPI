@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
@@ -8,6 +8,9 @@ import FilterAuthorModal from '../Components/FilterAuthorModal';
 import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
 import axios from 'axios';
 import './Autor.css';
+
+const API = process.env.REACT_APP_API_URL;
+const PAGE_SIZE = 10;
 
 const formatPhone = (phone) => {
   if (!phone) return '';
@@ -21,11 +24,19 @@ const formatPhone = (phone) => {
   return phone;
 };
 
+function getPageWindow(current, total) {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  return Array.from({ length: 5 }, (_, i) => start + i);
+}
+
 export default function Autor() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const authorsPerPage = 10;
+    const [authors, setAuthors] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -44,6 +55,7 @@ export default function Autor() {
         setSortField(field);
         setSortDir('asc');
       }
+      setCurrentPage(1);
     };
 
     const sortIcon = (field) => {
@@ -51,55 +63,47 @@ export default function Autor() {
       return sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
     };
 
-    const [allAuthors, setAllAuthors] = useState([]);
-   useEffect(() => {
-  axios.get(`${process.env.REACT_APP_API_URL}/api/autores`)
-    .then((response) => {
-      setAllAuthors(response.data.data);
-    })
-    .catch((error) => {
-      console.error("Erro ao buscar autores:", error);
-    });
-}, []);
+    const loadAuthors = useCallback(async (page, term, flt, sField, sDir) => {
+      setLoading(true);
+      try {
+        const params = {
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
+          q: term || undefined,
+          gender: flt.gender || undefined,
+          bond: flt.bond || undefined,
+          campus: flt.campus || undefined,
+          department: flt.department || undefined,
+          university: flt.university || undefined,
+          sort: sField || undefined,
+          order: sDir
+        };
+        const response = await axios.get(`${API}/api/autores`, { params });
+        setAuthors(response.data.data || []);
+        setTotal(response.data.total || 0);
+      } catch (error) {
+        console.error("Erro ao buscar autores:", error);
+        setAuthors([]);
+        setTotal(0);
+      } finally {
+        setLoading(false);
+      }
+    }, []);
 
-    useEffect(() => { setCurrentPage(1); }, [searchTerm, filters]);
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        loadAuthors(currentPage, searchTerm, filters, sortField, sortDir);
+      }, searchTerm ? 300 : 0);
+      return () => clearTimeout(timer);
+    }, [currentPage, searchTerm, filters, sortField, sortDir, loadAuthors]);
 
-    // Aplica busca textual + filtros
-    let filteredAuthors = allAuthors.filter(author => {
-    const matchesSearch = !searchTerm || (
-      (author.name && author.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (author.email && author.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (author.university && author.university.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-
-    const matchesFilters = Object.entries(filters).every(([key, value]) =>
-      author[key] && author[key].toLowerCase() === value.toLowerCase()
-    );
-
-    return matchesSearch && matchesFilters;
-});
-
-    if (sortField) {
-      filteredAuthors = [...filteredAuthors].sort((a, b) => {
-        const valA = (a[sortField] || '').toString().toLowerCase();
-        const valB = (b[sortField] || '').toString().toLowerCase();
-        const cmp = valA.localeCompare(valB);
-        return sortDir === 'asc' ? cmp : -cmp;
-      });
-    }
-
-    // Lógica de paginação
-    const indexOfLastAuthor = currentPage * authorsPerPage;
-    const indexOfFirstAuthor = indexOfLastAuthor - authorsPerPage;
-    const currentAuthors = filteredAuthors.slice(indexOfFirstAuthor, indexOfLastAuthor);
-    const totalPages = Math.ceil(filteredAuthors.length / authorsPerPage);
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const currentAuthors = authors;
+    const indexOfFirstAuthor = (currentPage - 1) * PAGE_SIZE;
+    const indexOfLastAuthor = Math.min(currentPage * PAGE_SIZE, total);
+    const pageNumbers = getPageWindow(currentPage, totalPages);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-    const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-    }
 
     // Funções para abrir/fechar modais
     const handleCloseRegisterModal = () => setShowRegisterModal(false);
@@ -132,9 +136,10 @@ export default function Autor() {
     // Funções de callback para quando o modal de cadastro/edição tiver sucesso
     const handleRegisterSuccess = async (newAuthor) => {
     try {
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/autores`, newAuthor);
-        setAllAuthors([...allAuthors, response.data.data]);
+        await axios.post(`${API}/api/autores`, newAuthor);
         setCurrentPage(1);
+        loadAuthors(1, searchTerm, filters, sortField, sortDir);
+        handleCloseRegisterModal();
     } catch (error) {
         console.error("Erro ao cadastrar autor:", error);
     }
@@ -142,10 +147,9 @@ export default function Autor() {
 
     const handleUpdateSuccess = async (updatedAuthor) => {
     try {
-        const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/autores/${updatedAuthor.id}`, updatedAuthor);
-        setAllAuthors(allAuthors.map(author =>
-            author.id === updatedAuthor.id ? response.data.data : author
-        ));
+        await axios.put(`${API}/api/autores/${updatedAuthor.id}`, updatedAuthor);
+        loadAuthors(currentPage, searchTerm, filters, sortField, sortDir);
+        handleCloseUpdateModal();
     } catch (error) {
         console.error("Erro ao atualizar autor:", error);
     }
@@ -154,9 +158,13 @@ export default function Autor() {
     const handleDeleteAuthor = async () => {
     if (!authorToDelete) return;
     try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/autores/${authorToDelete.id}`);
-        setAllAuthors(allAuthors.filter(author => author.id !== authorToDelete.id));
+        await axios.delete(`${API}/api/autores/${authorToDelete.id}`);
         handleCloseDeleteModal();
+        if (authors.length === 1 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          loadAuthors(currentPage, searchTerm, filters, sortField, sortDir);
+        }
     } catch (error) {
         console.error("Erro ao deletar autor:", error);
     }
@@ -176,7 +184,7 @@ export default function Autor() {
                             type="text"
                             placeholder="Buscar por nome, sobrenome, instituição, etc."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         />
                     </div>
                     <div className="header-buttons">
@@ -201,7 +209,11 @@ export default function Autor() {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentAuthors.map(author => (
+                            {loading ? (
+                                <tr><td colSpan="6" style={{ textAlign: 'center', color: '#64748B', padding: 24 }}>Carregando...</td></tr>
+                            ) : currentAuthors.length === 0 ? (
+                                <tr><td colSpan="6" style={{ textAlign: 'center', color: '#64748B', padding: 24 }}>Nenhum autor encontrado</td></tr>
+                            ) : currentAuthors.map(author => (
                                 <tr key={author.id}>
                                     <td>{author.name}</td>
                                     <td>{author.email}</td>
@@ -226,9 +238,10 @@ export default function Autor() {
                 </div>
 
                 {/* Paginação */}
+                {total > PAGE_SIZE && (
                 <div className="authors-pagination">
                     <span className="pagination-info">
-                        Exibindo {indexOfFirstAuthor + 1} de {Math.min(indexOfLastAuthor, filteredAuthors.length)} de {filteredAuthors.length} autores
+                        Exibindo {indexOfFirstAuthor + 1} a {indexOfLastAuthor} de {total} autores
                     </span>
                     <div className="pagination-controls">
                         <button
@@ -256,6 +269,7 @@ export default function Autor() {
                         </button>
                     </div>
                 </div>
+                )}
             </div>
 
             {/* Renderizar o modal de CADASTRO apenas se showRegisterModal for true */}

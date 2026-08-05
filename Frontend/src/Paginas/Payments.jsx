@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
@@ -8,6 +9,7 @@ import UpdatePaymentModal from '../Components/UpdatePaymentModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Toast from '../Components/Toast';
 import { formatStatusPagamento, daysUntil } from '../utils/formatDate';
+import { getPis } from '../services/piApi';
 import './Payments.css';
 
 const API = process.env.REACT_APP_API_URL;
@@ -28,6 +30,8 @@ export default function Payments() {
   const [pis, setPis] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [toast, setToast] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openedFromParam = useRef(false);
 
   const loadPayments = useCallback(async () => {
     const res = await axios.get(`${API}/api/pagamentos`);
@@ -36,8 +40,8 @@ export default function Payments() {
 
   useEffect(() => {
     loadPayments().catch(err => console.error("Erro ao buscar pagamentos:", err));
-    axios.get(`${API}/api/pi`)
-      .then(res => setPis(res.data.data || []))
+    getPis()
+      .then(list => setPis(list))
       .catch(err => console.error("Erro ao buscar PIs:", err));
   }, [loadPayments]);
 
@@ -52,6 +56,17 @@ export default function Payments() {
       dueDate: toLocalDate(p.data_de_vencimento)
     };
   });
+
+  useEffect(() => {
+    const pagamentoId = searchParams.get('pagamento');
+    if (!pagamentoId || openedFromParam.current) return;
+    const payment = enrichedPayments.find(p => String(p.id) === String(pagamentoId));
+    if (!payment) return;
+    openedFromParam.current = true;
+    setSelectedPayment(payment);
+    setShowViewModal(true);
+    setSearchParams({}, { replace: true });
+  }, [searchParams, enrichedPayments, setSearchParams]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

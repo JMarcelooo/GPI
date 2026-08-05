@@ -1,17 +1,38 @@
 const { Pagamento, PI } = require('../models/index');
+const { sincronizarNotificacoes } = require('../services/notificacaoService');
 
 const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
 
-// GET /api/pagamentos?pi_id=
+// GET /api/pagamentos?pi_id=&limit=&offset=
 exports.listPagamentos = async (req, res) => {
   try {
     const where = {};
     if (req.query.pi_id) where.pi_id = req.query.pi_id;
-    const pagamentos = await Pagamento.findAll({
-      where,
-      order: [['data_de_vencimento', 'DESC']]
-    });
-    res.json({ count: pagamentos.length, data: pagamentos });
+    const order = [['data_de_vencimento', 'DESC']];
+
+    const limitRaw = req.query.limit;
+    const offsetRaw = req.query.offset;
+    const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
+
+    if (isPaginated) {
+      const total = await Pagamento.count({ where });
+      const rows = await Pagamento.findAll({
+        where,
+        order,
+        limit: Math.min(Number(limitRaw) || 10, 100),
+        offset: Number(offsetRaw) || 0
+      });
+      return res.json({
+        count: rows.length,
+        total,
+        limit: Number(limitRaw),
+        offset: Number(offsetRaw) || 0,
+        data: rows
+      });
+    }
+
+    const pagamentos = await Pagamento.findAll({ where, order });
+    res.json({ count: pagamentos.length, total: pagamentos.length, data: pagamentos });
   } catch (error) {
     console.error('Erro ao listar pagamentos:', error);
     res.status(500).json({ error: 'Erro ao listar pagamentos.' });
@@ -75,6 +96,8 @@ exports.createPagamento = async (req, res) => {
       observacao: observacao || null
     });
 
+    sincronizarNotificacoes(true);
+
     res.status(201).json({ data: pagamento });
   } catch (error) {
     console.error('Erro ao criar pagamento:', error);
@@ -133,6 +156,8 @@ exports.updatePagamento = async (req, res) => {
 
     await Pagamento.update(updateData, { where: { id: req.params.id } });
 
+    sincronizarNotificacoes(true);
+
     const updated = await Pagamento.findByPk(req.params.id);
     res.json({ data: updated });
   } catch (error) {
@@ -155,6 +180,7 @@ exports.deletePagamento = async (req, res) => {
     }
 
     await pagamento.destroy();
+    sincronizarNotificacoes(true);
     res.json({ message: 'Pagamento removido com sucesso.' });
   } catch (error) {
     console.error('Erro ao remover pagamento:', error);

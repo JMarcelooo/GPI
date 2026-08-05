@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -8,15 +8,26 @@ import "../Tela2.css";
 import { formatDate, formatStatus, formatTipo } from '../utils/formatDate';
 import FilterPIModal from '../Components/FilterPIModal';
 import Toast from '../Components/Toast';
+import { invalidatePis } from '../services/piApi';
+
+const API = process.env.REACT_APP_API_URL;
+const PAGE_SIZE = 10;
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+}
+
+function getPageWindow(current, total) {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  return Array.from({ length: 5 }, (_, i) => start + i);
 }
 
 function PropriedadesIntelectuais() {
   const navigate = useNavigate();
   const [pis, setPis] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -26,7 +37,6 @@ function PropriedadesIntelectuais() {
   const [sortField, setSortField] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
-  const pisPerPage = 10;
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -35,6 +45,7 @@ function PropriedadesIntelectuais() {
       setSortField(field);
       setSortDir('asc');
     }
+    setCurrentPage(1);
   };
 
   const sortIcon = (field) => {
@@ -42,26 +53,50 @@ function PropriedadesIntelectuais() {
     return sortDir === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
   };
 
-  useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/pi`)
-      .then(res => {
-        setPis(res.data.data || []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Erro ao buscar PIs:", err);
-        setLoading(false);
-      });
+  const loadPIs = useCallback(async (page, term, flt, sField, sDir) => {
+    setLoading(true);
+    try {
+      const params = {
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
+        q: term || undefined,
+        status: flt.status || undefined,
+        tipo: flt.tipo || undefined,
+        sort: sField || undefined,
+        order: sDir
+      };
+      const res = await axios.get(`${API}/api/pi`, { params });
+      setPis(res.data.data || []);
+      setTotal(res.data.total || 0);
+    } catch (err) {
+      console.error("Erro ao buscar PIs:", err);
+      setPis([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadPIs(currentPage, searchTerm, filters, sortField, sortDir);
+    }, searchTerm ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchTerm, filters, sortField, sortDir, loadPIs]);
 
   const handleDeletePI = async () => {
     if (!piToDelete) return;
     setDeleting(true);
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/pi/${piToDelete.id}`);
-      setPis(prev => prev.filter(p => p.id !== piToDelete.id));
+      await axios.delete(`${API}/api/pi/${piToDelete.id}`);
+      invalidatePis();
       setPiToDelete(null);
       setToast({ message: 'PI excluída com sucesso!', type: 'success' });
+      if (pis.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        loadPIs(currentPage, searchTerm, filters, sortField, sortDir);
+      }
     } catch (err) {
       console.error("Erro ao deletar PI:", err);
       setToast({ message: 'Erro ao excluir PI.', type: 'error' });
@@ -70,42 +105,13 @@ function PropriedadesIntelectuais() {
     }
   };
 
-  useEffect(() => { setCurrentPage(1); }, [searchTerm, filters]);
-
-  const sortedPIs = (() => {
-    let list = pis.filter(pi => {
-      const matchSearch = !searchTerm || (
-        pi.protocolo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pi.depositante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (pi.parceiro && pi.parceiro.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-      const matchStatus = !filters.status || pi.status === filters.status;
-      const matchTipo = !filters.tipo || pi.tipo === filters.tipo;
-      return matchSearch && matchStatus && matchTipo;
-    });
-    if (sortField) {
-      list.sort((a, b) => {
-        const valA = (a[sortField] || '').toString().toLowerCase();
-        const valB = (b[sortField] || '').toString().toLowerCase();
-        const cmp = valA.localeCompare(valB);
-        return sortDir === 'asc' ? cmp : -cmp;
-      });
-    }
-    return list;
-  })();
-
-  const filteredPIs = sortedPIs;
-  const indexOfLastPI = currentPage * pisPerPage;
-  const indexOfFirstPI = indexOfLastPI - pisPerPage;
-  const currentPIs = filteredPIs.slice(indexOfFirstPI, indexOfLastPI);
-  const totalPages = Math.ceil(filteredPIs.length / pisPerPage);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPIs = pis;
+  const indexOfFirstPI = (currentPage - 1) * PAGE_SIZE;
+  const indexOfLastPI = Math.min(currentPage * PAGE_SIZE, total);
+  const pageNumbers = getPageWindow(currentPage, totalPages);
 
   const paginate = (page) => setCurrentPage(page);
-
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
 
   return (
     <div className="container">
@@ -121,7 +127,7 @@ function PropriedadesIntelectuais() {
                 type="text"
                 placeholder="Buscar por protocolo, depositante ou parceiro..."
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               />
               <button className="filter-button" onClick={() => setShowFilterModal(true)}>
                 <SlidersHorizontal size={16} className="filter-icon" /> Filtros
@@ -166,7 +172,7 @@ function PropriedadesIntelectuais() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan="7">Carregando...</td></tr>
-                ) : filteredPIs.length === 0 ? (
+                ) : currentPIs.length === 0 ? (
                   <tr><td colSpan="7">Nenhuma PI cadastrada</td></tr>
                 ) : (
                   currentPIs.map(pi => (
@@ -192,13 +198,13 @@ function PropriedadesIntelectuais() {
               </tbody>
             </table>
 
-            {filteredPIs.length > pisPerPage && (
+            {total > PAGE_SIZE && (
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 marginTop: 20, fontSize: 14
               }}>
                 <span style={{ color: '#64748B' }}>
-                  Exibindo {indexOfFirstPI + 1}–{Math.min(indexOfLastPI, filteredPIs.length)} de {filteredPIs.length} PIs
+                  Exibindo {indexOfFirstPI + 1}–{indexOfLastPI} de {total} PIs
                 </span>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <button
@@ -243,7 +249,7 @@ function PropriedadesIntelectuais() {
       {showFilterModal && (
         <FilterPIModal
           onClose={() => setShowFilterModal(false)}
-          onApplyFilters={setFilters}
+          onApplyFilters={(f) => { setFilters(f); setCurrentPage(1); }}
           currentFilters={filters}
         />
       )}

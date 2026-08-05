@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import './Calendar.css';
 
@@ -57,13 +57,26 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     setShowPicker(false);
   };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = useCallback((day) => {
     if (day) { // Garante que o dia não seja nulo (para dias inativos)
       setSelectedDate(new Date(currentYear, currentMonth, day));
     }
-  };
+  }, [currentYear, currentMonth, setSelectedDate]);
 
-  const renderDays = () => {
+  // Conjunto de datas (yyyy-mm-dd) com vencimento -> lookup O(1) por célula
+  const paymentDates = useMemo(() => {
+    const set = new Set();
+    payments.forEach(p => {
+      if (!p.dueDate) return;
+      const y = p.dueDate.getFullYear();
+      const m = p.dueDate.getMonth();
+      const d = p.dueDate.getDate();
+      set.add(`${y}-${m}-${d}`);
+    });
+    return set;
+  }, [payments]);
+
+  const renderDays = useMemo(() => {
     const totalDays = daysInMonth(currentYear, currentMonth);
     const startDay = firstDayOfMonth(currentYear, currentMonth); // Dia da semana para o dia 1
     const prevMonthDays = daysInMonth(currentYear, currentMonth - 1);
@@ -87,11 +100,7 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
         selectedDate.getFullYear() === currentYear;
 
       // Verifica se há algum pagamento para este dia
-      const hasPayment = payments.some(payment =>
-        payment.dueDate.getDate() === i &&
-        payment.dueDate.getMonth() === currentMonth &&
-        payment.dueDate.getFullYear() === currentYear
-      );
+      const hasPayment = paymentDates.has(`${currentYear}-${currentMonth}-${i}`);
 
       days.push(
         <div
@@ -115,7 +124,7 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     }
 
     return days;
-  };
+  }, [currentYear, currentMonth, selectedDate, paymentDates, handleDayClick]);
 
   return (
     <div className="calendar-container">
@@ -154,7 +163,7 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
             {label}
           </div>
         ))}
-        {renderDays()}
+        {renderDays}
       </div>
     </div>
   );

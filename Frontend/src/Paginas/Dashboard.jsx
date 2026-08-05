@@ -4,7 +4,6 @@ import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import '../Tela2.css';
 import './Dashboard.css';
-import { formatTipo } from '../utils/formatDate';
 
 function Dashboard() {
   const [activeFilter, setActiveFilter] = useState('all');
@@ -16,62 +15,22 @@ function Dashboard() {
     totalPagamentos: 0, pagamentosPagos: 0, pagamentosAguardando: 0, pagamentosAndamento: 0
   });
   useEffect(() => {
-    Promise.all([
-      axios.get(`${process.env.REACT_APP_API_URL}/api/pi`),
-      axios.get(`${process.env.REACT_APP_API_URL}/api/autores`),
-      axios.get(`${process.env.REACT_APP_API_URL}/api/pagamentos`).catch(() => ({ data: { data: [] } }))
-    ]).then(([piRes, autorRes, pagRes]) => {
-      const pis = piRes.data.data || [];
-      const autores = autorRes.data.data || [];
-      const pagamentos = pagRes.data.data || [];
-
-      const total = pis.length;
-      const ativos = pis.filter(p => ['deferida', 'registrada', 'carta patente'].includes(p.status)).length;
-      const emProcesso = pis.filter(p => p.status === 'em analise').length;
-      const pendentes = pis.filter(p => ['indeferida', 'anulada', 'arquivada'].includes(p.status)).length;
-
-      const statusCount = {};
-      const tipoCount = {};
-      const anoCount = {};
-      pis.forEach(p => {
-        statusCount[p.status] = (statusCount[p.status] || 0) + 1;
-        tipoCount[p.tipo] = (tipoCount[p.tipo] || 0) + 1;
-        let ano = p.ano;
-        if (!ano && p.data_entrada) {
-          const d = new Date(p.data_entrada);
-          if (!isNaN(d.getTime())) ano = d.getFullYear();
-        }
-        if (!ano) {
-          const d = new Date(p.createdAt);
-          if (!isNaN(d.getTime())) ano = d.getFullYear();
-        }
-        if (!ano) ano = '-';
-        anoCount[ano] = (anoCount[ano] || 0) + 1;
+    axios.get(`${process.env.REACT_APP_API_URL}/api/stats`)
+      .then(res => {
+        const { pi, autores, pagamentos } = res.data;
+        setStats({
+          ativos: pi.ativos, emProcesso: pi.emProcesso, pendentes: pi.pendentes, total: pi.total,
+          porStatus: pi.porStatus, porTipo: pi.porTipo, porAno: pi.porAno,
+          totalAutores: autores.total, autoresPorVinculo: autores.porVinculo,
+          totalPagamentos: pagamentos.total,
+          pagamentosPagos: pagamentos.pago,
+          pagamentosAguardando: pagamentos.aguardandoPrazo,
+          pagamentosAndamento: pagamentos.emAndamento
+        });
+      })
+      .catch(err => {
+        console.error("Erro ao carregar dados:", err);
       });
-
-      const vinculoCount = {};
-      autores.forEach(a => {
-        const v = a.bond || 'Sem vínculo';
-        vinculoCount[v] = (vinculoCount[v] || 0) + 1;
-      });
-
-      const totalPagamentos = pagamentos.length;
-      const pagamentosPagos = pagamentos.filter(p => p.status === 'pago').length;
-      const pagamentosAguardando = pagamentos.filter(p => (p.status || 'aguardando prazo') === 'aguardando prazo').length;
-      const pagamentosAndamento = pagamentos.filter(p => p.status === 'em andamento').length;
-
-      setStats({
-        ativos, emProcesso, pendentes, total,
-        porStatus: Object.entries(statusCount).map(([k, v]) => ({ label: k, value: v })),
-        porTipo: Object.entries(tipoCount).map(([k, v]) => ({ label: formatTipo(k), value: v })),
-        porAno: Object.entries(anoCount).sort((a, b) => a[0] - b[0]).map(([k, v]) => ({ label: k, value: v })),
-        totalAutores: autores.length,
-        autoresPorVinculo: Object.entries(vinculoCount).map(([k, v]) => ({ label: k, value: v })),
-        totalPagamentos, pagamentosPagos, pagamentosAguardando, pagamentosAndamento
-      });
-    }).catch(err => {
-      console.error("Erro ao carregar dados:", err);
-    });
   }, []);
 
   const filterOptions = [

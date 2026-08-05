@@ -17,6 +17,8 @@ app.use('/api/pi', require('./routes/piRoutes'));
 app.use('/api/autores', require('./routes/autorRoutes'));
 app.use('/api/rpi', require('./routes/rpiRoutes'));
 app.use('/api/pagamentos', require('./routes/pagamentoRoutes'));
+app.use('/api/notificacoes', require('./routes/notificacaoRoutes'));
+app.use('/api/stats', require('./routes/statRoutes'));
 
 // Health check
 app.get('/health', (req, res) => {

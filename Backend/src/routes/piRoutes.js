@@ -16,9 +16,6 @@ router.route('/')
   .get(piController.getAllPIs)
   .post(piController.createPI);
 
-router.route('/search')
-  .get(piController.searchPIs);
-
 router.route('/:id')
   .get(piController.getPIById)
   .put(piController.updatePI)
