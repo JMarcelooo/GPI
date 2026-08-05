@@ -31,7 +31,7 @@
 .dash-title {
   font-size: var(--text-2xl);
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-primary);
   margin: 0;
 }
 

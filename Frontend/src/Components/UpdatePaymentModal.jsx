@@ -118,22 +118,6 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
             placeholder="Ex.: 60"
           />
 
-          <div style={{
-            background: 'var(--color-primary-100, rgba(37, 99, 235, 0.08))',
-            padding: '10px 12px',
-            borderRadius: 8,
-            marginBottom: 12,
-            fontSize: 13,
-            lineHeight: 1.5
-          }}>
-            Data informada: <strong>{new Date(dataInformada + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
-            {form.prazo_dias && (
-              <>
-                {' '}→ Data calculada com o prazo: <strong>{new Date(dataCalculada + 'T00:00:00').toLocaleDateString('pt-BR')}</strong>
-              </>
-            )}
-          </div>
-
           <label htmlFor="pay-status-edit">Status</label>
           <select
             id="pay-status-edit"

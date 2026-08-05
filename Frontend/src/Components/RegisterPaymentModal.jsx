@@ -53,8 +53,6 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
     }
   };
 
-  const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
@@ -70,7 +68,7 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             name="tipo_de_pagamento"
             value={form.tipo_de_pagamento}
             onChange={handleChange}
-            placeholder="Ex.: Anuidade, Manutenção"
+            placeholder="Ex.: Depósito, Anuidade"
             required
           />
 
@@ -107,22 +105,6 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             onChange={handleChange}
             placeholder="Ex.: 60"
           />
-
-          <div style={{
-            background: 'var(--color-primary-100, rgba(37, 99, 235, 0.08))',
-            padding: '10px 12px',
-            borderRadius: 8,
-            marginBottom: 12,
-            fontSize: 13,
-            lineHeight: 1.5
-          }}>
-            Data informada: <strong>{fmt(dataInformada)}</strong>
-            {form.prazo_dias && (
-              <>
-                {' '}→ Data calculada com o prazo: <strong>{fmt(dataCalculada)}</strong>
-              </>
-            )}
-          </div>
 
           <label htmlFor="pay-status">Status</label>
           <select
