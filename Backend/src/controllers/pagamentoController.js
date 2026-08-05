@@ -1,4 +1,5 @@
 const { Pagamento, PI } = require('../models/index');
+const { invalidarCacheNotificacoes } = require('../services/notificacaoService');
 
 const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
 
@@ -75,6 +76,8 @@ exports.createPagamento = async (req, res) => {
       observacao: observacao || null
     });
 
+    invalidarCacheNotificacoes();
+
     res.status(201).json({ data: pagamento });
   } catch (error) {
     console.error('Erro ao criar pagamento:', error);
@@ -133,6 +136,8 @@ exports.updatePagamento = async (req, res) => {
 
     await Pagamento.update(updateData, { where: { id: req.params.id } });
 
+    invalidarCacheNotificacoes();
+
     const updated = await Pagamento.findByPk(req.params.id);
     res.json({ data: updated });
   } catch (error) {
@@ -155,6 +160,7 @@ exports.deletePagamento = async (req, res) => {
     }
 
     await pagamento.destroy();
+    invalidarCacheNotificacoes();
     res.json({ message: 'Pagamento removido com sucesso.' });
   } catch (error) {
     console.error('Erro ao remover pagamento:', error);

@@ -110,3 +110,9 @@ ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk0" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
 
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk1" FOREIGN KEY ("autor_id") REFERENCES "autor"("id");
+
+-- Índices de performance (Fase 1)
+CREATE INDEX IF NOT EXISTS "idx_pagamentos_pi_id" ON "pagamentos" ("pi_id");
+CREATE INDEX IF NOT EXISTS "idx_pagamentos_data_de_vencimento" ON "pagamentos" ("data_de_vencimento");
+CREATE INDEX IF NOT EXISTS "idx_pagamentos_status" ON "pagamentos" ("status");
+CREATE INDEX IF NOT EXISTS "idx_autor_pi_pi_id_autor_id" ON "autor_pi" ("pi_id", "autor_id");
