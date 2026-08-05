@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import './Calendar.css';
 
@@ -57,11 +57,11 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     setShowPicker(false);
   };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = useCallback((day) => {
     if (day) { // Garante que o dia não seja nulo (para dias inativos)
       setSelectedDate(new Date(currentYear, currentMonth, day));
     }
-  };
+  }, [currentYear, currentMonth]);
 
   // Conjunto de datas (yyyy-mm-dd) com vencimento -> lookup O(1) por célula
   const paymentDates = useMemo(() => {
@@ -124,7 +124,7 @@ const Calendar = ({ selectedDate, setSelectedDate, payments }) => {
     }
 
     return days;
-  }, [currentYear, currentMonth, selectedDate, paymentDates]);
+  }, [currentYear, currentMonth, selectedDate, paymentDates, handleDayClick]);
 
   return (
     <div className="calendar-container">
