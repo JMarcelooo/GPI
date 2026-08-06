@@ -41,6 +41,65 @@
   color: var(--color-text-muted);
 }
 
+/* ---- Loading / Error ---- */
+.dash-loading,
+.dash-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-10) 0;
+  margin: var(--space-4) 0 var(--space-6);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.dash-loading {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.dash-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: dash-spin 0.8s linear infinite;
+}
+
+@keyframes dash-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dash-error {
+  flex-direction: column;
+  background: var(--color-error-bg, rgba(239, 68, 68, 0.12));
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+}
+
+.dash-error p {
+  margin: 0;
+}
+
+.dash-error button {
+  background: var(--color-error);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.dash-error button:hover {
+  opacity: 0.9;
+}
+
 /* ---- Sections ---- */
 .dash-section {
   margin-bottom: var(--space-8);
@@ -146,7 +205,7 @@
 }
 
 .insight-item svg {
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
 }
 
 .insight-item strong {

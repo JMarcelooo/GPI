@@ -78,3 +78,7 @@ export function daysUntil(dateStr) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.round((due - today) / 86400000);
 }
+
+export function formatCurrency(val) {
+  return `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+}

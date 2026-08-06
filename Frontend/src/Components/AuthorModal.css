@@ -184,6 +184,15 @@
   background: var(--color-btn-hover);
 }
 
+[data-theme="dark"] .save-button {
+  background: var(--color-primary-light);
+  color: #fff;
+}
+
+[data-theme="dark"] .save-button:hover {
+  background: var(--color-primary);
+}
+
 /* ==============================
    VIEW AUTHOR MODAL (DETAILS)
    ============================== */

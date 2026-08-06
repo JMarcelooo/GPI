@@ -27,6 +27,7 @@ function PropriedadesIntelectuais() {
   const navigate = useNavigate();
   const [pis, setPis] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
@@ -68,10 +69,12 @@ function PropriedadesIntelectuais() {
       const res = await axios.get(`${API}/api/pi`, { params });
       setPis(res.data.data || []);
       setTotal(res.data.total || 0);
+      setError(null);
     } catch (err) {
       console.error("Erro ao buscar PIs:", err);
       setPis([]);
       setTotal(0);
+      setError('Não foi possível carregar as propriedades intelectuais.');
     } finally {
       setLoading(false);
     }
@@ -137,6 +140,7 @@ function PropriedadesIntelectuais() {
               </button>
             </div>
 
+            <div className="tabela-pi-scroll">
             <table className="tabela-pi">
               <thead>
                 <tr>
@@ -172,6 +176,8 @@ function PropriedadesIntelectuais() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan="7">Carregando...</td></tr>
+                ) : error ? (
+                  <tr><td colSpan="7">{error}</td></tr>
                 ) : currentPIs.length === 0 ? (
                   <tr><td colSpan="7">Nenhuma PI cadastrada</td></tr>
                 ) : (
@@ -197,6 +203,7 @@ function PropriedadesIntelectuais() {
                 )}
               </tbody>
             </table>
+            </div>
 
             {total > PAGE_SIZE && (
               <div style={{

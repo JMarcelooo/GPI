@@ -13,6 +13,22 @@ function Configuracoes() {
   const { dark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [showAlterarSenha, setShowAlterarSenha] = useState(false);
+  const [notifEmail, setNotifEmail] = useState(() => localStorage.getItem('notifEmail') !== 'false');
+  const [notifStatus, setNotifStatus] = useState(() => localStorage.getItem('notifStatus') !== 'false');
+
+  const toggleNotifEmail = () => {
+    setNotifEmail(v => {
+      localStorage.setItem('notifEmail', String(!v));
+      return !v;
+    });
+  };
+
+  const toggleNotifStatus = () => {
+    setNotifStatus(v => {
+      localStorage.setItem('notifStatus', String(!v));
+      return !v;
+    });
+  };
 
   async function handleSair() {
     logout();
@@ -71,7 +87,7 @@ function Configuracoes() {
               <p className="config-desc">Receber alertas sobre prazos e atualizações</p>
             </div>
             <label className="config-toggle">
-              <input type="checkbox" defaultChecked />
+              <input type="checkbox" checked={notifEmail} onChange={toggleNotifEmail} />
               <span className="config-toggle-slider"></span>
             </label>
           </div>
@@ -81,7 +97,7 @@ function Configuracoes() {
               <p className="config-desc">Alertar quando uma PI mudar de status</p>
             </div>
             <label className="config-toggle">
-              <input type="checkbox" defaultChecked />
+              <input type="checkbox" checked={notifStatus} onChange={toggleNotifStatus} />
               <span className="config-toggle-slider"></span>
             </label>
           </div>

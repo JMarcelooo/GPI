@@ -82,6 +82,11 @@
 }
 
 /* ---- Table ---- */
+.tabela-pi-scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+}
+
 .tabela-pi {
   width: 100%;
   border-collapse: collapse;
@@ -253,4 +258,22 @@
 .filter-button:hover {
   background: var(--color-accent);
   color: #fff;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+  .filtros-topo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtros-topo input {
+    width: 100%;
+  }
+
+  .filtros-topo .filter-button,
+  .filtros-topo .btn-novo-pi {
+    width: 100%;
+    justify-content: center;
+  }
 }

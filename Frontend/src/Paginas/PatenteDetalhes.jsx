@@ -6,16 +6,12 @@ import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
-import { formatDate, formatStatus, formatTipo, formatStatusPagamento, daysUntil } from '../utils/formatDate';
+import { formatDate, formatStatus, formatTipo, formatStatusPagamento, daysUntil, formatCurrency } from '../utils/formatDate';
 import Toast from '../Components/Toast';
 import { invalidatePis } from '../services/piApi';
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-}
-
-function formatCurrency(val) {
-  return `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 }
 
 const STATUS_PAGAMENTO_COLORS = {

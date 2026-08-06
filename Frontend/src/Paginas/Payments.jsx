@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import Calendar from '../Components/Calendar';
@@ -8,7 +8,7 @@ import RegisterPaymentModal from '../Components/RegisterPaymentModal';
 import UpdatePaymentModal from '../Components/UpdatePaymentModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Toast from '../Components/Toast';
-import { formatStatusPagamento, daysUntil } from '../utils/formatDate';
+import { formatStatusPagamento, daysUntil, formatCurrency } from '../utils/formatDate';
 import { getPis } from '../services/piApi';
 import './Payments.css';
 
@@ -120,9 +120,6 @@ export default function Payments() {
     emAndamento: statusCount('em andamento'),
     pago: statusCount('pago')
   };
-
-  const formatCurrency = (val) =>
-    `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
   const renderDaysLeft = (p) => {
     if (!p.data_de_vencimento) return null;
@@ -389,17 +386,18 @@ export default function Payments() {
                     <div key={i} className="upcoming-item">
                       <div className="upcoming-left">
                         <p className="upcoming-title">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</p>
-                        <span className="upcoming-date">
+                        <dt className="upcoming-date">
                           <CalendarIcon size={12} />
                           {p.dueDate ? p.dueDate.toLocaleDateString('pt-BR') : '-'}
-                        </span>
+                        </dt>
                         {renderDaysLeft(p)}
                         {p.data_informada && p.data_informada !== p.data_de_vencimento && (() => {
                           const info = toLocalDate(p.data_informada);
                           return info ? (
-                            <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                            <dt className="upcoming-date upcoming-date--informada">
+                              <Info size={12} />
                               Informada: {info.toLocaleDateString('pt-BR')}
-                            </span>
+                            </dt>
                           ) : null;
                         })()}
                       </div>

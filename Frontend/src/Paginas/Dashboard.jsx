@@ -13,20 +13,22 @@ import './Dashboard.css';
 const EMPTY_FUNIL = { emAnalise: 0, deferida: 0, registradaOuCarta: 0, indeferidaOuAnulada: 0, arquivada: 0, taxaSucesso: 0, taxaInsucesso: 0, comDesfecho: 0 };
 
 const STATUS_META = {
-  'em analise': { color: '#FA7F0C', label: 'Em análise' },
-  'deferida': { color: '#10B981', label: 'Deferida' },
-  'registrada': { color: '#93278F', label: 'Registrada' },
-  'carta patente': { color: '#B849B4', label: 'Carta patente' },
-  'indeferida': { color: '#EF4444', label: 'Indeferida' },
-  'anulada': { color: '#FA0183', label: 'Anulada' },
-  'arquivada': { color: '#94A3B8', label: 'Arquivada' }
+  'em analise': { color: 'var(--chart-orange)', label: 'Em análise' },
+  'deferida': { color: 'var(--chart-lime)', label: 'Deferida' },
+  'registrada': { color: 'var(--chart-primary)', label: 'Registrada' },
+  'carta patente': { color: 'var(--chart-primary-light)', label: 'Carta patente' },
+  'indeferida': { color: 'var(--chart-error)', label: 'Indeferida' },
+  'anulada': { color: 'var(--chart-pink)', label: 'Anulada' },
+  'arquivada': { color: 'var(--chart-gray)', label: 'Arquivada' }
 };
 
-const CHART_COLORS = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#009FDF', '#94A3B8'];
+const CHART_COLORS = ['var(--chart-primary)', 'var(--chart-pink)', 'var(--chart-orange)', 'var(--chart-lime)', 'var(--chart-primary-light)', 'var(--chart-green)', 'var(--chart-cyan)', 'var(--chart-gray)'];
 
 function Dashboard() {
   const { user, updateUser } = useAuth();
   const [showForcaTroca, setShowForcaTroca] = useState(!!user?.deveTrocarSenha);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [stats, setStats] = useState({
     total: 0, ativos: 0, emProcesso: 0, pendentes: 0,
@@ -55,8 +57,13 @@ function Dashboard() {
           tempoMedioDias: pi.tempoMedioDias,
           funil: pi.funil || EMPTY_FUNIL
         });
+        setError(null);
       })
-      .catch(err => console.error("Erro ao carregar dados:", err));
+      .catch(err => {
+        console.error("Erro ao carregar dados:", err);
+        setError('Não foi possível carregar os dados do dashboard.');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const fmtBRL = v => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
@@ -77,11 +84,11 @@ function Dashboard() {
 
   // ---- Charts data ----
   const funilEtapas = [
-    { label: 'Em análise', value: stats.funil.emAnalise, color: '#FA7F0C' },
-    { label: 'Deferida', value: stats.funil.deferida, color: '#D9E021' },
-    { label: 'Registrada / Carta', value: stats.funil.registradaOuCarta, color: '#10B981' },
-    { label: 'Indeferida / Anulada', value: stats.funil.indeferidaOuAnulada, color: '#FA0183' },
-    { label: 'Arquivada', value: stats.funil.arquivada, color: '#94A3B8' }
+    { label: 'Em análise', value: stats.funil.emAnalise, color: 'var(--chart-orange)' },
+    { label: 'Deferida', value: stats.funil.deferida, color: 'var(--chart-lime)' },
+    { label: 'Registrada / Carta', value: stats.funil.registradaOuCarta, color: 'var(--chart-green)' },
+    { label: 'Indeferida / Anulada', value: stats.funil.indeferidaOuAnulada, color: 'var(--chart-pink)' },
+    { label: 'Arquivada', value: stats.funil.arquivada, color: 'var(--chart-gray)' }
   ];
   const maxEtapa = Math.max(1, ...funilEtapas.map(e => e.value));
 
@@ -115,6 +122,22 @@ function Dashboard() {
           </button>
         </header>
 
+        {loading && (
+          <div className="dash-loading">
+            <div className="dash-loading-spinner" role="status" aria-label="Carregando"></div>
+            <p>Carregando dados...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="dash-error" role="alert">
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()}>Tentar novamente</button>
+          </div>
+        )}
+
+        {!loading && !error && (
+        <>
         {/* Bonus: Tempo médio e custo por sucesso como highlights compactos */}
         <div className="dash-insight-bar">
           <div className="insight-item">
@@ -196,7 +219,7 @@ function Dashboard() {
               <FileText size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
               PIs por tipo
             </h3>
-            <Bars rows={stats.porTipo.map(t => ({ label: t.label, value: t.value }))} max={maxTipo} color={['#93278F', '#B849B4', '#FA7F0C', '#D9E021']} />
+            <Bars rows={stats.porTipo.map(t => ({ label: t.label, value: t.value }))} max={maxTipo} color={['var(--chart-primary)', 'var(--chart-primary-light)', 'var(--chart-orange)', 'var(--chart-lime)']} />
           </div>
 
           <div className="chart-card">
@@ -212,9 +235,11 @@ function Dashboard() {
               <Users size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-accent)' }} />
               Autores por vínculo
             </h3>
-            <Bars rows={stats.autoresPorVinculo.map(v => ({ label: v.label, value: v.value }))} max={maxVinculo} color={['#B849B4', '#FA7F0C', '#D9E021', '#10B981', '#009FDF']} />
+            <Bars rows={stats.autoresPorVinculo.map(v => ({ label: v.label, value: v.value }))} max={maxVinculo} color={['var(--chart-primary-light)', 'var(--chart-orange)', 'var(--chart-lime)', 'var(--chart-green)', 'var(--chart-cyan)']} />
           </div>
         </section>
+        </>
+        )}
       </div>
     </div>
   );
@@ -284,11 +309,11 @@ function AnoChart({ data, max }) {
       <svg viewBox={`0 0 ${width} 150`} className="line-chart-svg" style={{ width }}>
         <polyline
           points={data.map((a, i) => `${xOf(i)},${yOf(a.value)}`).join(' ')}
-          fill="none" stroke="#93278F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          fill="none" stroke="var(--chart-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
         />
         {data.map((a, i) => (
           <g key={i}>
-            <circle cx={xOf(i)} cy={yOf(a.value)} r="4" fill="var(--color-surface)" stroke="#93278F" strokeWidth="2" />
+            <circle cx={xOf(i)} cy={yOf(a.value)} r="4" fill="var(--color-surface)" stroke="var(--chart-primary)" strokeWidth="2" />
             <text x={xOf(i)} y={142} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a.label}</text>
             <text x={xOf(i)} y={yOf(a.value) - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--color-text)">{a.value}</text>
           </g>
