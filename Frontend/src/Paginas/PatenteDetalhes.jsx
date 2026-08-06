@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ArrowLeft, Pencil, Trash2, Edit2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, Pencil, Trash2, Edit2, FilePlus2, FilePen, Files, CircleDollarSign } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdicionarRPIModal from '../Components/AdicionarRPIModal';
 import ViewPaymentModal from '../Components/ViewPaymentModal';
@@ -24,6 +24,23 @@ const STATUS_PAGAMENTO_COLORS = {
   'pago': { bg: 'var(--color-success-bg)', color: 'var(--color-success)' }
 };
 
+const HISTORICO_ACOES = {
+  'pi': {
+    criacao: { titulo: 'PI cadastrada', icone: FilePlus2, cor: 'green' },
+    atualizacao: { titulo: 'PI atualizada', icone: FilePen, cor: 'orange' }
+  },
+  'rpi': {
+    criacao: { titulo: 'RPI registrada', icone: FilePlus2, cor: 'green' },
+    atualizacao: { titulo: 'RPI atualizada', icone: FilePen, cor: 'orange' },
+    exclusao: { titulo: 'RPI removida', icone: Files, cor: 'red' }
+  },
+  'pagamento': {
+    criacao: { titulo: 'Pagamento registrado', icone: CircleDollarSign, cor: 'green' },
+    atualizacao: { titulo: 'Pagamento atualizado', icone: FilePen, cor: 'orange' },
+    exclusao: { titulo: 'Pagamento removido', icone: Files, cor: 'red' }
+  }
+};
+
 export default function PatenteDetalhes() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -35,10 +52,18 @@ export default function PatenteDetalhes() {
   const [activeTab, setActiveTab] = useState('geral');
   const [rpiEvents, setRpiEvents] = useState([]);
   const [pagamentos, setPagamentos] = useState([]);
+  const [historico, setHistorico] = useState([]);
   const [viewPayment, setViewPayment] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const loadHistorico = useCallback(() => {
+    const api = process.env.REACT_APP_API_URL;
+    axios.get(`${api}/api/pi/${id}/historico`)
+      .then(res => setHistorico(res.data.data || []))
+      .catch(err => console.error("Erro ao buscar histórico:", err));
+  }, [id]);
 
   useEffect(() => {
     const api = process.env.REACT_APP_API_URL;
@@ -59,7 +84,9 @@ export default function PatenteDetalhes() {
     axios.get(`${api}/api/pi/${id}/pagamentos`)
       .then(res => setPagamentos(res.data.data || []))
       .catch(err => console.error("Erro ao buscar pagamentos:", err));
-  }, [id]);
+
+    loadHistorico();
+  }, [id, loadHistorico]);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -86,6 +113,7 @@ export default function PatenteDetalhes() {
       const api = process.env.REACT_APP_API_URL;
       const res = await axios.post(`${api}/api/rpi`, { ...newRPI, pi_id: Number(id) });
       setRpiEvents(prev => [...prev, res.data.data]);
+      loadHistorico();
       setToast({ message: 'RPI adicionada com sucesso!', type: 'success' });
     } catch (err) {
       console.error("Erro ao adicionar RPI:", err);
@@ -107,6 +135,7 @@ export default function PatenteDetalhes() {
       setRpiEvents(prev => prev.map((e, i) => i === editingIndex ? res.data.data : e));
       setEditingEvent(null);
       setEditingIndex(null);
+      loadHistorico();
       setToast({ message: 'RPI atualizada com sucesso!', type: 'success' });
     } catch (err) {
       console.error("Erro ao atualizar RPI:", err);
@@ -122,6 +151,7 @@ export default function PatenteDetalhes() {
       setRpiEvents(prev => prev.filter((_, i) => i !== editingIndex));
       setEditingEvent(null);
       setEditingIndex(null);
+      loadHistorico();
       setToast({ message: 'RPI removida com sucesso!', type: 'success' });
     } catch (err) {
       console.error("Erro ao remover RPI:", err);
@@ -147,7 +177,7 @@ export default function PatenteDetalhes() {
       <main style={{ flex: 1, padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)' }}>
         <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{loadingError}</p>
         <button onClick={() => navigate('/propriedade-intelectual')} style={{
-          background: '#93278F', color: '#fff', border: 'none', padding: '10px 24px',
+          background: 'var(--color-primary)', color: '#fff', border: 'none', padding: '10px 24px',
           borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer'
         }}>Voltar para lista</button>
       </main>
@@ -219,21 +249,21 @@ export default function PatenteDetalhes() {
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'geral' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'geral' ? '#fff' : 'var(--color-text-secondary)',
-              fontWeight: 600, border: activeTab === 'geral' ? 'none' : '1px solid #E2E8F0',
+              fontWeight: 600, border: activeTab === 'geral' ? 'none' : '1px solid var(--color-border)',
               cursor: "pointer", fontSize: 14
             }}>Informações gerais</button>
             <button onClick={() => setActiveTab('historico')} style={{
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'historico' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'historico' ? '#fff' : 'var(--color-text-secondary)',
-              fontWeight: 600, border: activeTab === 'historico' ? 'none' : '1px solid #E2E8F0',
+              fontWeight: 600, border: activeTab === 'historico' ? 'none' : '1px solid var(--color-border)',
               cursor: "pointer", fontSize: 14
             }}>Histórico</button>
             <button onClick={() => setActiveTab('pagamentos')} style={{
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'pagamentos' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'pagamentos' ? '#fff' : 'var(--color-text-secondary)',
-              fontWeight: 600, border: activeTab === 'pagamentos' ? 'none' : '1px solid #E2E8F0',
+              fontWeight: 600, border: activeTab === 'pagamentos' ? 'none' : '1px solid var(--color-border)',
               cursor: "pointer", fontSize: 14
             }}>Pagamentos</button>
           </div>
@@ -274,7 +304,7 @@ export default function PatenteDetalhes() {
                 </div>
 
                 {rpiEvents.length === 0 ? (
-                  <p style={{ padding: 16, color: '#888' }}>Nenhum evento RPI registrado</p>
+                  <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>Nenhum evento RPI registrado</p>
                 ) : (
                   <div className="rpi-events-grid">
                     {rpiEvents.map((event, index) => (
@@ -300,7 +330,35 @@ export default function PatenteDetalhes() {
               <div className="historico-header">
                 <h1>Histórico de Eventos</h1>
               </div>
-              <p style={{ padding: 16, color: '#888' }}>Nenhum evento registrado</p>
+
+              {historico.length === 0 ? (
+                <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>Nenhum evento registrado</p>
+              ) : (
+                <div className="timeline">
+                  {historico.map((h, index) => {
+                    const meta = HISTORICO_ACOES[h.tipo]?.[h.acao] || {
+                      titulo: `${h.tipo} — ${h.acao}`,
+                      icone: FilePlus2,
+                      cor: 'orange'
+                    };
+                    const Icone = meta.icone;
+                    return (
+                      <div key={h.id || index} className="timeline-item">
+                        <span className={`timeline-icon ${meta.cor}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Icone size={10} color="#fff" />
+                        </span>
+                        <div className="timeline-content">
+                          <span className="timeline-date">
+                            {h.createdAt ? new Date(h.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                          </span>
+                          <h4 className="timeline-title">{meta.titulo}</h4>
+                          <p className="timeline-description">{h.descricao}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -316,7 +374,7 @@ export default function PatenteDetalhes() {
               </div>
 
               {pagamentos.length === 0 ? (
-                <p style={{ padding: 16, color: '#888' }}>Nenhum pagamento registrado para esta PI</p>
+                <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>Nenhum pagamento registrado para esta PI</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
@@ -366,7 +424,7 @@ export default function PatenteDetalhes() {
                           </td>
                           <td style={{ padding: '12px', borderBottom: '1px solid var(--color-border-light)', color: 'var(--color-text)' }}>
                             {p.prazo_dias ? `${p.prazo_dias} dia${p.prazo_dias !== 1 ? 's' : ''}` : '-'}
-                            {p.data_de_vencimento && (() => {
+                            {p.data_de_vencimento && (p.status || 'aguardando prazo') !== 'pago' && (p.status || 'aguardando prazo') !== 'aguardando prazo' && (() => {
                               const diff = daysUntil(p.data_de_vencimento);
                               if (diff === null) return null;
                               const text = diff > 0 ? `${diff}d` : diff === 0 ? 'hoje' : `${Math.abs(diff)}d atrasado`;
@@ -434,7 +492,7 @@ export default function PatenteDetalhes() {
                 disabled={deleting}
                 style={{
                   padding: '10px 20px', borderRadius: 8, border: 'none',
-                  background: '#EF4444', color: '#fff', fontSize: 14, fontWeight: 600,
+                  background: 'var(--color-error)', color: '#fff', fontSize: 14, fontWeight: 600,
                   cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1
                 }}
               >{deleting ? "Excluindo..." : "Excluir"}</button>

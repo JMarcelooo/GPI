@@ -31,6 +31,9 @@ router.route('/:id/titulares')
 router.route('/:id/rpis')
   .get(piController.getRPIsByPI);
 
+router.route('/:id/historico')
+  .get(piController.getHistoricoByPI);
+
 router.route('/:id/pagamentos')
   .get(piController.getPagamentosByPI);
 

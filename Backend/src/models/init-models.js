@@ -4,6 +4,7 @@ var _PI = require('./PI');
 var _RPI = require('./RPI');
 var _Pagamento = require('./Pagamento');
 var _Notificacao = require('./Notificacao');
+var _Historico = require('./Historico');
 
 function initModels(sequelize) {
   var autor = _autor(sequelize, DataTypes);
@@ -11,6 +12,7 @@ function initModels(sequelize) {
   var RPI = _RPI;
   var Pagamento = _Pagamento;
   var Notificacao = _Notificacao;
+  var Historico = _Historico;
 
   PI.belongsToMany(autor, {
     as: 'autores',
@@ -48,12 +50,24 @@ function initModels(sequelize) {
     foreignKey: 'pi_id'
   });
 
+  PI.hasMany(Historico, {
+    as: 'historicos',
+    foreignKey: 'pi_id',
+    onDelete: 'CASCADE'
+  });
+
+  Historico.belongsTo(PI, {
+    as: 'pi',
+    foreignKey: 'pi_id'
+  });
+
   return {
     autor,
     PI,
     RPI,
     Pagamento,
-    Notificacao
+    Notificacao,
+    Historico
   };
 }
 module.exports = initModels;

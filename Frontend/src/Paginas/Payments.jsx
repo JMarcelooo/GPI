@@ -13,12 +13,19 @@ import { getPis } from '../services/piApi';
 import './Payments.css';
 
 const API = process.env.REACT_APP_API_URL;
+const PAGE_SIZE = 10;
 
 const toLocalDate = (str) => {
   if (!str) return null;
   const [y, m, d] = String(str).slice(0, 10).split('-').map(Number);
   return new Date(y, (m || 1) - 1, d || 1);
 };
+
+function getPageWindow(current, total) {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  return Array.from({ length: 5 }, (_, i) => start + i);
+}
 
 export default function Payments() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -27,28 +34,56 @@ export default function Payments() {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [calendarSelectedDate, setCalendarSelectedDate] = useState(new Date());
   const [allPayments, setAllPayments] = useState([]);
+  const [tablePayments, setTablePayments] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [tableLoading, setTableLoading] = useState(false);
   const [pis, setPis] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [toast, setToast] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const openedFromParam = useRef(false);
 
-  const loadPayments = useCallback(async () => {
+  const loadAllPayments = useCallback(async () => {
     const res = await axios.get(`${API}/api/pagamentos`);
     setAllPayments(res.data.data || []);
   }, []);
 
+  const loadTable = useCallback(async (page, term) => {
+    setTableLoading(true);
+    try {
+      const res = await axios.get(`${API}/api/pagamentos`, {
+        params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, q: term || undefined }
+      });
+      setTablePayments(res.data.data || []);
+      setTotal(res.data.total || 0);
+    } catch (err) {
+      console.error("Erro ao buscar pagamentos:", err);
+      setTablePayments([]);
+      setTotal(0);
+    } finally {
+      setTableLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    loadPayments().catch(err => console.error("Erro ao buscar pagamentos:", err));
+    loadAllPayments().catch(err => console.error("Erro ao buscar pagamentos:", err));
     getPis()
       .then(list => setPis(list))
       .catch(err => console.error("Erro ao buscar PIs:", err));
-  }, [loadPayments]);
+  }, [loadAllPayments]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadTable(currentPage, searchTerm);
+    }, searchTerm ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchTerm, loadTable]);
 
   const piMap = {};
   pis.forEach(pi => { piMap[pi.id] = pi; });
 
-  const enrichedPayments = allPayments.map(p => {
+  const enrich = (list) => list.map(p => {
     const pi = piMap[p.pi_id];
     return {
       ...p,
@@ -56,6 +91,9 @@ export default function Payments() {
       dueDate: toLocalDate(p.data_de_vencimento)
     };
   });
+
+  const enrichedPayments = enrich(allPayments);
+  const enrichedTablePayments = enrich(tablePayments);
 
   useEffect(() => {
     const pagamentoId = searchParams.get('pagamento');
@@ -88,6 +126,8 @@ export default function Payments() {
 
   const renderDaysLeft = (p) => {
     if (!p.data_de_vencimento) return null;
+    const status = p.status || 'aguardando prazo';
+    if (status === 'pago' || status === 'aguardando prazo') return null;
     const diff = daysUntil(p.data_de_vencimento);
     if (diff === null) return null;
     let text;
@@ -129,27 +169,31 @@ export default function Payments() {
 
   const handleRegister = async (payload) => {
     await axios.post(`${API}/api/pagamentos`, payload);
-    await loadPayments();
+    await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm)]);
     setToast({ message: 'Pagamento registrado com sucesso!', type: 'success' });
   };
 
   const handleUpdate = async (payload) => {
     await axios.put(`${API}/api/pagamentos/${selectedPayment.id}`, payload);
-    await loadPayments();
+    await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm)]);
     setToast({ message: 'Pagamento atualizado com sucesso!', type: 'success' });
   };
 
   const handleDelete = async () => {
     await axios.delete(`${API}/api/pagamentos/${selectedPayment.id}`);
-    await loadPayments();
+    await loadAllPayments();
+    if (tablePayments.length === 1 && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    } else {
+      await loadTable(currentPage, searchTerm);
+    }
     setToast({ message: 'Pagamento removido com sucesso!', type: 'success' });
   };
 
-  const filteredPayments = enrichedPayments.filter(p =>
-    !searchTerm ||
-    (p.tipo_de_pagamento || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.pi || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const indexOfFirst = (currentPage - 1) * PAGE_SIZE + 1;
+  const indexOfLast = Math.min(currentPage * PAGE_SIZE, total);
+  const pageNumbers = getPageWindow(currentPage, totalPages);
 
   return (
     <div className="payments-page">
@@ -159,7 +203,7 @@ export default function Payments() {
           <div>
             <h1 className="payments-title">Gestão de Pagamentos</h1>
             <p className="payments-subtitle">
-              {allPayments.length} registro{allPayments.length !== 1 ? 's' : ''} encontrado{allPayments.length !== 1 ? 's' : ''}
+              {total} registro{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
             </p>
           </div>
           <button className="payments-btn-primary" onClick={() => setShowRegisterModal(true)}>
@@ -217,7 +261,7 @@ export default function Payments() {
                     type="text"
                     placeholder="Buscar pagamentos..."
                     value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     className="search-input"
                   />
                 </div>
@@ -236,7 +280,7 @@ export default function Payments() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredPayments.map((p, i) => (
+                    {enrichedTablePayments.map((p, i) => (
                       <tr key={i}>
                         <td className="td-desc">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</td>
                         <td className="td-pi">{p.pi}</td>
@@ -265,7 +309,14 @@ export default function Payments() {
                         </td>
                       </tr>
                     ))}
-                    {filteredPayments.length === 0 && (
+                    {tableLoading && (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
+                          Carregando pagamentos...
+                        </td>
+                      </tr>
+                    )}
+                    {!tableLoading && enrichedTablePayments.length === 0 && (
                       <tr>
                         <td colSpan={7} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>
                           Nenhum pagamento encontrado.
@@ -276,6 +327,51 @@ export default function Payments() {
                 </table>
               </div>
             </div>
+
+            {total > PAGE_SIZE && (
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginTop: 20, fontSize: 14
+              }}>
+                <span style={{ color: 'var(--color-text-secondary)' }}>
+                  Exibindo {indexOfFirst}–{indexOfLast} de {total} pagamentos
+                </span>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                      background: currentPage === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
+                      color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                      fontWeight: 600, fontSize: 13, cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                    }}
+                  >Anterior</button>
+                  {pageNumbers.map(number => (
+                    <button
+                      key={number}
+                      onClick={() => setCurrentPage(number)}
+                      style={{
+                        padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
+                        background: currentPage === number ? 'var(--color-primary)' : 'var(--color-surface)',
+                        color: currentPage === number ? '#fff' : 'var(--color-text-secondary)',
+                        fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
+                      }}
+                    >{number}</button>
+                  ))}
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                      background: currentPage === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
+                      color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                      fontWeight: 600, fontSize: 13, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                    }}
+                  >Próxima</button>
+                </div>
+              </div>
+            )}
           </div>
 
           <aside className="payments-side">

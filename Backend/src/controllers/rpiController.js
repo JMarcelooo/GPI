@@ -1,4 +1,5 @@
 const { RPI, PI } = require('../models/index');
+const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 
 // GET /api/rpi?pi_id=
 exports.listRPI = async (req, res) => {
@@ -36,6 +37,14 @@ exports.createRPI = async (req, res) => {
       descricao_do_evento: descricao_do_evento || null
     });
 
+    await registrarHistorico({
+      pi_id: rpi.pi_id,
+      tipo: 'rpi',
+      acao: 'criacao',
+      descricao: `RPI registrada — código ${rpi.codigo_evento}${rpi.descricao_do_evento ? ` (${rpi.descricao_do_evento})` : ''}`,
+      detalhes: { dados: rpi.toJSON() }
+    });
+
     res.status(201).json({ data: rpi });
   } catch (error) {
     console.error('Erro ao criar RPI:', error);
@@ -64,6 +73,18 @@ exports.updateRPI = async (req, res) => {
 
     await RPI.update(updateData, { where: { id: req.params.id } });
 
+    const alterados = camposAlterados(rpi.toJSON(), updateData);
+
+    await registrarHistorico({
+      pi_id: rpi.pi_id,
+      tipo: 'rpi',
+      acao: 'atualizacao',
+      descricao: alterados.length
+        ? `RPI atualizada — ${descricaoCamposAlterados(alterados)}`
+        : 'RPI atualizada',
+      detalhes: alterados
+    });
+
     const updated = await RPI.findByPk(req.params.id);
     res.json({ data: updated });
   } catch (error) {
@@ -84,6 +105,14 @@ exports.deleteRPI = async (req, res) => {
     if (!rpi) {
       return res.status(404).json({ error: 'RPI não encontrada.' });
     }
+
+    await registrarHistorico({
+      pi_id: rpi.pi_id,
+      tipo: 'rpi',
+      acao: 'exclusao',
+      descricao: `RPI removida — código ${rpi.codigo_evento}${rpi.descricao_do_evento ? ` (${rpi.descricao_do_evento})` : ''}`,
+      detalhes: { dados: rpi.toJSON() }
+    });
 
     await rpi.destroy();
     res.json({ message: 'RPI removida com sucesso.' });

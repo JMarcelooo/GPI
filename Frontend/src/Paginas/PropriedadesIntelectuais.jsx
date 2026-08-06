@@ -190,7 +190,7 @@ function PropriedadesIntelectuais() {
                       <td style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => navigate(`/detalhes/${pi.id}`)} className="btn-acao" title="Visualizar"><Eye size={18} /></button>
                         <button onClick={() => navigate(`/editar-pi/${pi.id}`)} className="btn-acao" title="Editar"><Pencil size={18} /></button>
-                        <button onClick={() => setPiToDelete(pi)} className="btn-acao" title="Excluir" style={{ color: '#EF4444' }}><Trash2 size={18} /></button>
+                        <button onClick={() => setPiToDelete(pi)} className="btn-acao" title="Excluir" style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
                       </td>
                     </tr>
                   ))
@@ -203,7 +203,7 @@ function PropriedadesIntelectuais() {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 marginTop: 20, fontSize: 14
               }}>
-                <span style={{ color: '#64748B' }}>
+                <span style={{ color: 'var(--color-text-secondary)' }}>
                   Exibindo {indexOfFirstPI + 1}–{indexOfLastPI} de {total} PIs
                 </span>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -211,9 +211,9 @@ function PropriedadesIntelectuais() {
                     onClick={() => paginate(currentPage - 1)}
                     disabled={currentPage === 1}
                     style={{
-                      padding: '8px 16px', borderRadius: 8, border: '1px solid #E2E8F0',
-                      background: currentPage === 1 ? '#F1F5F9' : '#fff',
-                      color: currentPage === 1 ? '#94A3B8' : '#475569',
+                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                      background: currentPage === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
+                      color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
                       fontWeight: 600, fontSize: 13, cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
                     }}
                   >Anterior</button>
@@ -222,9 +222,9 @@ function PropriedadesIntelectuais() {
                       key={number}
                       onClick={() => paginate(number)}
                       style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid #E2E8F0',
-                        background: currentPage === number ? '#6B21A8' : '#fff',
-                        color: currentPage === number ? '#fff' : '#475569',
+                        padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
+                        background: currentPage === number ? 'var(--color-primary)' : 'var(--color-surface)',
+                        color: currentPage === number ? '#fff' : 'var(--color-text-secondary)',
                         fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
                       }}
                     >{number}</button>
@@ -233,9 +233,9 @@ function PropriedadesIntelectuais() {
                     onClick={() => paginate(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     style={{
-                      padding: '8px 16px', borderRadius: 8, border: '1px solid #E2E8F0',
-                      background: currentPage === totalPages ? '#F1F5F9' : '#fff',
-                      color: currentPage === totalPages ? '#94A3B8' : '#475569',
+                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                      background: currentPage === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
+                      color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
                       fontWeight: 600, fontSize: 13, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
                     }}
                   >Próxima</button>
@@ -260,11 +260,11 @@ function PropriedadesIntelectuais() {
           zIndex: 1000
         }} onClick={() => !deleting && setPiToDelete(null)}>
           <div style={{
-            background: '#fff', borderRadius: 12, padding: 32, maxWidth: 420,
+            background: 'var(--color-surface)', borderRadius: 12, padding: 32, maxWidth: 420,
             width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
           }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 8px', color: '#1E293B', fontSize: 18 }}>Confirmar exclusão</h3>
-            <p style={{ color: '#64748B', fontSize: 14, lineHeight: 1.5 }}>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--color-text)', fontSize: 18 }}>Confirmar exclusão</h3>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
               Tem certeza que deseja excluir a PI <strong>{piToDelete.protocolo}</strong>?
               Esta ação não pode ser desfeita.
             </p>
@@ -273,8 +273,8 @@ function PropriedadesIntelectuais() {
                 onClick={() => setPiToDelete(null)}
                 disabled={deleting}
                 style={{
-                  padding: '10px 20px', borderRadius: 8, border: '1px solid #E2E8F0',
-                  background: '#fff', color: '#475569', fontSize: 14, fontWeight: 600,
+                  padding: '10px 20px', borderRadius: 8, border: '1px solid var(--color-border)',
+                  background: 'var(--color-surface)', color: 'var(--color-text-secondary)', fontSize: 14, fontWeight: 600,
                   cursor: 'pointer'
                 }}
               >Cancelar</button>
@@ -283,7 +283,7 @@ function PropriedadesIntelectuais() {
                 disabled={deleting}
                 style={{
                   padding: '10px 20px', borderRadius: 8, border: 'none',
-                  background: '#EF4444', color: '#fff', fontSize: 14, fontWeight: 600,
+                  background: 'var(--color-error)', color: '#fff', fontSize: 14, fontWeight: 600,
                   cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1
                 }}
               >{deleting ? "Excluindo..." : "Excluir"}</button>

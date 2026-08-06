@@ -211,9 +211,9 @@ export default function Autor() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="6" style={{ textAlign: 'center', color: '#64748B', padding: 24 }}>Carregando...</td></tr>
+                                <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
                             ) : currentAuthors.length === 0 ? (
-                                <tr><td colSpan="6" style={{ textAlign: 'center', color: '#64748B', padding: 24 }}>Nenhum autor encontrado</td></tr>
+                                <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum autor encontrado</td></tr>
                             ) : currentAuthors.map(author => (
                                 <tr key={author.id}>
                                     <td>{author.name}</td>

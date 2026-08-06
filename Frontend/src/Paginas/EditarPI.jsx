@@ -345,7 +345,7 @@ export default function EditarPI() {
                 })}
               </div>
             ) : (
-              <p style={{ color: '#888', fontSize: '0.875rem', margin: 0 }}>Nenhum autor selecionado.</p>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', margin: 0 }}>Nenhum autor selecionado.</p>
             )}
           </div>
 

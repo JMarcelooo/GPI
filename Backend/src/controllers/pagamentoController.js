@@ -1,13 +1,35 @@
+const { Op } = require('sequelize');
 const { Pagamento, PI } = require('../models/index');
 const { sincronizarNotificacoes } = require('../services/notificacaoService');
+const { registrarHistorico } = require('../services/historicoService');
 
 const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
 
-// GET /api/pagamentos?pi_id=&limit=&offset=
+// GET /api/pagamentos?pi_id=&q=&limit=&offset=
 exports.listPagamentos = async (req, res) => {
   try {
+    const { pi_id, q } = req.query;
     const where = {};
-    if (req.query.pi_id) where.pi_id = req.query.pi_id;
+    if (pi_id) where.pi_id = pi_id;
+
+    const include = [];
+    if (q) {
+      const term = `%${q}%`;
+      where[Op.or] = [
+        { tipo_de_pagamento: { [Op.iLike]: term } },
+        { processo_sei: { [Op.iLike]: term } },
+        { observacao: { [Op.iLike]: term } },
+        { '$pi.titulo$': { [Op.iLike]: term } },
+        { '$pi.protocolo$': { [Op.iLike]: term } }
+      ];
+      include.push({
+        model: PI,
+        as: 'pi',
+        attributes: [],
+        required: true
+      });
+    }
+
     const order = [['data_de_vencimento', 'DESC']];
 
     const limitRaw = req.query.limit;
@@ -15,23 +37,24 @@ exports.listPagamentos = async (req, res) => {
     const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
 
     if (isPaginated) {
-      const total = await Pagamento.count({ where });
-      const rows = await Pagamento.findAll({
+      const result = await Pagamento.findAndCountAll({
         where,
+        include,
+        distinct: true,
         order,
         limit: Math.min(Number(limitRaw) || 10, 100),
         offset: Number(offsetRaw) || 0
       });
       return res.json({
-        count: rows.length,
-        total,
+        count: result.rows.length,
+        total: result.count,
         limit: Number(limitRaw),
         offset: Number(offsetRaw) || 0,
-        data: rows
+        data: result.rows
       });
     }
 
-    const pagamentos = await Pagamento.findAll({ where, order });
+    const pagamentos = await Pagamento.findAll({ where, include, order });
     res.json({ count: pagamentos.length, total: pagamentos.length, data: pagamentos });
   } catch (error) {
     console.error('Erro ao listar pagamentos:', error);
@@ -96,6 +119,14 @@ exports.createPagamento = async (req, res) => {
       observacao: observacao || null
     });
 
+    await registrarHistorico({
+      pi_id: pagamento.pi_id,
+      tipo: 'pagamento',
+      acao: 'criacao',
+      descricao: `Pagamento registrado — ${pagamento.tipo_de_pagamento || `#${pagamento.id}`}`,
+      detalhes: { dados: pagamento.toJSON() }
+    });
+
     sincronizarNotificacoes(true);
 
     res.status(201).json({ data: pagamento });
@@ -156,6 +187,14 @@ exports.updatePagamento = async (req, res) => {
 
     await Pagamento.update(updateData, { where: { id: req.params.id } });
 
+    await registrarHistorico({
+      pi_id: updateData.pi_id || pagamento.pi_id,
+      tipo: 'pagamento',
+      acao: 'atualizacao',
+      descricao: `Pagamento atualizado — ${updateData.tipo_de_pagamento || pagamento.tipo_de_pagamento || `#${pagamento.id}`}`,
+      detalhes: { anterior: pagamento.toJSON(), novos: updateData }
+    });
+
     sincronizarNotificacoes(true);
 
     const updated = await Pagamento.findByPk(req.params.id);
@@ -178,6 +217,14 @@ exports.deletePagamento = async (req, res) => {
     if (!pagamento) {
       return res.status(404).json({ error: 'Pagamento não encontrado.' });
     }
+
+    await registrarHistorico({
+      pi_id: pagamento.pi_id,
+      tipo: 'pagamento',
+      acao: 'exclusao',
+      descricao: `Pagamento removido — ${pagamento.tipo_de_pagamento || `#${pagamento.id}`}`,
+      detalhes: { dados: pagamento.toJSON() }
+    });
 
     await pagamento.destroy();
     sincronizarNotificacoes(true);

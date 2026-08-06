@@ -94,6 +94,18 @@ CREATE TABLE IF NOT EXISTS "notificacoes" (
 	PRIMARY KEY ("id")
 );
 
+CREATE TABLE IF NOT EXISTS "historico" (
+	"id" serial NOT NULL UNIQUE,
+	"pi_id" integer NOT NULL,
+	"tipo" varchar(30) NOT NULL,
+	"acao" varchar(30) NOT NULL,
+	"descricao" varchar(500) NOT NULL,
+	"detalhes" jsonb,
+	"createdAt" timestamp with time zone,
+	"updatedAt" timestamp with time zone,
+	PRIMARY KEY ("id")
+);
+
 
 
 ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
@@ -105,6 +117,8 @@ ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "prazo_dias" integer;
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "data_informada" date;
 ALTER TABLE "controle_processos" ADD CONSTRAINT "controle_processos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
 ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
+
+ALTER TABLE "historico" ADD CONSTRAINT "historico_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
 
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk0" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
