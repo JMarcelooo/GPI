@@ -75,7 +75,7 @@ export default function AutorDetalhes() {
       <main style={{ flex: 1, padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)' }}>
         <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{error}</p>
         <button onClick={() => navigate('/autores')} style={{
-          background: '#93278F', color: '#fff', border: 'none', padding: '10px 24px',
+          background: 'var(--color-primary)', color: '#fff', border: 'none', padding: '10px 24px',
           borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer'
         }}>Voltar para lista</button>
       </main>

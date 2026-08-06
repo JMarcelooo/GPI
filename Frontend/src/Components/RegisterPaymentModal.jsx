@@ -138,7 +138,7 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             placeholder="Observações adicionais (opcional)"
           />
 
-          {error && <p style={{ color: '#DC2626', fontSize: 13, margin: '8px 0 0' }}>{error}</p>}
+          {error && <p style={{ color: 'var(--color-error)', fontSize: 13, margin: '8px 0 0' }}>{error}</p>}
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>Cancelar</button>

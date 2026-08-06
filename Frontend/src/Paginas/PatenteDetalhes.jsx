@@ -177,7 +177,7 @@ export default function PatenteDetalhes() {
       <main style={{ flex: 1, padding: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)' }}>
         <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>{loadingError}</p>
         <button onClick={() => navigate('/propriedade-intelectual')} style={{
-          background: '#93278F', color: '#fff', border: 'none', padding: '10px 24px',
+          background: 'var(--color-primary)', color: '#fff', border: 'none', padding: '10px 24px',
           borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer'
         }}>Voltar para lista</button>
       </main>
@@ -249,21 +249,21 @@ export default function PatenteDetalhes() {
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'geral' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'geral' ? '#fff' : 'var(--color-text-secondary)',
-              fontWeight: 600, border: activeTab === 'geral' ? 'none' : '1px solid #E2E8F0',
+              fontWeight: 600, border: activeTab === 'geral' ? 'none' : '1px solid var(--color-border)',
               cursor: "pointer", fontSize: 14
             }}>Informações gerais</button>
             <button onClick={() => setActiveTab('historico')} style={{
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'historico' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'historico' ? '#fff' : 'var(--color-text-secondary)',
-              fontWeight: 600, border: activeTab === 'historico' ? 'none' : '1px solid #E2E8F0',
+              fontWeight: 600, border: activeTab === 'historico' ? 'none' : '1px solid var(--color-border)',
               cursor: "pointer", fontSize: 14
             }}>Histórico</button>
             <button onClick={() => setActiveTab('pagamentos')} style={{
               padding: '10px 20px', borderRadius: 8,
               backgroundColor: activeTab === 'pagamentos' ? 'var(--color-primary)' : 'transparent',
               color: activeTab === 'pagamentos' ? '#fff' : 'var(--color-text-secondary)',
-              fontWeight: 600, border: activeTab === 'pagamentos' ? 'none' : '1px solid #E2E8F0',
+              fontWeight: 600, border: activeTab === 'pagamentos' ? 'none' : '1px solid var(--color-border)',
               cursor: "pointer", fontSize: 14
             }}>Pagamentos</button>
           </div>
@@ -304,7 +304,7 @@ export default function PatenteDetalhes() {
                 </div>
 
                 {rpiEvents.length === 0 ? (
-                  <p style={{ padding: 16, color: '#888' }}>Nenhum evento RPI registrado</p>
+                  <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>Nenhum evento RPI registrado</p>
                 ) : (
                   <div className="rpi-events-grid">
                     {rpiEvents.map((event, index) => (
@@ -332,7 +332,7 @@ export default function PatenteDetalhes() {
               </div>
 
               {historico.length === 0 ? (
-                <p style={{ padding: 16, color: '#888' }}>Nenhum evento registrado</p>
+                <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>Nenhum evento registrado</p>
               ) : (
                 <div className="timeline">
                   {historico.map((h, index) => {
@@ -374,7 +374,7 @@ export default function PatenteDetalhes() {
               </div>
 
               {pagamentos.length === 0 ? (
-                <p style={{ padding: 16, color: '#888' }}>Nenhum pagamento registrado para esta PI</p>
+                <p style={{ padding: 16, color: 'var(--color-text-muted)' }}>Nenhum pagamento registrado para esta PI</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
@@ -492,7 +492,7 @@ export default function PatenteDetalhes() {
                 disabled={deleting}
                 style={{
                   padding: '10px 20px', borderRadius: 8, border: 'none',
-                  background: '#EF4444', color: '#fff', fontSize: 14, fontWeight: 600,
+                  background: 'var(--color-error)', color: '#fff', fontSize: 14, fontWeight: 600,
                   cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1
                 }}
               >{deleting ? "Excluindo..." : "Excluir"}</button>

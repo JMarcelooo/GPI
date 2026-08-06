@@ -333,7 +333,7 @@ export default function Payments() {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 marginTop: 20, fontSize: 14
               }}>
-                <span style={{ color: '#64748B' }}>
+                <span style={{ color: 'var(--color-text-secondary)' }}>
                   Exibindo {indexOfFirst}–{indexOfLast} de {total} pagamentos
                 </span>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -341,9 +341,9 @@ export default function Payments() {
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
                     style={{
-                      padding: '8px 16px', borderRadius: 8, border: '1px solid #E2E8F0',
-                      background: currentPage === 1 ? '#F1F5F9' : '#fff',
-                      color: currentPage === 1 ? '#94A3B8' : '#475569',
+                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                      background: currentPage === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
+                      color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
                       fontWeight: 600, fontSize: 13, cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
                     }}
                   >Anterior</button>
@@ -352,9 +352,9 @@ export default function Payments() {
                       key={number}
                       onClick={() => setCurrentPage(number)}
                       style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid #E2E8F0',
-                        background: currentPage === number ? '#93278F' : '#fff',
-                        color: currentPage === number ? '#fff' : '#475569',
+                        padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
+                        background: currentPage === number ? 'var(--color-primary)' : 'var(--color-surface)',
+                        color: currentPage === number ? '#fff' : 'var(--color-text-secondary)',
                         fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
                       }}
                     >{number}</button>
@@ -363,9 +363,9 @@ export default function Payments() {
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     style={{
-                      padding: '8px 16px', borderRadius: 8, border: '1px solid #E2E8F0',
-                      background: currentPage === totalPages ? '#F1F5F9' : '#fff',
-                      color: currentPage === totalPages ? '#94A3B8' : '#475569',
+                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                      background: currentPage === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
+                      color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
                       fontWeight: 600, fontSize: 13, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
                     }}
                   >Próxima</button>

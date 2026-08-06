@@ -75,7 +75,7 @@ const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI, onUpdateRPI, onDeleteRPI
                 <button
                   type="button"
                   className="confirm-btn"
-                  style={{ background: '#EF4444' }}
+                  style={{ background: 'var(--color-error)' }}
                   onClick={handleDelete}
                 >
                   <Trash2 size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
@@ -120,7 +120,7 @@ const AdicionarRPIModal = ({ isOpen, onClose, onAddRPI, onUpdateRPI, onDeleteRPI
               <button
                 type="button"
                 className="confirm-btn"
-                style={{ background: '#EF4444', marginRight: 'auto' }}
+                style={{ background: 'var(--color-error)', marginRight: 'auto' }}
                 onClick={handleDelete}
               >
                 <Trash2 size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />

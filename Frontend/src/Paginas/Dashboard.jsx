@@ -202,9 +202,9 @@ function Dashboard() {
                       <div className="donut" style={{
                         background: `conic-gradient(${(() => {
                           const rows = [
-                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: '#D9E021' },
-                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: '#93278F' },
-                            { label: 'Pagos', value: stats.pagamentosPagos, color: '#10B981' }
+                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: 'var(--color-warning)' },
+                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)' },
+                            { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)' }
                           ];
                           const total = stats.totalPagamentos || 1;
                           return rows.map((r, i) => {
@@ -222,9 +222,9 @@ function Dashboard() {
                       <div className="donut-legend">
                         {(() => {
                           const rows = [
-                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: '#D9E021' },
-                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: '#93278F' },
-                            { label: 'Pagos', value: stats.pagamentosPagos, color: '#10B981' }
+                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: 'var(--color-warning)' },
+                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)' },
+                            { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)' }
                           ];
                           return rows.map((r, i) => (
                             <div key={i} className="legend-item">
