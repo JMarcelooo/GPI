@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
-const { PI, RPI, Pagamento } = require('../models/index');
+const { PI, RPI, Pagamento, Historico } = require('../models/index');
+const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 
 const SORT_COLS = {
   tipo: 'tipo',
@@ -87,6 +88,14 @@ exports.createPI = async (req, res) => {
       const values = autorIds.map(autorId => `(${newPI.id}, ${autorId})`).join(', ');
       await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
     }
+
+    await registrarHistorico({
+      pi_id: newPI.id,
+      tipo: 'pi',
+      acao: 'criacao',
+      descricao: `PI cadastrada${newPI.protocolo ? ` — protocolo ${newPI.protocolo}` : ''}`,
+      detalhes: { dados: piData }
+    });
 
     res.status(201).json({ data: newPI });
   } catch (error) {
@@ -224,13 +233,27 @@ exports.updatePI = async (req, res) => {
 
     await PI.update(updateData, { where: { id: req.params.id } });
 
+    const alterados = camposAlterados(existingPI.toJSON(), updateData);
+    let textoAlteracoes = descricaoCamposAlterados(alterados);
+
     if (req.body.autores !== undefined) {
       await PI.sequelize.query(`DELETE FROM autor_pi WHERE pi_id = ${req.params.id}`);
       if (Array.isArray(req.body.autores) && req.body.autores.length > 0) {
         const values = req.body.autores.map(autorId => `(${req.params.id}, ${autorId})`).join(', ');
         await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
       }
+      textoAlteracoes = textoAlteracoes
+        ? `${textoAlteracoes}; Autores: atualizados`
+        : 'Autores: atualizados';
     }
+
+    await registrarHistorico({
+      pi_id: existingPI.id,
+      tipo: 'pi',
+      acao: 'atualizacao',
+      descricao: textoAlteracoes ? `PI atualizada — ${textoAlteracoes}` : 'PI atualizada',
+      detalhes: alterados
+    });
 
     const updatedPI = await PI.findByPk(req.params.id, {
       include: [{ association: 'autores' }]
@@ -365,6 +388,30 @@ exports.getTitularesByPI = async (req, res) => {
     console.error('Erro ao buscar titular:', error);
     res.status(500).json({
       error: 'Erro ao buscar titular.'
+    });
+  }
+};
+
+// GET HISTÓRICO BY PI
+exports.getHistoricoByPI = async (req, res) => {
+  try {
+    const pi = await PI.findByPk(req.params.id);
+    if (!pi) {
+      return res.status(404).json({
+        error: 'PI não encontrada'
+      });
+    }
+
+    const historico = await Historico.findAll({
+      where: { pi_id: req.params.id },
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({ count: historico.length, data: historico });
+  } catch (error) {
+    console.error('Erro ao buscar histórico da PI:', error);
+    res.status(500).json({
+      error: 'Erro ao buscar histórico da PI.'
     });
   }
 };
