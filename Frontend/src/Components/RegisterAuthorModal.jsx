@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './AuthorModal.css'; // O CSS compartilhado para os modais
+import Toast from './Toast';
 
 export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [name, setName] = useState('');
@@ -10,6 +11,7 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
     const [university, setUniversity] = useState('');
     const [gender, setGender] = useState('Nao informado');
     const [phone, setPhone] = useState('');
+    const [toast, setToast] = useState(null);
     const handlePhoneChange = (e) => {
       const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
       setPhone(digits);
@@ -19,17 +21,16 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
         e.preventDefault();
         const newAuthorData = { name, email, bond: bond || null, department, campus, university, gender, phone };
         try {
-            if (onRegisterSuccess) {
-                await onRegisterSuccess(newAuthorData);
-            }
+            await onRegisterSuccess(newAuthorData);
             onClose();
         } catch (error) {
             console.error("Erro ao cadastrar autor:", error);
-            alert("Erro ao cadastrar autor. Verifique os dados e tente novamente.");
+            setToast({ message: 'Erro ao cadastrar autor. Verifique os dados e tente novamente.', type: 'error' });
         }
     };
 
     return (
+    <>
         <div className="modal-overlay">
             <div className="modal-content-author">
                 <div className="modal-header-author">
@@ -193,5 +194,7 @@ export default function RegisterAuthorModal({ onClose, onRegisterSuccess }) {
                 </form>
             </div>
         </div>
+        <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+    </>
     );
 }
