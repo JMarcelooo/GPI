@@ -4,6 +4,7 @@ import Sidebar from '../Components/Sidebar';
 import Toast from '../Components/Toast';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import '../Components/AuthorModal.css';
 import './Autor.css';
 
 const API = process.env.REACT_APP_API_URL;

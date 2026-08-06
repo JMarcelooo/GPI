@@ -86,6 +86,10 @@
   background: #fff;
 }
 
+.login-card .password-field {
+  margin-bottom: var(--space-2);
+}
+
 .login-card .entrar {
   width: 100%;
   padding: var(--space-3);

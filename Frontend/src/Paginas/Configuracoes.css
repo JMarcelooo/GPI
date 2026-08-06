@@ -92,45 +92,6 @@
   opacity: 0.9;
 }
 
-.config-card form {
-  display: block;
-  width: 100%;
-}
-
-.config-input {
-  width: 100%;
-  padding: var(--space-3);
-  margin: var(--space-1) 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  box-sizing: border-box;
-}
-
-.config-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.config-msg {
-  font-size: var(--text-sm);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  margin: var(--space-2) 0;
-}
-
-.config-msg-erro {
-  color: var(--color-error);
-  background: var(--color-error-bg, rgba(239, 68, 68, 0.12));
-}
-
-.config-msg-ok {
-  color: var(--color-success, #16a34a);
-  background: var(--color-success-bg, rgba(22, 163, 74, 0.12));
-}
-
 .config-toggle {
   position: relative;
   display: inline-block;

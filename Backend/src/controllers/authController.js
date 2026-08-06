@@ -62,9 +62,9 @@ exports.me = async (req, res) => {
 exports.alterarSenha = async (req, res) => {
   const { senhaAtual, novaSenha } = req.body;
 
-  if (!senhaAtual || !novaSenha) {
+  if (!novaSenha) {
     return res.status(400).json({
-      error: 'Informe a senha atual e a nova senha.'
+      error: 'Informe a nova senha.'
     });
   }
   if (String(novaSenha).length < 6) {
@@ -79,9 +79,19 @@ exports.alterarSenha = async (req, res) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    const confere = await bcrypt.compare(String(senhaAtual), usuario.senha);
-    if (!confere) {
-      return res.status(401).json({ error: 'Senha atual incorreta.' });
+    // No primeiro acesso (deveTrocarSenha) a senha atual é opcional;
+    // nas trocas voluntárias ela é obrigatória.
+    const precisaSenhaAtual = !usuario.deveTrocarSenha || senhaAtual;
+    if (precisaSenhaAtual) {
+      if (!senhaAtual) {
+        return res.status(400).json({
+          error: 'Informe a senha atual.'
+        });
+      }
+      const confere = await bcrypt.compare(String(senhaAtual), usuario.senha);
+      if (!confere) {
+        return res.status(401).json({ error: 'Senha atual incorreta.' });
+      }
     }
 
     usuario.senha = await bcrypt.hash(String(novaSenha), 10);

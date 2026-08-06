@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import '../Telas.css';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -8,14 +9,13 @@ function Login() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [avisoTroca, setAvisoTroca] = useState(false);
 
   async function handleEntrar(e) {
     e.preventDefault();
     setError(null);
-    setAvisoTroca(false);
 
     if (!email || !senha) {
       setError('Informe e-mail e senha.');
@@ -24,14 +24,8 @@ function Login() {
 
     setLoading(true);
     try {
-      const user = await login(email, senha);
-      if (user.deveTrocarSenha) {
-        setAvisoTroca(true);
-        setError(null);
-        navigate('/configuracoes');
-      } else {
-        navigate('/dashboard');
-      }
+      await login(email, senha);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Falha ao autenticar. Tente novamente.');
     } finally {
@@ -68,16 +62,26 @@ function Login() {
           autoComplete="email"
         />
         <label htmlFor="login-senha">Senha</label>
-        <input
-          id="login-senha"
-          type="password"
-          placeholder="Digite sua senha"
-          value={senha}
-          onChange={e => setSenha(e.target.value)}
-          autoComplete="current-password"
-        />
+        <div className="password-field">
+          <input
+            id="login-senha"
+            type={mostrarSenha ? 'text' : 'password'}
+            placeholder="Digite sua senha"
+            value={senha}
+            onChange={e => setSenha(e.target.value)}
+            autoComplete="current-password"
+          />
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setMostrarSenha(!mostrarSenha)}
+            title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+            aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+          >
+            {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
         {error && <p style={{ color: '#fff', background: 'rgba(239,68,68,0.85)', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>{error}</p>}
-        {avisoTroca && <p style={{ background: 'rgba(217,224,33,0.9)', color: '#1F2937', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>Primeiro acesso: troque sua senha em Configurações.</p>}
         <button className="entrar" type="submit" disabled={loading}>
           {loading ? 'Entrando...' : 'Entrar'}
         </button>

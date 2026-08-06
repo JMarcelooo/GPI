@@ -1,1 +1,36 @@
 /* Base reset — design system lives in styles/variables.css */
+
+/* ---- Campo de senha com botão de revelar (olhinho) ---- */
+.password-field {
+  position: relative;
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 44px;
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  z-index: 2;
+  transition: color var(--transition);
+}
+
+.password-toggle:hover {
+  color: var(--color-text);
+}

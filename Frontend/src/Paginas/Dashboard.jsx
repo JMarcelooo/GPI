@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { FileText, Users, BookOpen, TrendingUp, Download, Clock, CheckCircle, AlertTriangle, XCircle, Award, HelpCircle, DollarSign, Filter } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
+import AlterarSenhaModal from '../Components/AlterarSenhaModal';
+import { useAuth } from '../contexts/AuthContext';
 import '../Tela2.css';
 import './Dashboard.css';
 
 function Dashboard() {
+  const { user, updateUser } = useAuth();
+  const [showForcaTroca, setShowForcaTroca] = useState(!!user?.deveTrocarSenha);
   const [activeFilter, setActiveFilter] = useState('all');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [stats, setStats] = useState({
@@ -98,6 +102,14 @@ function Dashboard() {
   return (
     <div className="container">
       <Sidebar />
+
+      {showForcaTroca && (
+        <AlterarSenhaModal
+          forcada
+          onSuccess={() => updateUser({ deveTrocarSenha: false })}
+          onClose={() => setShowForcaTroca(false)}
+        />
+      )}
 
       <div className="main">
         <header className="dash-header">
