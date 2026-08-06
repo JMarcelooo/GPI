@@ -350,6 +350,9 @@ export default function PatenteDetalhes() {
                         <div className="timeline-content">
                           <span className="timeline-date">
                             {h.createdAt ? new Date(h.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                            {h.usuario_nome && (
+                              <span className="timeline-user"> por {h.usuario_nome}</span>
+                            )}
                           </span>
                           <h4 className="timeline-title">{meta.titulo}</h4>
                           <p className="timeline-description">{h.descricao}</p>

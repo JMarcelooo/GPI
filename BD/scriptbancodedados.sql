@@ -99,6 +99,8 @@ CREATE TABLE IF NOT EXISTS "notificacoes" (
 CREATE TABLE IF NOT EXISTS "historico" (
 	"id" serial NOT NULL UNIQUE,
 	"pi_id" integer NOT NULL,
+	"usuario_id" integer,
+	"usuario_nome" varchar(150),
 	"tipo" varchar(30) NOT NULL,
 	"acao" varchar(30) NOT NULL,
 	"descricao" varchar(500) NOT NULL,

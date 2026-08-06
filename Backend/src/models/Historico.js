@@ -6,6 +6,14 @@ const Historico = sequelize.define('Historico', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  usuario_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  usuario_nome: {
+    type: DataTypes.STRING(150),
+    allowNull: true
+  },
   tipo: {
     type: DataTypes.STRING(30),
     allowNull: false

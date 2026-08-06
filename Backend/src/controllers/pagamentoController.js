@@ -124,7 +124,8 @@ exports.createPagamento = async (req, res) => {
       tipo: 'pagamento',
       acao: 'criacao',
       descricao: `Pagamento registrado — ${pagamento.tipo_de_pagamento || `#${pagamento.id}`}`,
-      detalhes: { dados: pagamento.toJSON() }
+      detalhes: { dados: pagamento.toJSON() },
+      usuario: req.usuario
     });
 
     sincronizarNotificacoes(true);
@@ -192,7 +193,8 @@ exports.updatePagamento = async (req, res) => {
       tipo: 'pagamento',
       acao: 'atualizacao',
       descricao: `Pagamento atualizado — ${updateData.tipo_de_pagamento || pagamento.tipo_de_pagamento || `#${pagamento.id}`}`,
-      detalhes: { anterior: pagamento.toJSON(), novos: updateData }
+      detalhes: { anterior: pagamento.toJSON(), novos: updateData },
+      usuario: req.usuario
     });
 
     sincronizarNotificacoes(true);
@@ -223,7 +225,8 @@ exports.deletePagamento = async (req, res) => {
       tipo: 'pagamento',
       acao: 'exclusao',
       descricao: `Pagamento removido — ${pagamento.tipo_de_pagamento || `#${pagamento.id}`}`,
-      detalhes: { dados: pagamento.toJSON() }
+      detalhes: { dados: pagamento.toJSON() },
+      usuario: req.usuario
     });
 
     await pagamento.destroy();

@@ -387,6 +387,11 @@
   display: block;
 }
 
+.timeline-user {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
 .timeline-title {
   font-size: var(--text-base);
   color: var(--color-text);
