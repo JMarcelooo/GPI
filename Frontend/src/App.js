@@ -1,5 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Cadastro from './Paginas/Cadastro';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Paginas/Login';
 import Dashboard from './Paginas/Dashboard';
 import PropriedadesIntelectuais from './Paginas/PropriedadesIntelectuais';
@@ -11,33 +10,58 @@ import Autor from './Paginas/Autor';
 import AutorDetalhes from './Paginas/AutorDetalhes';
 import Notificacoes from './Paginas/Notificacoes';
 import Configuracoes from './Paginas/Configuracoes';
+import Usuarios from './Paginas/Usuarios';
 import NotificationBell from './Components/NotificationBell';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificacoesProvider } from './contexts/NotificacoesContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import './services/apiClient';
+
+function ProtectedRoute({ children }) {
+  const { token } = useAuth();
+  if (!token) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function LoginRoute({ children }) {
+  const { token } = useAuth();
+  if (token) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { token, isAdmin } = useAuth();
+  if (!token) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
 function App() {
   return (
     <Router>
-      <ThemeProvider>
-      <NotificacoesProvider>
-      <NotificationBell />
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-       <Route path="/propriedade-intelectual" element={<PropriedadesIntelectuais />} />
-        <Route path="/detalhes/:id" element={<PatenteDetalhes />} />
-        <Route path="/cadastro-pi" element={<CadastroPI />} />
-        <Route path="/editar-pi/:id" element={<EditarPI />} />
-         <Route path="/pagamentos" element={<Payments />} />
-        <Route path="/autores" element={<Autor />} />
-        <Route path="/autores/:id" element={<AutorDetalhes />} />
-        <Route path="/notificacoes" element={<Notificacoes />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
-
-      </Routes>
-      </NotificacoesProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <NotificacoesProvider>
+            <NotificationBell />
+            <Routes>
+              <Route path="/" element={<LoginRoute><Login /></LoginRoute>} />
+              <Route path="/login" element={<LoginRoute><Login /></LoginRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/propriedade-intelectual" element={<ProtectedRoute><PropriedadesIntelectuais /></ProtectedRoute>} />
+              <Route path="/detalhes/:id" element={<ProtectedRoute><PatenteDetalhes /></ProtectedRoute>} />
+              <Route path="/cadastro-pi" element={<ProtectedRoute><CadastroPI /></ProtectedRoute>} />
+              <Route path="/editar-pi/:id" element={<ProtectedRoute><EditarPI /></ProtectedRoute>} />
+              <Route path="/pagamentos" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+              <Route path="/autores" element={<ProtectedRoute><Autor /></ProtectedRoute>} />
+              <Route path="/autores/:id" element={<ProtectedRoute><AutorDetalhes /></ProtectedRoute>} />
+              <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
+              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+              <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </NotificacoesProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </Router>
   );
 }

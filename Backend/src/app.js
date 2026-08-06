@@ -12,18 +12,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rotas
-app.use('/api/pi', require('./routes/piRoutes'));
-app.use('/api/autores', require('./routes/autorRoutes'));
-app.use('/api/rpi', require('./routes/rpiRoutes'));
-app.use('/api/pagamentos', require('./routes/pagamentoRoutes'));
-app.use('/api/notificacoes', require('./routes/notificacaoRoutes'));
-app.use('/api/stats', require('./routes/statRoutes'));
-
-// Health check
+// Health check (público)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', time: new Date() });
 });
+
+// Autenticação (login é público)
+app.use('/api/auth', require('./routes/authRoutes'));
+
+// Middleware de autenticação — protege todas as rotas /api restantes
+const { autenticar } = require('./middlewares/authMiddleware');
+
+// Rotas
+app.use('/api/pi', autenticar, require('./routes/piRoutes'));
+app.use('/api/autores', autenticar, require('./routes/autorRoutes'));
+app.use('/api/rpi', autenticar, require('./routes/rpiRoutes'));
+app.use('/api/pagamentos', autenticar, require('./routes/pagamentoRoutes'));
+app.use('/api/notificacoes', autenticar, require('./routes/notificacaoRoutes'));
+app.use('/api/stats', autenticar, require('./routes/statRoutes'));
+app.use('/api/usuarios', require('./routes/userRoutes'));
 
 // Middleware de erro
 app.use((err, req, res, _next) => {

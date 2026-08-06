@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const navItems = [
   { label: 'Inicio', icon: Home, route: '/dashboard' },
@@ -10,13 +11,20 @@ const navItems = [
   { label: 'Configurações', icon: Settings, route: '/configuracoes' },
 ];
 
+const adminItems = [
+  { label: 'Usuários', icon: ShieldCheck, route: '/usuarios' },
+];
+
 export default function Sidebar() {
     const navigate = useNavigate();
+    const { isAdmin } = useAuth();
     const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
 
     useEffect(() => {
         localStorage.setItem('sidebarCollapsed', collapsed);
     }, [collapsed]);
+
+    const items = isAdmin ? [...navItems, ...adminItems] : navItems;
 
     return (
         <div className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
@@ -28,7 +36,7 @@ export default function Sidebar() {
                 )}
             </div>
             <nav className="nav">
-                {navItems.map(item => (
+                {items.map(item => (
                     <button
                         key={item.route}
                         onClick={() => navigate(item.route)}

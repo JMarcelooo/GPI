@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 const API = process.env.REACT_APP_API_URL;
 
@@ -10,8 +11,10 @@ export function NotificacoesProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const refreshing = useRef(false);
+  const { token } = useAuth();
 
   const refresh = useCallback(async () => {
+    if (!token) return;
     if (refreshing.current) return;
     refreshing.current = true;
     try {
@@ -22,20 +25,22 @@ export function NotificacoesProvider({ children }) {
     } finally {
       refreshing.current = false;
     }
-  }, []);
+  }, [token]);
 
   const markAllRead = useCallback(async () => {
+    if (!token) return;
     try {
       await axios.post(`${API}/api/notificacoes/marcar-todas-lidas`);
       setUnreadCount(0);
     } catch (err) {
       console.error('Erro ao marcar notificações como lidas:', err);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh, location.pathname]);
+    if (token) refresh();
+    else setUnreadCount(0);
+  }, [refresh, location.pathname, token]);
 
   useEffect(() => {
     let id;

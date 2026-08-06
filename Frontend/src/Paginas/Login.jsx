@@ -1,12 +1,42 @@
-
-import '../Telas.css';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../Telas.css';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [avisoTroca, setAvisoTroca] = useState(false);
 
-  function handleEntrar() {
-    navigate('/dashboard');
+  async function handleEntrar(e) {
+    e.preventDefault();
+    setError(null);
+    setAvisoTroca(false);
+
+    if (!email || !senha) {
+      setError('Informe e-mail e senha.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const user = await login(email, senha);
+      if (user.deveTrocarSenha) {
+        setAvisoTroca(true);
+        setError(null);
+        navigate('/configuracoes');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError(err.message || 'Falha ao autenticar. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -25,15 +55,33 @@ function Login() {
         <span className="dec-square" style={{ top: '34%', right: '8%', width: 26, height: 26, background: 'rgba(16, 185, 129, 1)', transform: 'rotate(15deg)' }} />
         <span className="dec-square" style={{ top: '70%', left: '8%', width: 30, height: 30, background: 'rgba(250, 127, 12, 1)', transform: 'rotate(-12deg)' }} />
       </div>
-      <div className="login-card">
+      <form className="login-card" onSubmit={handleEntrar}>
         <img src="/imagens/Sistema-Logo.png" alt="UERN inova" className="login-logo" />
         <h2>Seja bem-vindo(a)!</h2>
         <label htmlFor="login-email">Email</label>
-        <input id="login-email" type="email" placeholder="Digite seu e-mail" />
+        <input
+          id="login-email"
+          type="email"
+          placeholder="Digite seu e-mail"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          autoComplete="email"
+        />
         <label htmlFor="login-senha">Senha</label>
-        <input id="login-senha" type="password" placeholder="Digite sua senha" />
-        <button className="entrar" onClick={handleEntrar}>Entrar</button>
-      </div>
+        <input
+          id="login-senha"
+          type="password"
+          placeholder="Digite sua senha"
+          value={senha}
+          onChange={e => setSenha(e.target.value)}
+          autoComplete="current-password"
+        />
+        {error && <p style={{ color: '#fff', background: 'rgba(239,68,68,0.85)', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>{error}</p>}
+        {avisoTroca && <p style={{ background: 'rgba(217,224,33,0.9)', color: '#1F2937', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>Primeiro acesso: troque sua senha em Configurações.</p>}
+        <button className="entrar" type="submit" disabled={loading}>
+          {loading ? 'Entrando...' : 'Entrar'}
+        </button>
+      </form>
       <img src="/imagens/Inova-Rodape.png" alt="UERN inova" className="login-footer" />
     </div>
   );
