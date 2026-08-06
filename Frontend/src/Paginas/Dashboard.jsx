@@ -1,387 +1,325 @@
 import { useState, useEffect } from 'react';
-import { FileText, Users, BookOpen, TrendingUp, Download, Clock, CheckCircle, AlertTriangle, XCircle, Award, HelpCircle, DollarSign, Filter } from 'lucide-react';
+import {
+  FileText, Users, TrendingUp, Download, Clock, Award, DollarSign, GitBranch,
+  Briefcase, CreditCard, Timer, PieChart
+} from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
+import AlterarSenhaModal from '../Components/AlterarSenhaModal';
+import { useAuth } from '../contexts/AuthContext';
 import '../Tela2.css';
 import './Dashboard.css';
 
+const EMPTY_FUNIL = { emAnalise: 0, deferida: 0, registradaOuCarta: 0, indeferidaOuAnulada: 0, arquivada: 0, taxaSucesso: 0, taxaInsucesso: 0, comDesfecho: 0 };
+
+const STATUS_META = {
+  'em analise': { color: 'var(--chart-orange)', label: 'Em análise' },
+  'deferida': { color: 'var(--chart-lime)', label: 'Deferida' },
+  'registrada': { color: 'var(--chart-primary)', label: 'Registrada' },
+  'carta patente': { color: 'var(--chart-primary-light)', label: 'Carta patente' },
+  'indeferida': { color: 'var(--chart-error)', label: 'Indeferida' },
+  'anulada': { color: 'var(--chart-pink)', label: 'Anulada' },
+  'arquivada': { color: 'var(--chart-gray)', label: 'Arquivada' }
+};
+
+const CHART_COLORS = ['var(--chart-primary)', 'var(--chart-pink)', 'var(--chart-orange)', 'var(--chart-lime)', 'var(--chart-primary-light)', 'var(--chart-green)', 'var(--chart-cyan)', 'var(--chart-gray)'];
+
 function Dashboard() {
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const { user, updateUser } = useAuth();
+  const [showForcaTroca, setShowForcaTroca] = useState(!!user?.deveTrocarSenha);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [stats, setStats] = useState({
-    ativos: 0, emProcesso: 0, pendentes: 0, total: 0,
+    total: 0, ativos: 0, emProcesso: 0, pendentes: 0,
     porStatus: [], porTipo: [], porAno: [],
     totalAutores: 0, autoresPorVinculo: [],
-    totalPagamentos: 0, pagamentosPagos: 0, pagamentosAguardando: 0, pagamentosAndamento: 0
+    totalPagamentos: 0, pagamentosPagos: 0, pagamentosAguardando: 0, pagamentosAndamento: 0,
+    totalInvestido: 0, custoMedioPorPI: 0, custoPorSucesso: 0, tempoMedioDias: null,
+    funil: EMPTY_FUNIL
   });
+
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/stats`)
       .then(res => {
         const { pi, autores, pagamentos } = res.data;
         setStats({
-          ativos: pi.ativos, emProcesso: pi.emProcesso, pendentes: pi.pendentes, total: pi.total,
+          total: pi.total, ativos: pi.ativos, emProcesso: pi.emProcesso, pendentes: pi.pendentes,
           porStatus: pi.porStatus, porTipo: pi.porTipo, porAno: pi.porAno,
           totalAutores: autores.total, autoresPorVinculo: autores.porVinculo,
           totalPagamentos: pagamentos.total,
           pagamentosPagos: pagamentos.pago,
           pagamentosAguardando: pagamentos.aguardandoPrazo,
-          pagamentosAndamento: pagamentos.emAndamento
+          pagamentosAndamento: pagamentos.emAndamento,
+          totalInvestido: pi.totalInvestido || 0,
+          custoMedioPorPI: pi.custoMedioPorPI || 0,
+          custoPorSucesso: pi.custoPorSucesso || 0,
+          tempoMedioDias: pi.tempoMedioDias,
+          funil: pi.funil || EMPTY_FUNIL
         });
+        setError(null);
       })
       .catch(err => {
         console.error("Erro ao carregar dados:", err);
-      });
+        setError('Não foi possível carregar os dados do dashboard.');
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const filterOptions = [
-    { value: 'all', label: 'Todos', icon: Filter },
-    { value: 'pi', label: 'PI', icon: FileText },
-    { value: 'autores', label: 'Autores', icon: Users },
-    { value: 'pagamentos', label: 'Pagamentos', icon: DollarSign },
+  const fmtBRL = v => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+  const fmtDias = d => d === null || d === undefined ? '—' :
+    d >= 365 ? `${Math.round((d / 365) * 10) / 10} anos` : `${Math.round(d)} dias`;
+
+  const maxTipo = Math.max(1, ...stats.porTipo.map(t => t.value));
+  const maxAno = Math.max(1, ...stats.porAno.map(a => a.value));
+  const maxVinculo = Math.max(1, ...stats.autoresPorVinculo.map(v => v.value));
+
+  // ---- KPIs ----
+  const kpis = [
+    { label: 'Total de PIs', value: stats.total, icon: FileText, tone: 'primary', sub: `${stats.ativos} ativas` },
+    { label: 'Em análise', value: stats.emProcesso, icon: Timer, tone: 'warning', sub: '' },
+    { label: 'Taxa de sucesso', value: `${stats.funil.taxaSucesso}%`, icon: Award, tone: 'success', sub: `${stats.funil.comDesfecho} com desfecho` },
+    { label: 'Investimento total', value: fmtBRL(stats.totalInvestido), icon: DollarSign, tone: 'info', sub: `médio ${fmtBRL(stats.custoMedioPorPI)}/PI` },
   ];
 
-  const currentFilterLabel = filterOptions.find(f => f.value === activeFilter)?.label || 'Todos';
+  // ---- Charts data ----
+  const funilEtapas = [
+    { label: 'Em análise', value: stats.funil.emAnalise, color: 'var(--chart-orange)' },
+    { label: 'Deferida', value: stats.funil.deferida, color: 'var(--chart-lime)' },
+    { label: 'Registrada / Carta', value: stats.funil.registradaOuCarta, color: 'var(--chart-green)' },
+    { label: 'Indeferida / Anulada', value: stats.funil.indeferidaOuAnulada, color: 'var(--chart-pink)' },
+    { label: 'Arquivada', value: stats.funil.arquivada, color: 'var(--chart-gray)' }
+  ];
+  const maxEtapa = Math.max(1, ...funilEtapas.map(e => e.value));
 
-  const showPI = activeFilter === 'all' || activeFilter === 'pi';
-  const showAutores = activeFilter === 'all' || activeFilter === 'autores';
-  const showPagamentos = activeFilter === 'all' || activeFilter === 'pagamentos';
-
-  const maxTipo = Math.max(...stats.porTipo.map(t => t.value), 1);
-  const maxAno = Math.max(...stats.porAno.map(a => a.value), 1);
-  const maxVinculo = Math.max(...stats.autoresPorVinculo.map(v => v.value), 1);
-
-  const statusLabels = {
-    'em analise': 'Em Análise',
-    'deferida': 'Deferida',
-    'registrada': 'Registrada',
-    'carta patente': 'Carta Patente',
-    'indeferida': 'Indeferida',
-    'anulada': 'Anulada',
-    'arquivada': 'Arquivada'
-  };
-
-  const statusIcons = {
-    'em analise': Clock,
-    'deferida': CheckCircle,
-    'registrada': Award,
-    'carta patente': Award,
-    'indeferida': XCircle,
-    'anulada': AlertTriangle,
-    'arquivada': AlertTriangle
-  };
-
-  const tipoIcons = {
-    'patente de invencao': 'PI',
-    'modelo de utilidade': 'MU',
-    'marca': 'MA',
-    'programa de computador': 'PC'
-  };
-
-  const piCards = showPI ? [
-    { label: 'Total de PIs', value: stats.total, color: 'var(--color-primary)', icon: FileText, bg: 'var(--color-primary-bg)' },
-    { label: 'Ativas', value: stats.ativos, color: 'var(--color-success)', icon: TrendingUp, bg: 'var(--color-success-bg)' },
-    { label: 'Em Processo', value: stats.emProcesso, color: 'var(--color-warning)', icon: BookOpen, bg: 'var(--color-warning-bg)' },
-    { label: 'Pendentes', value: stats.pendentes, color: 'var(--color-error)', icon: AlertTriangle, bg: 'var(--color-error-bg)' },
-  ] : [];
-
-  const payCards = showPagamentos ? [
-    { label: 'Total', value: stats.totalPagamentos, color: 'var(--color-info)', icon: DollarSign, bg: 'var(--color-info-bg)' },
-    { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: 'var(--color-warning)', icon: Clock, bg: 'var(--color-warning-bg)' },
-    { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)', icon: TrendingUp, bg: 'var(--color-primary-bg)' },
-    { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)', icon: CheckCircle, bg: 'var(--color-success-bg)' },
-  ] : [];
-
-  const autorCards = showAutores ? [
-    { label: 'Autores', value: stats.totalAutores, color: 'var(--color-accent)', icon: Users, bg: 'var(--color-accent-bg)' },
-  ] : [];
+  const pagRows = [
+    { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)' },
+    { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)' },
+    { label: 'Aguardando', value: stats.pagamentosAguardando, color: 'var(--color-warning)' }
+  ];
 
   return (
     <div className="container">
       <Sidebar />
+      {showForcaTroca && (
+        <AlterarSenhaModal
+          forcada
+          onSuccess={() => updateUser({ deveTrocarSenha: false })}
+          onClose={() => setShowForcaTroca(false)}
+        />
+      )}
 
       <div className="main">
         <header className="dash-header">
           <div>
             <h1 className="dash-title">Dashboard</h1>
             <p className="dash-subtitle">
-              Visão geral da gestão de propriedade intelectual · {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              Visão geral · {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                onBlur={() => setTimeout(() => setShowFilterDropdown(false), 150)}
-                className="btn-relatorio"
-                style={{ background: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)', gap: 8 }}
-              >
-                <Filter size={16} /> {currentFilterLabel}
-              </button>
-              {showFilterDropdown && (
-                <div style={{
-                  position: 'absolute', top: '100%', right: 0, marginTop: 4,
-                  background: 'var(--color-surface)', borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)',
-                  minWidth: 160, zIndex: 100, overflow: 'hidden'
-                }}>
-                  {filterOptions.map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => { setActiveFilter(opt.value); setShowFilterDropdown(false); }}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                        padding: '10px 16px', border: 'none', background: activeFilter === opt.value ? 'var(--color-primary-bg)' : 'transparent',
-                        color: 'var(--color-text)', fontSize: 14, cursor: 'pointer', textAlign: 'left',
-                        borderBottom: '1px solid var(--color-border-light)',
-                      }}
-                    >
-                      <opt.icon size={16} color="var(--color-primary)" />
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button className="btn-relatorio" onClick={() => window.print()}>
-              <Download size={16} /> Gerar Relatório
-            </button>
-          </div>
+          <button className="btn-relatorio" onClick={() => window.print()}>
+            <Download size={16} /> Relatório
+          </button>
         </header>
 
-        {(piCards.length > 0 || autorCards.length > 0) && (
-          <section className="dash-section">
-            <div className="dash-section-head">
-              <h3 className="dash-section-title">Propriedade Intelectual</h3>
-              <p className="dash-section-sub">Portfólio de PIs e autores cadastrados</p>
+        {loading && (
+          <div className="dash-loading">
+            <div className="dash-loading-spinner" role="status" aria-label="Carregando"></div>
+            <p>Carregando dados...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="dash-error" role="alert">
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()}>Tentar novamente</button>
+          </div>
+        )}
+
+        {!loading && !error && (
+        <>
+        {/* Bonus: Tempo médio e custo por sucesso como highlights compactos */}
+        <div className="dash-insight-bar">
+          <div className="insight-item">
+            <Clock size={16} />
+            <span><strong>Tempo médio</strong> {fmtDias(stats.tempoMedioDias)}</span>
+          </div>
+          <div className="insight-item">
+            <CreditCard size={16} />
+            <span><strong>Custo/sucesso</strong> {fmtBRL(stats.custoPorSucesso)}</span>
+          </div>
+          <div className="insight-item">
+            <Users size={16} />
+            <span><strong>Autores</strong> {stats.totalAutores}</span>
+          </div>
+          <div className="insight-item">
+            <Briefcase size={16} />
+            <span><strong>Pagamentos</strong> {stats.totalPagamentos}</span>
+          </div>
+        </div>
+
+        <section className="kpi-grid">
+          {kpis.map(k => (
+            <div key={k.label} className={`kpi-card kpi--${k.tone}`}>
+              <div className="kpi-icon" style={{ background: `var(--color-${k.tone}-bg)`, color: `var(--color-${k.tone})` }}>
+                <k.icon size={20} />
+              </div>
+              <div className="kpi-info">
+                <strong className="kpi-value">{k.value}</strong>
+                <span className="kpi-label">{k.label}</span>
+                {k.sub && <span className="kpi-sub">{k.sub}</span>}
+              </div>
             </div>
-            <div className="kpi-grid">
-              {[...piCards, ...autorCards].map(s => (
-                <div key={s.label} className="pay-kpi-card">
-                  <div className="pay-kpi-icon" style={{ background: s.bg, color: s.color }}>
-                    <s.icon size={20} />
+          ))}
+        </section>
+
+        <section className="chart-grid">
+          <div className="chart-card chart-card--wide">
+            <h3 className="chart-title">
+              <GitBranch size={15} /> Funil de conversão
+            </h3>
+            <div className="funnel">
+              {funilEtapas.map(st => (
+                <div key={st.label} className="funnel-row">
+                  <span className="bar-label funnel-label" title={st.label}>{st.label}</span>
+                  <div className="bar-track funnel-track">
+                    <div className="bar-fill" style={{ width: `${(st.value / maxEtapa) * 100}%`, background: st.color }} />
                   </div>
-                  <div className="pay-kpi-info">
-                    <strong className="pay-kpi-value" style={{ color: s.color }}>{s.value}</strong>
-                    <span className="pay-kpi-label">{s.label}</span>
-                  </div>
+                  <span className="bar-value">{st.value}</span>
                 </div>
               ))}
-            </div>
-          </section>
-        )}
-
-        {payCards.length > 0 && (
-          <section className="dash-section">
-            <div className="dash-section-head">
-              <h3 className="dash-section-title">Pagamentos</h3>
-              <p className="dash-section-sub">Situação dos pagamentos por status</p>
-            </div>
-            <div className="pay-panel">
-              <div className="pay-kpis">
-                {payCards.map(s => (
-                  <div key={s.label} className="pay-kpi-card">
-                    <div className="pay-kpi-icon" style={{ background: s.bg, color: s.color }}>
-                      <s.icon size={20} />
-                    </div>
-                    <div className="pay-kpi-info">
-                      <strong className="pay-kpi-value" style={{ color: s.color }}>{s.value}</strong>
-                      <span className="pay-kpi-label">{s.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pay-side">
-                <div className="chart-card">
-                  <h3 className="chart-title">
-                    <DollarSign size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
-                    Pagamentos por Status
-                  </h3>
-                  {stats.totalPagamentos > 0 ? (
-                    <div className="donut-container">
-                      <div className="donut" style={{
-                        background: `conic-gradient(${(() => {
-                          const rows = [
-                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: 'var(--color-warning)' },
-                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)' },
-                            { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)' }
-                          ];
-                          const total = stats.totalPagamentos || 1;
-                          return rows.map((r, i) => {
-                            const pct = (r.value / total) * 100;
-                            const start = rows.slice(0, i).reduce((a, s) => a + (s.value / total) * 100, 0);
-                            return `${r.color} ${start}% ${start + pct}%`;
-                          }).join(', ');
-                        })()})`
-                      }}>
-                        <div className="donut-center">
-                          <strong>{stats.totalPagamentos}</strong>
-                          <span>Total</span>
-                        </div>
-                      </div>
-                      <div className="donut-legend">
-                        {(() => {
-                          const rows = [
-                            { label: 'Aguardando prazo', value: stats.pagamentosAguardando, color: 'var(--color-warning)' },
-                            { label: 'Em andamento', value: stats.pagamentosAndamento, color: 'var(--color-primary)' },
-                            { label: 'Pagos', value: stats.pagamentosPagos, color: 'var(--color-success)' }
-                          ];
-                          return rows.map((r, i) => (
-                            <div key={i} className="legend-item">
-                              <span className="legend-dot" style={{ background: r.color }} />
-                              <span className="legend-label">{r.label}</span>
-                              <span className="legend-value">
-                                {r.value}
-                                <span className="legend-pct"> · {Math.round((r.value / stats.totalPagamentos) * 100)}%</span>
-                              </span>
-                            </div>
-                          ));
-                        })()}
-                      </div>
-                    </div>
-                  ) : <p className="chart-empty">Nenhum dado de pagamento</p>}
-                </div>
+              <div className="funnel-meta">
+                <span><strong>{stats.funil.taxaSucesso}%</strong> sucesso · <strong>{stats.funil.taxaInsucesso}%</strong> insucesso</span>
               </div>
             </div>
-          </section>
-        )}
-
-        <section className="dash-section">
-          <div className="dash-section-head">
-            <h3 className="dash-section-title">Análises</h3>
-            <p className="dash-section-sub">Distribuição do portfólio de propriedade intelectual</p>
           </div>
-          <div className="dashboard-grid">
-          {showPI && (
-            <div className="chart-card">
-              <h3 className="chart-title">
-                <FileText size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
-                PIs por Status
-              </h3>
-              <div className="donut-container">
-                <div className="donut" style={{
-                  background: `conic-gradient(${stats.porStatus.map((s, i) => {
-                    const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#009FDF', '#94A3B8'];
-                    const total = stats.total || 1;
-                    const pct = (s.value / total) * 100;
-                    const start = stats.porStatus.slice(0, i).reduce((a, s) => a + (s.value / total) * 100, 0);
-                    return `${colors[i % colors.length]} ${start}% ${start + pct}%`;
-                  }).join(', ')})`
-                }}>
-                  <div className="donut-center">
-                    <strong>{stats.total}</strong>
-                    <span>Total</span>
-                  </div>
-                </div>
-                <div className="donut-legend">
-                  {stats.porStatus.map((s, i) => {
-                    const colors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#B849B4', '#10B981', '#009FDF', '#94A3B8'];
-                    const Icon = statusIcons[s.label] || HelpCircle;
-                    return (
-                      <div key={i} className="legend-item">
-                        <Icon size={14} style={{ color: colors[i % colors.length], flexShrink: 0 }} />
-                        <span className="legend-label">{statusLabels[s.label] || s.label}</span>
-                        <span className="legend-value">
-                          {s.value}
-                          {stats.total > 0 && <span className="legend-pct"> · {Math.round((s.value / stats.total) * 100)}%</span>}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {showPI && (
-            <div className="chart-card">
-              <h3 className="chart-title">
-                <BookOpen size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
-                PIs por Tipo
-              </h3>
-              <div className="bar-chart-h">
-                {stats.porTipo.map((t, i) => {
-                  const highlightColors = ['#93278F', '#FA0183', '#FA7F0C', '#D9E021', '#009FDF'];
-                  return (
-                  <div key={i} className="bar-row">
-                    <span className="bar-label">{tipoIcons[t.label] || t.label}</span>
-                    <div className="bar-track">
-                      <div className="bar-fill" style={{ width: `${(t.value / maxTipo) * 100}%`, background: highlightColors[i % highlightColors.length] }} />
-                    </div>
-                    <span className="bar-value">{t.value}</span>
-                  </div>
-                  );
-                })}
-                {stats.porTipo.length === 0 && <p className="chart-empty">Nenhum dado</p>}
-              </div>
-            </div>
-          )}
+          <div className="chart-card">
+            <h3 className="chart-title">
+              <PieChart size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+              PIs por status
+            </h3>
+            <DonutChart total={stats.total} rows={stats.porStatus.map((s, i) => ({
+              label: STATUS_META[s.label]?.label || s.label,
+              value: s.value,
+              color: CHART_COLORS[i % CHART_COLORS.length]
+            }))} />
+          </div>
 
-          {showPI && (
-            <div className="chart-card">
-              <h3 className="chart-title">
-                <TrendingUp size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
-                PIs por Ano
-              </h3>
-              <div className="line-chart">
-                {stats.porAno.length > 0 ? (
-                  <svg viewBox="0 0 400 160" className="line-chart-svg">
-                    <polyline
-                      points={stats.porAno.map((a, i) => {
-                        const x = 40 + (i / Math.max(stats.porAno.length - 1, 1)) * 320;
-                        const y = 140 - (a.value / maxAno) * 110;
-                        return `${x},${y}`;
-                      }).join(' ')}
-                      fill="none"
-                      stroke="#FA0183"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    {stats.porAno.map((a, i) => {
-                      const x = 40 + (i / Math.max(stats.porAno.length - 1, 1)) * 320;
-                      const y = 140 - (a.value / maxAno) * 110;
-                      return (
-                        <g key={i}>
-                          <circle cx={x} cy={y} r="4" fill="var(--color-surface)" stroke="#FA0183" strokeWidth="2" />
-                          <text x={x} y={152} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a.label}</text>
-                          <text x={x} y={y - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--color-text)">{a.value}</text>
-                        </g>
-                      );
-                    })}
-                    <line x1="40" y1="140" x2="360" y2="140" stroke="var(--color-border)" strokeWidth="1" />
-                  </svg>
-                ) : <p className="chart-empty">Nenhum dado</p>}
-              </div>
-            </div>
-          )}
+          <div className="chart-card">
+            <h3 className="chart-title">
+              <TrendingUp size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+              PIs por ano
+            </h3>
+            <AnoChart data={stats.porAno} max={maxAno} />
+          </div>
 
-          {showAutores && (
-            <div className="chart-card">
-              <h3 className="chart-title">
-                <Users size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-accent)' }} />
-                Autores por Vínculo
-              </h3>
-              <div className="bar-chart-h">
-                {stats.autoresPorVinculo.map((v, i) => {
-                  const highlightColors = ['#FA0183', '#FA7F0C', '#D9E021', '#93278F', '#009FDF'];
-                  return (
-                  <div key={i} className="bar-row">
-                    <span className="bar-label">{v.label}</span>
-                    <div className="bar-track">
-                      <div className="bar-fill" style={{ width: `${(v.value / maxVinculo) * 100}%`, background: highlightColors[i % highlightColors.length] }} />
-                    </div>
-                    <span className="bar-value">{v.value}</span>
-                  </div>
-                  );
-                })}
-                {stats.autoresPorVinculo.length === 0 && <p className="chart-empty">Nenhum dado</p>}
-              </div>
-            </div>
-          )}
-        </div>
+          <div className="chart-card">
+            <h3 className="chart-title">
+              <FileText size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+              PIs por tipo
+            </h3>
+            <Bars rows={stats.porTipo.map(t => ({ label: t.label, value: t.value }))} max={maxTipo} color={['var(--chart-primary)', 'var(--chart-primary-light)', 'var(--chart-orange)', 'var(--chart-lime)']} />
+          </div>
+
+          <div className="chart-card">
+            <h3 className="chart-title">
+              <DollarSign size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-primary)' }} />
+              Pagamentos
+            </h3>
+            <DonutChart total={stats.totalPagamentos} rows={pagRows} />
+          </div>
+
+          <div className="chart-card">
+            <h3 className="chart-title">
+              <Users size={15} style={{ verticalAlign: 'middle', marginRight: 6, color: 'var(--color-accent)' }} />
+              Autores por vínculo
+            </h3>
+            <Bars rows={stats.autoresPorVinculo.map(v => ({ label: v.label, value: v.value }))} max={maxVinculo} color={['var(--chart-primary-light)', 'var(--chart-orange)', 'var(--chart-lime)', 'var(--chart-green)', 'var(--chart-cyan)']} />
+          </div>
         </section>
+        </>
+        )}
       </div>
+    </div>
+  );
+}
+
+// ---- Donut chart ----
+function DonutChart({ total = 0, rows }) {
+  const center = total || 0;
+  const t = center || 1;
+  return (
+    <div className="donut-container">
+      <div className="donut" style={{
+        background: `conic-gradient(${rows.map((r, i) => {
+          const pct = (r.value / t) * 100;
+          const start = rows.slice(0, i).reduce((a, s) => a + (s.value / t) * 100, 0);
+          return `${r.color} ${start}% ${start + pct}%`;
+        }).join(', ')})`
+      }}>
+        <div className="donut-center">
+          <strong>{center}</strong>
+          <span>total</span>
+        </div>
+      </div>
+      <div className="donut-legend">
+        {rows.map((r, i) => (
+          <div key={i} className="legend-item">
+            <span className="legend-dot" style={{ background: r.color }} />
+            <span className="legend-label">{r.label}</span>
+            <span className="legend-value">
+              {r.value} <span className="legend-pct">({Math.round((r.value / t) * 100)}%)</span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Horizontal bars ----------
+function Bars({ rows, max, color }) {
+  if (!rows.length) return <p className="chart-empty">Nenhum dado</p>;
+  return (
+    <div className="bar-chart-h">
+      {rows.map((r, i) => (
+        <div key={i} className="bar-row">
+          <span className="bar-label" title={r.label}>{r.label}</span>
+          <div className="bar-track">
+            <div className="bar-fill" style={{ width: `${(r.value / max) * 100}%`, background: color[i % color.length] }} />
+          </div>
+          <span className="bar-value">{r.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------- Line chart (anos) ----------
+function AnoChart({ data, max }) {
+  if (!data.length) return <p className="chart-empty">Nenhum dado</p>;
+  const step = 46;
+  const N = data.length;
+  const width = 70 + (N - 1) * step;
+  const xOf = i => 30 + i * step;
+  const yOf = v => 130 - (v / max) * 100;
+  return (
+    <div className="line-chart-scroll">
+      <svg viewBox={`0 0 ${width} 150`} className="line-chart-svg" style={{ width }}>
+        <polyline
+          points={data.map((a, i) => `${xOf(i)},${yOf(a.value)}`).join(' ')}
+          fill="none" stroke="var(--chart-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        />
+        {data.map((a, i) => (
+          <g key={i}>
+            <circle cx={xOf(i)} cy={yOf(a.value)} r="4" fill="var(--color-surface)" stroke="var(--chart-primary)" strokeWidth="2" />
+            <text x={xOf(i)} y={142} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a.label}</text>
+            <text x={xOf(i)} y={yOf(a.value) - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--color-text)">{a.value}</text>
+          </g>
+        ))}
+        <line x1="30" y1="130" x2={width - 40} y2="130" stroke="var(--color-border)" strokeWidth="1" />
+      </svg>
     </div>
   );
 }

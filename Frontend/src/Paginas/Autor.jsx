@@ -38,6 +38,7 @@ export default function Autor() {
     const [authors, setAuthors] = useState([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -83,10 +84,12 @@ export default function Autor() {
         const response = await axios.get(`${API}/api/autores`, { params });
         setAuthors(response.data.data || []);
         setTotal(response.data.total || 0);
+        setError(null);
       } catch (error) {
         console.error("Erro ao buscar autores:", error);
         setAuthors([]);
         setTotal(0);
+        setError('Não foi possível carregar os autores.');
       } finally {
         setLoading(false);
       }
@@ -212,6 +215,8 @@ export default function Autor() {
                         <tbody>
                             {loading ? (
                                 <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
+                            ) : error ? (
+                                <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-error)', padding: 24 }}>{error}</td></tr>
                             ) : currentAuthors.length === 0 ? (
                                 <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum autor encontrado</td></tr>
                             ) : currentAuthors.map(author => (

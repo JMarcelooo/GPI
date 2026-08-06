@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS "autor_pi" (
 
 CREATE TABLE IF NOT EXISTS "notificacoes" (
 	"id" serial NOT NULL UNIQUE,
-	"pagamento_id" integer NOT NULL UNIQUE,
+	"pagamento_id" integer NOT NULL,
+	"usuario_id" integer NOT NULL,
 	"pi_id" integer,
 	"tipo" varchar(50) NOT NULL DEFAULT 'prazo',
 	"mensagem" varchar(255) NOT NULL,
@@ -91,12 +92,15 @@ CREATE TABLE IF NOT EXISTS "notificacoes" (
 	"lida" boolean NOT NULL DEFAULT false,
 	"createdAt" timestamp with time zone,
 	"updatedAt" timestamp with time zone,
-	PRIMARY KEY ("id")
+	PRIMARY KEY ("id"),
+	CONSTRAINT "uq_notificacao_pagamento_usuario" UNIQUE ("pagamento_id", "usuario_id")
 );
 
 CREATE TABLE IF NOT EXISTS "historico" (
 	"id" serial NOT NULL UNIQUE,
 	"pi_id" integer NOT NULL,
+	"usuario_id" integer,
+	"usuario_nome" varchar(150),
 	"tipo" varchar(30) NOT NULL,
 	"acao" varchar(30) NOT NULL,
 	"descricao" varchar(500) NOT NULL,

@@ -42,7 +42,8 @@ exports.createRPI = async (req, res) => {
       tipo: 'rpi',
       acao: 'criacao',
       descricao: `RPI registrada — código ${rpi.codigo_evento}${rpi.descricao_do_evento ? ` (${rpi.descricao_do_evento})` : ''}`,
-      detalhes: { dados: rpi.toJSON() }
+      detalhes: { dados: rpi.toJSON() },
+      usuario: req.usuario
     });
 
     res.status(201).json({ data: rpi });
@@ -82,7 +83,8 @@ exports.updateRPI = async (req, res) => {
       descricao: alterados.length
         ? `RPI atualizada — ${descricaoCamposAlterados(alterados)}`
         : 'RPI atualizada',
-      detalhes: alterados
+      detalhes: alterados,
+      usuario: req.usuario
     });
 
     const updated = await RPI.findByPk(req.params.id);
@@ -111,7 +113,8 @@ exports.deleteRPI = async (req, res) => {
       tipo: 'rpi',
       acao: 'exclusao',
       descricao: `RPI removida — código ${rpi.codigo_evento}${rpi.descricao_do_evento ? ` (${rpi.descricao_do_evento})` : ''}`,
-      detalhes: { dados: rpi.toJSON() }
+      detalhes: { dados: rpi.toJSON() },
+      usuario: req.usuario
     });
 
     await rpi.destroy();

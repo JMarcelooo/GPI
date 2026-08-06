@@ -1,4 +1,4 @@
-const { Historico } = require('../models');
+const { Historico, User } = require('../models');
 
 const LABELS = {
   tipo: 'Tipo',
@@ -51,9 +51,33 @@ function descricaoCamposAlterados(alterados) {
     .join('; ');
 }
 
-async function registrarHistorico({ pi_id, tipo, acao, descricao, detalhes }) {
+// Registra um evento no histórico da PI, gravando qual usuário o fez.
+// O nome é desnormalizado (usuario_nome) para o registro sobreviver à exclusão
+// do usuário e evitar um join na listagem.
+async function registrarHistorico({ pi_id, tipo, acao, descricao, detalhes, usuario }) {
   if (!pi_id) return;
-  await Historico.create({ pi_id, tipo, acao, descricao, detalhes: detalhes || null });
+
+  let usuarioId = usuario && usuario.id ? usuario.id : null;
+  let usuarioNome = usuario && usuario.nome ? usuario.nome : null;
+
+  // req.usuario (do JWT) só tem id/role → busca o nome no banco.
+  if (usuarioId && !usuarioNome) {
+    const u = await User.findByPk(usuarioId, { attributes: ['id', 'nome'] }).catch(() => null);
+    if (u) {
+      usuarioId = u.id;
+      usuarioNome = u.nome;
+    }
+  }
+
+  await Historico.create({
+    pi_id,
+    usuario_id: usuarioId,
+    usuario_nome: usuarioNome,
+    tipo,
+    acao,
+    descricao,
+    detalhes: detalhes || null
+  });
 }
 
 module.exports = {

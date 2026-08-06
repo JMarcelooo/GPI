@@ -94,7 +94,8 @@ exports.createPI = async (req, res) => {
       tipo: 'pi',
       acao: 'criacao',
       descricao: `PI cadastrada${newPI.protocolo ? ` — protocolo ${newPI.protocolo}` : ''}`,
-      detalhes: { dados: piData }
+      detalhes: { dados: piData },
+      usuario: req.usuario
     });
 
     res.status(201).json({ data: newPI });
@@ -252,7 +253,8 @@ exports.updatePI = async (req, res) => {
       tipo: 'pi',
       acao: 'atualizacao',
       descricao: textoAlteracoes ? `PI atualizada — ${textoAlteracoes}` : 'PI atualizada',
-      detalhes: alterados
+      detalhes: alterados,
+      usuario: req.usuario
     });
 
     const updatedPI = await PI.findByPk(req.params.id, {

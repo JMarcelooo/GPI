@@ -6,16 +6,12 @@ import ViewPaymentModal from '../Components/ViewPaymentModal';
 import Sidebar from '../Components/Sidebar';
 import axios from 'axios';
 import './Detalhe1.css';
-import { formatDate, formatStatus, formatTipo, formatStatusPagamento, daysUntil } from '../utils/formatDate';
+import { formatDate, formatStatus, formatTipo, formatStatusPagamento, daysUntil, formatCurrency } from '../utils/formatDate';
 import Toast from '../Components/Toast';
 import { invalidatePis } from '../services/piApi';
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-}
-
-function formatCurrency(val) {
-  return `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 }
 
 const STATUS_PAGAMENTO_COLORS = {
@@ -350,6 +346,9 @@ export default function PatenteDetalhes() {
                         <div className="timeline-content">
                           <span className="timeline-date">
                             {h.createdAt ? new Date(h.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                            {h.usuario_nome && (
+                              <span className="timeline-user"> por {h.usuario_nome}</span>
+                            )}
                           </span>
                           <h4 className="timeline-title">{meta.titulo}</h4>
                           <p className="timeline-description">{h.descricao}</p>

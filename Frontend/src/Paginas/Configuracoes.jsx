@@ -1,13 +1,39 @@
-import { User, LogOut, Bell, Shield, Info, Moon } from 'lucide-react';
+import { useState } from 'react';
+import { User, LogOut, Bell, Shield, Info, Moon, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
+import AlterarSenhaModal from '../Components/AlterarSenhaModal';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import '../Tela2.css';
 import './Configuracoes.css';
 
 function Configuracoes() {
   const navigate = useNavigate();
   const { dark, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const [showAlterarSenha, setShowAlterarSenha] = useState(false);
+  const [notifEmail, setNotifEmail] = useState(() => localStorage.getItem('notifEmail') !== 'false');
+  const [notifStatus, setNotifStatus] = useState(() => localStorage.getItem('notifStatus') !== 'false');
+
+  const toggleNotifEmail = () => {
+    setNotifEmail(v => {
+      localStorage.setItem('notifEmail', String(!v));
+      return !v;
+    });
+  };
+
+  const toggleNotifStatus = () => {
+    setNotifStatus(v => {
+      localStorage.setItem('notifStatus', String(!v));
+      return !v;
+    });
+  };
+
+  async function handleSair() {
+    logout();
+    navigate('/login');
+  }
 
   return (
     <div className="container">
@@ -26,11 +52,27 @@ function Configuracoes() {
               <User size={32} />
             </div>
             <div className="config-info">
-              <p className="config-name">Administrador</p>
-              <p className="config-email">email@email.com</p>
+              <p className="config-name">{user?.nome || 'Usuário'}</p>
+              <p className="config-email">{user?.email}</p>
+              <p className="config-desc">{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</p>
             </div>
-            <button className="config-btn config-btn-danger" onClick={() => navigate("/login")}>
+            <button className="config-btn config-btn-danger" onClick={handleSair}>
               <LogOut size={16} /> Sair
+            </button>
+          </div>
+        </div>
+
+        <div className="config-section">
+          <h3 className="config-section-title">
+            <KeyRound size={18} /> Segurança
+          </h3>
+          <div className="config-card config-card-row">
+            <div>
+              <p className="config-label">Senha</p>
+              <p className="config-desc">Altere a senha de acesso ao sistema</p>
+            </div>
+            <button className="config-btn" onClick={() => setShowAlterarSenha(true)}>
+              <KeyRound size={16} /> Alterar senha
             </button>
           </div>
         </div>
@@ -45,7 +87,7 @@ function Configuracoes() {
               <p className="config-desc">Receber alertas sobre prazos e atualizações</p>
             </div>
             <label className="config-toggle">
-              <input type="checkbox" defaultChecked />
+              <input type="checkbox" checked={notifEmail} onChange={toggleNotifEmail} />
               <span className="config-toggle-slider"></span>
             </label>
           </div>
@@ -55,7 +97,7 @@ function Configuracoes() {
               <p className="config-desc">Alertar quando uma PI mudar de status</p>
             </div>
             <label className="config-toggle">
-              <input type="checkbox" defaultChecked />
+              <input type="checkbox" checked={notifStatus} onChange={toggleNotifStatus} />
               <span className="config-toggle-slider"></span>
             </label>
           </div>
@@ -100,6 +142,10 @@ function Configuracoes() {
           </div>
         </div>
       </div>
+
+      {showAlterarSenha && (
+        <AlterarSenhaModal onClose={() => setShowAlterarSenha(false)} />
+      )}
     </div>
   );
 }

@@ -33,6 +33,17 @@
   --color-accent-dark: #E06E00;
   --color-accent-bg: #FFF7ED;
 
+  /* Chart palette (theme-aware) */
+  --chart-primary: #93278F;
+  --chart-primary-light: #B849B4;
+  --chart-pink: #FA0183;
+  --chart-orange: #FA7F0C;
+  --chart-lime: #D9E021;
+  --chart-green: #10B981;
+  --chart-cyan: #009FDF;
+  --chart-gray: #94A3B8;
+  --chart-error: #EF4444;
+
   /* Button */
   --color-btn: #FA0183;
   --color-btn-hover: #D0016E;
@@ -113,6 +124,17 @@
   --color-accent: #FB923C;
   --color-accent-dark: #EA580C;
   --color-accent-bg: #5B2A10;
+
+  /* Chart palette (theme-aware) */
+  --chart-primary: #C084FC;
+  --chart-primary-light: #E9D5FF;
+  --chart-pink: #F472B6;
+  --chart-orange: #FB923C;
+  --chart-lime: #D9E021;
+  --chart-green: #34D399;
+  --chart-cyan: #22D3EE;
+  --chart-gray: #64748B;
+  --chart-error: #F87171;
 
   --color-btn: #FA0183;
   --color-btn-hover: #D0016E;
