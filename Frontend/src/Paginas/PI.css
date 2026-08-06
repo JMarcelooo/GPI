@@ -110,6 +110,19 @@
   border-bottom: 1px solid var(--color-border-light);
 }
 
+.tabela-pi td:nth-child(2) {
+  max-width: 320px;
+  min-width: 180px;
+  word-break: break-word;
+  white-space: normal;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.tabela-pi td:nth-child(3) {
+  white-space: nowrap;
+}
+
 .tabela-pi tbody tr:hover {
   background: var(--color-hover);
 }

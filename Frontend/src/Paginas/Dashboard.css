@@ -359,9 +359,16 @@
   width: 100%;
 }
 
-.line-chart-svg {
+.line-chart-scroll {
   width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.line-chart-svg {
   height: 180px;
+  max-width: none;
+  display: block;
 }
 
 @media (max-width: 1024px) {

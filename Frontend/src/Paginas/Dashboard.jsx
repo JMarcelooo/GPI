@@ -336,34 +336,39 @@ function Dashboard() {
                 PIs por Ano
               </h3>
               <div className="line-chart">
-                {stats.porAno.length > 0 ? (
-                  <svg viewBox="0 0 400 160" className="line-chart-svg">
-                    <polyline
-                      points={stats.porAno.map((a, i) => {
-                        const x = 40 + (i / Math.max(stats.porAno.length - 1, 1)) * 320;
-                        const y = 140 - (a.value / maxAno) * 110;
-                        return `${x},${y}`;
-                      }).join(' ')}
-                      fill="none"
-                      stroke="#FA0183"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    {stats.porAno.map((a, i) => {
-                      const x = 40 + (i / Math.max(stats.porAno.length - 1, 1)) * 320;
-                      const y = 140 - (a.value / maxAno) * 110;
-                      return (
-                        <g key={i}>
-                          <circle cx={x} cy={y} r="4" fill="var(--color-surface)" stroke="#FA0183" strokeWidth="2" />
-                          <text x={x} y={152} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a.label}</text>
-                          <text x={x} y={y - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--color-text)">{a.value}</text>
-                        </g>
-                      );
-                    })}
-                    <line x1="40" y1="140" x2="360" y2="140" stroke="var(--color-border)" strokeWidth="1" />
-                  </svg>
-                ) : <p className="chart-empty">Nenhum dado</p>}
+                {stats.porAno.length > 0 ? (() => {
+                  const step = 48;
+                  const N = stats.porAno.length;
+                  const width = 80 + (N - 1) * step;
+                  const xOf = i => 40 + i * step;
+                  const yOf = v => 140 - (v / maxAno) * 110;
+                  return (
+                    <div className="line-chart-scroll">
+                      <svg viewBox={`0 0 ${width} 160`} className="line-chart-svg" style={{ width }}>
+                        <polyline
+                          points={stats.porAno.map((a, i) => `${xOf(i)},${yOf(a.value)}`).join(' ')}
+                          fill="none"
+                          stroke="#FA0183"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        {stats.porAno.map((a, i) => {
+                          const x = xOf(i);
+                          const y = yOf(a.value);
+                          return (
+                            <g key={i}>
+                              <circle cx={x} cy={y} r="4" fill="var(--color-surface)" stroke="#FA0183" strokeWidth="2" />
+                              <text x={x} y={152} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a.label}</text>
+                              <text x={x} y={y - 10} textAnchor="middle" fontSize="11" fontWeight="700" fill="var(--color-text)">{a.value}</text>
+                            </g>
+                          );
+                        })}
+                        <line x1="40" y1="140" x2={width - 40} y2="140" stroke="var(--color-border)" strokeWidth="1" />
+                      </svg>
+                    </div>
+                  );
+                })() : <p className="chart-empty">Nenhum dado</p>}
               </div>
             </div>
           )}
