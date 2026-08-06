@@ -63,6 +63,17 @@ function initModels(sequelize) {
     foreignKey: 'pi_id'
   });
 
+  User.hasMany(Notificacao, {
+    as: 'notificacoes',
+    foreignKey: 'usuario_id',
+    onDelete: 'CASCADE'
+  });
+
+  Notificacao.belongsTo(User, {
+    as: 'usuario',
+    foreignKey: 'usuario_id'
+  });
+
   return {
     autor,
     PI,

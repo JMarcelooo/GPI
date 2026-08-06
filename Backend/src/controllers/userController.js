@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
-const { User } = require('../models/index');
+const { User, Notificacao } = require('../models/index');
+const { sincronizarNotificacoes } = require('../services/notificacaoService');
 
 const ROLES_VALIDOS = ['admin', 'usuario'];
 
@@ -68,6 +69,8 @@ exports.createUsuario = async (req, res) => {
       senha: senhaHash,
       deveTrocarSenha: true
     });
+    // Gera as cópias de notificações para o novo usuário.
+    sincronizarNotificacoes(true);
     res.status(201).json({ data: sanitizeUser(novoUsuario) });
   } catch (error) {
     handleError(error, res, 'criar usuário');
@@ -119,6 +122,8 @@ exports.updateUsuario = async (req, res) => {
     if (ativo !== undefined) usuario.ativo = ativo;
 
     await usuario.save();
+    // Reativação/edição pode mudar o conjunto de notificações do usuário.
+    sincronizarNotificacoes(true);
     res.json({ data: sanitizeUser(usuario) });
   } catch (error) {
     handleError(error, res, 'atualizar usuário');
@@ -141,6 +146,8 @@ exports.deleteUsuario = async (req, res) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
+    // Remove as notificações individuais do usuário.
+    await Notificacao.destroy({ where: { usuario_id: id } });
     await usuario.destroy();
     res.status(200).json({ message: 'Usuário removido com sucesso.' });
   } catch (error) {

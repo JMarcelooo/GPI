@@ -5,7 +5,12 @@ const Notificacao = sequelize.define('Notificacao', {
   pagamento_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    unique: true
+    unique: 'uq_notificacao_pagamento_usuario'
+  },
+  usuario_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    unique: 'uq_notificacao_pagamento_usuario'
   },
   pi_id: {
     type: DataTypes.INTEGER,

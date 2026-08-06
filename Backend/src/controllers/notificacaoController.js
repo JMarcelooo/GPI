@@ -4,6 +4,7 @@ const { Notificacao } = require('../models/index');
 exports.listNotificacoes = async (req, res) => {
   try {
     const data = await Notificacao.findAll({
+      where: { usuario_id: req.usuario.id },
       order: [['lida', 'ASC'], ['createdAt', 'DESC']]
     });
     const unreadCount = data.filter(n => !n.lida).length;
@@ -17,7 +18,9 @@ exports.listNotificacoes = async (req, res) => {
 // GET /api/notificacoes/count
 exports.countNotificacoes = async (req, res) => {
   try {
-    const unreadCount = await Notificacao.count({ where: { lida: false } });
+    const unreadCount = await Notificacao.count({
+      where: { usuario_id: req.usuario.id, lida: false }
+    });
     res.json({ unreadCount });
   } catch (error) {
     console.error('Erro ao contar notificações:', error);
@@ -25,10 +28,16 @@ exports.countNotificacoes = async (req, res) => {
   }
 };
 
+async function buscarDoUsuario(id, usuarioId) {
+  return Notificacao.findOne({
+    where: { id, usuario_id: usuarioId }
+  });
+}
+
 // PATCH /api/notificacoes/:id
 exports.markNotificacaoLida = async (req, res) => {
   try {
-    const notificacao = await Notificacao.findByPk(req.params.id);
+    const notificacao = await buscarDoUsuario(req.params.id, req.usuario.id);
     if (!notificacao) {
       return res.status(404).json({ error: 'Notificação não encontrada.' });
     }
@@ -44,7 +53,7 @@ exports.markNotificacaoLida = async (req, res) => {
 // DELETE /api/notificacoes/:id
 exports.deleteNotificacao = async (req, res) => {
   try {
-    const notificacao = await Notificacao.findByPk(req.params.id);
+    const notificacao = await buscarDoUsuario(req.params.id, req.usuario.id);
     if (!notificacao) {
       return res.status(404).json({ error: 'Notificação não encontrada.' });
     }
@@ -61,7 +70,7 @@ exports.markAllNotificacoesLidas = async (req, res) => {
   try {
     const [affected] = await Notificacao.update(
       { lida: true },
-      { where: { lida: false } }
+      { where: { usuario_id: req.usuario.id, lida: false } }
     );
     res.json({ ok: true, affected });
   } catch (error) {
