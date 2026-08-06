@@ -5,6 +5,7 @@ var _RPI = require('./RPI');
 var _Pagamento = require('./Pagamento');
 var _Notificacao = require('./Notificacao');
 var _Historico = require('./Historico');
+var _User = require('./User');
 
 function initModels(sequelize) {
   var autor = _autor(sequelize, DataTypes);
@@ -13,6 +14,7 @@ function initModels(sequelize) {
   var Pagamento = _Pagamento;
   var Notificacao = _Notificacao;
   var Historico = _Historico;
+  var User = _User;
 
   PI.belongsToMany(autor, {
     as: 'autores',
@@ -67,7 +69,8 @@ function initModels(sequelize) {
     RPI,
     Pagamento,
     Notificacao,
-    Historico
+    Historico,
+    User
   };
 }
 module.exports = initModels;
