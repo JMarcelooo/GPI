@@ -1,10 +1,9 @@
-const { Notificacao } = require('../models/index');
+const { Notificacao, User } = require('../models/index');
 
 // GET /api/notificacoes
 exports.listNotificacoes = async (req, res) => {
   try {
     const data = await Notificacao.findAll({
-      where: { usuario_id: req.usuario.id },
       order: [['lida', 'ASC'], ['createdAt', 'DESC']]
     });
     const unreadCount = data.filter(n => !n.lida).length;
@@ -19,7 +18,7 @@ exports.listNotificacoes = async (req, res) => {
 exports.countNotificacoes = async (req, res) => {
   try {
     const unreadCount = await Notificacao.count({
-      where: { usuario_id: req.usuario.id, lida: false }
+      where: { lida: false }
     });
     res.json({ unreadCount });
   } catch (error) {
@@ -28,21 +27,39 @@ exports.countNotificacoes = async (req, res) => {
   }
 };
 
-async function buscarDoUsuario(id, usuarioId) {
-  return Notificacao.findOne({
-    where: { id, usuario_id: usuarioId }
-  });
+async function buscarNotificacao(id) {
+  return Notificacao.findByPk(id);
+}
+
+// Busca o nome do usuário autenticado para atribuir "quem leu".
+async function nomeDoUsuario(usuario) {
+  if (!usuario || !usuario.id) return null;
+  const u = await User.findByPk(usuario.id, { attributes: ['id', 'nome'] }).catch(() => null);
+  return u && u.nome ? u.nome : null;
 }
 
 // PATCH /api/notificacoes/:id
 exports.markNotificacaoLida = async (req, res) => {
   try {
-    const notificacao = await buscarDoUsuario(req.params.id, req.usuario.id);
+    const notificacao = await buscarNotificacao(req.params.id);
     if (!notificacao) {
       return res.status(404).json({ error: 'Notificação não encontrada.' });
     }
     const lida = req.body.lida === undefined ? true : Boolean(req.body.lida);
-    await notificacao.update({ lida });
+    const atualizacoes = { lida };
+
+    if (lida) {
+      const nome = await nomeDoUsuario(req.usuario);
+      atualizacoes.lida_por_id = req.usuario && req.usuario.id ? req.usuario.id : null;
+      atualizacoes.lida_por_nome = nome;
+      atualizacoes.lida_em = new Date();
+    } else {
+      atualizacoes.lida_por_id = null;
+      atualizacoes.lida_por_nome = null;
+      atualizacoes.lida_em = null;
+    }
+
+    await notificacao.update(atualizacoes);
     res.json({ data: notificacao });
   } catch (error) {
     console.error('Erro ao atualizar notificação:', error);
@@ -53,7 +70,7 @@ exports.markNotificacaoLida = async (req, res) => {
 // DELETE /api/notificacoes/:id
 exports.deleteNotificacao = async (req, res) => {
   try {
-    const notificacao = await buscarDoUsuario(req.params.id, req.usuario.id);
+    const notificacao = await buscarNotificacao(req.params.id);
     if (!notificacao) {
       return res.status(404).json({ error: 'Notificação não encontrada.' });
     }
@@ -68,9 +85,12 @@ exports.deleteNotificacao = async (req, res) => {
 // POST /api/notificacoes/marcar-todas-lidas
 exports.markAllNotificacoesLidas = async (req, res) => {
   try {
+    const agora = new Date();
+    const nome = await nomeDoUsuario(req.usuario);
+    const usuarioId = req.usuario && req.usuario.id ? req.usuario.id : null;
     const [affected] = await Notificacao.update(
-      { lida: true },
-      { where: { usuario_id: req.usuario.id, lida: false } }
+      { lida: true, lida_por_id: usuarioId, lida_por_nome: nome, lida_em: agora },
+      { where: { lida: false } }
     );
     res.json({ ok: true, affected });
   } catch (error) {

@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { User, Notificacao } = require('../models/index');
+const { User } = require('../models/index');
 const { sincronizarNotificacoes } = require('../services/notificacaoService');
 
 const ROLES_VALIDOS = ['admin', 'usuario'];
@@ -146,8 +146,8 @@ exports.deleteUsuario = async (req, res) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    // Remove as notificações individuais do usuário.
-    await Notificacao.destroy({ where: { usuario_id: id } });
+    // As notificações são globais (não vínculo de usuário): a exclusão do
+    // usuário não afeta as notificações existentes.
     await usuario.destroy();
     res.status(200).json({ message: 'Usuário removido com sucesso.' });
   } catch (error) {

@@ -5,12 +5,7 @@ const Notificacao = sequelize.define('Notificacao', {
   pagamento_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    unique: 'uq_notificacao_pagamento_usuario'
-  },
-  usuario_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    unique: 'uq_notificacao_pagamento_usuario'
+    unique: true
   },
   pi_id: {
     type: DataTypes.INTEGER,
@@ -33,6 +28,18 @@ const Notificacao = sequelize.define('Notificacao', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
+  },
+  lida_por_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  lida_por_nome: {
+    type: DataTypes.STRING(150),
+    allowNull: true
+  },
+  lida_em: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   tableName: 'notificacoes',
