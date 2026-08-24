@@ -5,7 +5,11 @@ const { PI, autor: Autor, Pagamento, RPI, User } = require('../src/models/index'
 const sequelize = require('../src/config/db');
 const { registrarHistorico } = require('../src/services/historicoService');
 
-const CSV_PATH = path.join(__dirname, '..', '..', 'Cópia de ACOMPANHAMENTO DE PIs - para Marcelo - GESTÃO DE PIs.csv');
+// Caminho da planilha configurável via PLANILHA_PATH no .env; sem ele,
+// usa o CSV na raiz do repositório.
+const CSV_PATH = process.env.PLANILHA_PATH
+  ? path.resolve(process.env.PLANILHA_PATH)
+  : path.join(__dirname, '..', '..', 'Cópia de ACOMPANHAMENTO DE PIs - para Marcelo - GESTÃO DE PIs.csv');
 
 const TIPOS_PI_MAP = {
   'PATENTE DE INVENÇÃO': 'patente de invencao',

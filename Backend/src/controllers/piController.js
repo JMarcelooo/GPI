@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { PI, RPI, Pagamento, Historico } = require('../models/index');
+const { PI, RPI, Pagamento, Historico, Notificacao } = require('../models/index');
 const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 
 const SORT_COLS = {
@@ -289,6 +289,9 @@ exports.deletePI = async (req, res) => {
         error: 'PI não encontrada'
       });
     }
+
+    // Remove as notificações da PI (prazo e RPI) — sem FK, ficariam órfãs.
+    await Notificacao.destroy({ where: { pi_id: pi.id } });
 
     await pi.destroy();
 
