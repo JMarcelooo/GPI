@@ -20,7 +20,15 @@ const LABELS = {
   valor: 'Valor',
   prazo_dias: 'Prazo (dias)',
   processo_sei: 'Processo SEI',
-  observacao: 'Observação'
+  observacao: 'Observação',
+  // Autores
+  email: 'E-mail',
+  bond: 'Vínculo',
+  department: 'Departamento',
+  campus: 'Campus',
+  university: 'Universidade',
+  gender: 'Gênero',
+  phone: 'Telefone'
 };
 
 function formatValue(value) {
@@ -51,12 +59,11 @@ function descricaoCamposAlterados(alterados) {
     .join('; ');
 }
 
-// Registra um evento no histórico da PI, gravando qual usuário o fez.
+// Registra um evento no histórico, gravando qual usuário o fez.
+// pi_id é opcional: eventos de autores/usuários não pertencem a uma PI.
 // O nome é desnormalizado (usuario_nome) para o registro sobreviver à exclusão
 // do usuário e evitar um join na listagem.
-async function registrarHistorico({ pi_id, tipo, acao, descricao, detalhes, usuario }) {
-  if (!pi_id) return;
-
+async function registrarHistorico({ pi_id = null, tipo, acao, descricao, detalhes, usuario }) {
   let usuarioId = usuario && usuario.id ? usuario.id : null;
   let usuarioNome = usuario && usuario.nome ? usuario.nome : null;
 
@@ -70,7 +77,7 @@ async function registrarHistorico({ pi_id, tipo, acao, descricao, detalhes, usua
   }
 
   await Historico.create({
-    pi_id,
+    pi_id: pi_id || null,
     usuario_id: usuarioId,
     usuario_nome: usuarioNome,
     tipo,

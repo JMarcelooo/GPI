@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { autor: Autor } = require('../models/index');
+const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 
 const SORT_COLS = {
   name: 'name',
@@ -42,6 +43,13 @@ exports.createAutor = async (req, res) => {
 
   try {
     const novoAutor = await Autor.create(req.body);
+    await registrarHistorico({
+      tipo: 'autor',
+      acao: 'criacao',
+      descricao: `Autor "${novoAutor.name}" cadastrado`,
+      detalhes: { dados: novoAutor.toJSON() },
+      usuario: req.usuario
+    });
     res.status(201).json({ data: novoAutor });
   } catch (error) {
     handleError(error, res, 'criar autor');
@@ -122,9 +130,20 @@ exports.updateAutor = async (req, res) => {
       return res.status(404).json({ error: 'Autor não encontrado' });
     }
 
+    const alterados = camposAlterados(autor, req.body);
+
     await Autor.update(req.body, { where: { id } });
 
     const autorAtualizado = await Autor.findByPk(id);
+    if (alterados.length > 0) {
+      await registrarHistorico({
+        tipo: 'autor',
+        acao: 'atualizacao',
+        descricao: `Autor "${autorAtualizado.name}" atualizado — ${descricaoCamposAlterados(alterados)}`,
+        detalhes: { alteracoes: alterados },
+        usuario: req.usuario
+      });
+    }
     res.json({ data: autorAtualizado });
   } catch (error) {
     handleError(error, res, 'atualizar autor');
@@ -139,6 +158,13 @@ exports.deleteAutor = async (req, res) => {
     if (!autor) {
       return res.status(404).json({ error: 'Autor não encontrado' });
     }
+    await registrarHistorico({
+      tipo: 'autor',
+      acao: 'exclusao',
+      descricao: `Autor "${autor.name}" excluído`,
+      detalhes: { dados: autor.toJSON() },
+      usuario: req.usuario
+    });
     await autor.destroy();
     res.json({ message: 'Autor deletado com sucesso' });
   } catch (error) {

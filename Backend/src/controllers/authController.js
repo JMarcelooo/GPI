@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { User } = require('../models/index');
 const { assinarToken } = require('../middlewares/authMiddleware');
+const { registrarHistorico } = require('../services/historicoService');
 
 function sanitizeUser(user) {
   const plain = user.get({ plain: true });
@@ -95,8 +96,16 @@ exports.alterarSenha = async (req, res) => {
     }
 
     usuario.senha = await bcrypt.hash(String(novaSenha), 10);
+    const primeiraTroca = Boolean(usuario.deveTrocarSenha);
     usuario.deveTrocarSenha = false;
     await usuario.save();
+
+    await registrarHistorico({
+      tipo: 'usuario',
+      acao: 'atualizacao',
+      descricao: `Usuário "${usuario.nome}" ${primeiraTroca ? 'realizou a troca de senha inicial' : 'alterou a própria senha'}`,
+      usuario: req.usuario
+    });
 
     res.json({ message: 'Senha alterada com sucesso.' });
   } catch (error) {

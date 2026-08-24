@@ -295,6 +295,16 @@ exports.deletePI = async (req, res) => {
 
     await pi.destroy();
 
+    // Registrado APÓS o destroy e com pi_id nulo: a FK historico→pi tem
+    // ON DELETE CASCADE, então um log com pi_id seria apagado junto.
+    await registrarHistorico({
+      tipo: 'pi',
+      acao: 'exclusao',
+      descricao: `PI "${pi.titulo}" (${pi.protocolo || 'sem protocolo'}) excluída`,
+      detalhes: { protocolo: pi.protocolo, titulo: pi.titulo, status: pi.status },
+      usuario: req.usuario
+    });
+
     res.status(200).json({
       message: 'PI removida com sucesso'
     });

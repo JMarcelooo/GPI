@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
-const { User, Notificacao } = require('../models/index');
+const { User } = require('../models/index');
 const { sincronizarNotificacoes } = require('../services/notificacaoService');
+const { registrarHistorico } = require('../services/historicoService');
 
 const ROLES_VALIDOS = ['admin', 'usuario'];
 
@@ -71,6 +72,13 @@ exports.createUsuario = async (req, res) => {
     });
     // Gera as cópias de notificações para o novo usuário.
     sincronizarNotificacoes(true);
+    await registrarHistorico({
+      tipo: 'usuario',
+      acao: 'criacao',
+      descricao: `Usuário "${novoUsuario.nome}" criado (${novoUsuario.role})`,
+      detalhes: { email: novoUsuario.email, role: novoUsuario.role },
+      usuario: req.usuario
+    });
     res.status(201).json({ data: sanitizeUser(novoUsuario) });
   } catch (error) {
     handleError(error, res, 'criar usuário');
@@ -117,6 +125,13 @@ exports.updateUsuario = async (req, res) => {
       usuario.deveTrocarSenha = true;
     }
 
+    // Mudanças computadas antes de mutar o registro.
+    const mudancas = [];
+    if (nome !== undefined && nome !== usuario.nome) mudancas.push(`nome → "${nome}"`);
+    if (role !== undefined && role !== usuario.role) mudancas.push(`papel → ${role}`);
+    if (ativo !== undefined && ativo !== usuario.ativo) mudancas.push(ativo ? 'ativado' : 'desativado');
+    if (novaSenha !== undefined) mudancas.push('senha redefinida');
+
     if (nome !== undefined) usuario.nome = nome;
     if (role !== undefined) usuario.role = role;
     if (ativo !== undefined) usuario.ativo = ativo;
@@ -124,6 +139,15 @@ exports.updateUsuario = async (req, res) => {
     await usuario.save();
     // Reativação/edição pode mudar o conjunto de notificações do usuário.
     sincronizarNotificacoes(true);
+    if (mudancas.length > 0) {
+      await registrarHistorico({
+        tipo: 'usuario',
+        acao: 'atualizacao',
+        descricao: `Usuário "${usuario.nome}" atualizado — ${mudancas.join(', ')}`,
+        detalhes: { email: usuario.email, alteracoes: mudancas },
+        usuario: req.usuario
+      });
+    }
     res.json({ data: sanitizeUser(usuario) });
   } catch (error) {
     handleError(error, res, 'atualizar usuário');
@@ -146,8 +170,13 @@ exports.deleteUsuario = async (req, res) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    // Remove as notificações individuais do usuário.
-    await Notificacao.destroy({ where: { usuario_id: id } });
+    await registrarHistorico({
+      tipo: 'usuario',
+      acao: 'exclusao',
+      descricao: `Usuário "${usuario.nome}" excluído`,
+      detalhes: { email: usuario.email, role: usuario.role },
+      usuario: req.usuario
+    });
     await usuario.destroy();
     res.status(200).json({ message: 'Usuário removido com sucesso.' });
   } catch (error) {
