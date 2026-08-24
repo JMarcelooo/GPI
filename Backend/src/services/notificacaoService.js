@@ -83,20 +83,22 @@ async function sincronizarNotificacoes(forcar = false) {
   }
 
   // Pagamentos que deixaram de se qualificar (ex.: pagos) → marcar lidas
-  // para todos os usuários em lote.
+  // para todos os usuários em lote. Escopado a tipo 'prazo' para nunca
+  // tocar nas notificações do monitor de RPI.
   if (desqualificadas.length > 0) {
     await Notificacao.update(
       { lida: true },
-      { where: { pagamento_id: { [Op.in]: desqualificadas }, lida: false } }
+      { where: { tipo: 'prazo', pagamento_id: { [Op.in]: desqualificadas }, lida: false } }
     );
   }
 
-  // Remove órfãs (pagamentos excluídos).
+  // Remove órfãs (pagamentos excluídos). Escopado a tipo 'prazo' —
+  // notificações de RPI têm pagamento_id nulo e NÃO devem ser apagadas.
   if (idsAtivos.length === 0) {
-    await Notificacao.destroy({ where: {} });
+    await Notificacao.destroy({ where: { tipo: 'prazo', pagamento_id: { [Op.ne]: null } } });
   } else {
     await Notificacao.destroy({
-      where: { pagamento_id: { [Op.notIn]: idsAtivos } }
+      where: { tipo: 'prazo', pagamento_id: { [Op.notIn]: idsAtivos } }
     });
   }
 }

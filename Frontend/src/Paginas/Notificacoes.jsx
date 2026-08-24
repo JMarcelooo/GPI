@@ -1,4 +1,4 @@
-import { Clock, Eye, EyeOff, CheckCircle2, MailOpen, CheckCheck, CalendarDays, Trash2, Bell, BellOff } from 'lucide-react';
+import { Clock, Eye, EyeOff, CheckCircle2, MailOpen, CheckCheck, CalendarDays, Trash2, Bell, BellOff, Newspaper } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -81,8 +81,12 @@ function Notificacoes() {
     setNotifications(prev => prev.map(n => ({ ...n, lida: true })));
   };
 
-  const handleOpenPayment = (n) => {
-    navigate(`/pagamentos?pagamento=${n.pagamento_id}`);
+  const handleAbrir = (n) => {
+    if (n.tipo === 'rpi') {
+      navigate(`/detalhes/${n.pi_id}`);
+    } else {
+      navigate(`/pagamentos?pagamento=${n.pagamento_id}`);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.lida).length;
@@ -144,7 +148,7 @@ function Notificacoes() {
             <MailOpen size={40} />
             <p>
               {filter === 'todas'
-                ? 'Nenhuma notificação. Os avisos de pagamentos próximos do prazo aparecerão aqui.'
+                ? 'Nenhuma notificação. Avisos de pagamentos próximos do prazo e de publicações na RPI aparecerão aqui.'
                 : `Nenhuma notificação ${filter === 'nao-lidas' ? 'não lida' : 'lida'} no momento.`}
             </p>
           </div>
@@ -157,16 +161,16 @@ function Notificacoes() {
               >
                 <button
                   className="notificacao-open"
-                  onClick={() => handleOpenPayment(n)}
-                  title="Abrir pagamento"
+                  onClick={() => handleAbrir(n)}
+                  title={n.tipo === 'rpi' ? 'Abrir PI' : 'Abrir pagamento'}
                 >
-                  <div className={`notificacao-icon${n.lida ? ' notificacao-icon--read' : ''}`} style={n.lida ? {} : { color: 'var(--color-warning)' }}>
-                    <Clock size={16} />
+                  <div className={`notificacao-icon${n.lida ? ' notificacao-icon--read' : ''}`} style={n.lida ? {} : { color: n.tipo === 'rpi' ? 'var(--color-primary)' : 'var(--color-warning)' }}>
+                    {n.tipo === 'rpi' ? <Newspaper size={16} /> : <Clock size={16} />}
                   </div>
 
                   <div className="notificacao-content">
                     <div className="notificacao-title">
-                      Prazo se aproximando
+                      {n.tipo === 'rpi' ? 'Publicação na RPI' : 'Prazo se aproximando'}
                       {!n.lida && <span className="notificacao-dot" />}
                     </div>
                     <p className="notificacao-message">{n.mensagem}</p>

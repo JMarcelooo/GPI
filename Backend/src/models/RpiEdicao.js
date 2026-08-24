@@ -1,9 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-// Edições da RPI (INPI) já processadas pelo monitor de publicações.
-// A PK é o número da edição; a presença do registro indica que a edição
-// foi baixada e processada com sucesso (auditoria + retomada pós-restart).
 const RpiEdicao = sequelize.define('RpiEdicao', {
   numero: {
     type: DataTypes.INTEGER,

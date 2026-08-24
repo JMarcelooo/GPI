@@ -1,6 +1,27 @@
 const app = require('./app');
 const PORT = process.env.PORT || 3000;
 const { sincronizarNotificacoes } = require('./services/notificacaoService');
+const { verificarNovasEdicoesComTrava } = require('./services/rpiMonitorService');
+
+const INTERVALO_RPI_MS = 24 * 60 * 60 * 1000; // 1×/dia
+
+// Verifica se saiu edição nova da RPI (INPI). Falhas só logam — nunca
+// derrubam o servidor; a próxima execução tenta de novo.
+async function checarRpi(motivo) {
+  try {
+    const resultado = await verificarNovasEdicoesComTrava();
+    const processadas = (resultado.resultados || []).filter(r => r.status === 'processada');
+    if (processadas.length > 0) {
+      for (const r of processadas) {
+        console.log(`📰 RPI ${r.edicao} processada: ${r.matches} PI(s), ${r.criadas.rpis} RPI(s) e ${r.criadas.notificacoes} notificação(ões).`);
+      }
+    } else if (resultado.status === 'pagina_indisponivel') {
+      console.log(`Monitor RPI (${motivo}): página do INPI indisponível ou sem edições reconhecidas.`);
+    }
+  } catch (err) {
+    console.error(`Monitor RPI (${motivo}) falhou (tentará novamente):`, err.message);
+  }
+}
 
 // Função para listar rotas (só funciona APÓS o app.listen)
 const listRoutes = (app) => {
@@ -27,6 +48,10 @@ const server = app.listen(PORT, () => {
   sincronizarNotificacoes().catch(err => {
     console.error('Erro ao gerar notificações:', err);
   });
+
+  // Monitor de publicações da RPI: checa no boot e depois 1×/dia.
+  checarRpi('boot');
+  setInterval(() => checarRpi('intervalo-diario'), INTERVALO_RPI_MS);
 
   // Agora podemos listar as rotas (opcional)
   if (process.env.NODE_ENV !== 'production') {
