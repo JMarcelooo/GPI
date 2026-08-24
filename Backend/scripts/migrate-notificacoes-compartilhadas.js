@@ -35,9 +35,11 @@ async function migrate() {
   }
 
   console.log('4/6 Recriando índice único parcial de RPI (sem usuario_id)...');
+  // Uma mesma edição da RPI pode trazer várias PIs: o dedupe é por
+  // edição + PI + mensagem, não apenas pela edição.
   await sequelize.query('DROP INDEX IF EXISTS "uq_notificacao_rpi"');
   await sequelize.query(
-    'CREATE UNIQUE INDEX "uq_notificacao_rpi" ON "notificacoes" ("rpi_numero") WHERE "tipo" = \'rpi\' AND "rpi_numero" IS NOT NULL'
+    'CREATE UNIQUE INDEX "uq_notificacao_rpi" ON "notificacoes" ("rpi_numero", "pi_id", "mensagem") WHERE "tipo" = \'rpi\' AND "rpi_numero" IS NOT NULL'
   );
 
   console.log('5/6 Adicionando colunas lida_por_*...');
