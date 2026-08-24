@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight, ShieldCheck, Newspaper } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
 
 const adminItems = [
   { label: 'Usuários', icon: ShieldCheck, route: '/usuarios' },
+  { label: 'Log da RPI', icon: Newspaper, route: '/log-rpi' },
 ];
 
 export default function Sidebar() {
