@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight, ShieldCheck, Newspaper } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+const activeFor = (route) => ({
+  '/dashboard': route === '/dashboard',
+  '/propriedade-intelectual': ['/propriedade-intelectual', '/detalhes', '/cadastro-pi', '/editar-pi'].some(p => route.startsWith(p)),
+  '/autores': ['/autores'].some(p => route.startsWith(p)),
+  '/pagamentos': route === '/pagamentos',
+  '/configuracoes': route === '/configuracoes',
+  '/usuarios': route === '/usuarios',
+  '/log-rpi': route === '/log-rpi',
+});
 
 const navItems = [
   { label: 'Inicio', icon: Home, route: '/dashboard' },
@@ -18,6 +28,7 @@ const adminItems = [
 
 export default function Sidebar() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { isAdmin } = useAuth();
     const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
 
@@ -26,6 +37,7 @@ export default function Sidebar() {
     }, [collapsed]);
 
     const items = isAdmin ? [...navItems, ...adminItems] : navItems;
+    const isActive = activeFor(location.pathname);
 
     return (
         <div className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
@@ -42,6 +54,8 @@ export default function Sidebar() {
                         key={item.route}
                         onClick={() => navigate(item.route)}
                         title={collapsed ? item.label : undefined}
+                        className={isActive[item.route] ? 'sidebar-nav-active' : undefined}
+                        aria-current={isActive[item.route] ? 'page' : undefined}
                     >
                         <item.icon size={20} />
                         {!collapsed && <span>{item.label}</span>}

@@ -87,6 +87,13 @@
   color: #fff;
 }
 
+.sidebar nav button.sidebar-nav-active,
+.sidebar nav button[aria-current="page"] {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-weight: 700;
+}
+
 /* ---- Main content ---- */
 .main {
   flex: 1;
