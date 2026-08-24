@@ -83,9 +83,10 @@ CREATE TABLE IF NOT EXISTS "autor_pi" (
 
 CREATE TABLE IF NOT EXISTS "notificacoes" (
 	"id" serial NOT NULL UNIQUE,
-	"pagamento_id" integer NOT NULL,
+	"pagamento_id" integer,
 	"usuario_id" integer NOT NULL,
 	"pi_id" integer,
+	"rpi_numero" integer,
 	"tipo" varchar(50) NOT NULL DEFAULT 'prazo',
 	"mensagem" varchar(255) NOT NULL,
 	"data_vencimento" date,
@@ -94,6 +95,14 @@ CREATE TABLE IF NOT EXISTS "notificacoes" (
 	"updatedAt" timestamp with time zone,
 	PRIMARY KEY ("id"),
 	CONSTRAINT "uq_notificacao_pagamento_usuario" UNIQUE ("pagamento_id", "usuario_id")
+);
+
+-- Edições da RPI (INPI) já processadas pelo monitor de publicações
+CREATE TABLE IF NOT EXISTS "rpi_edicoes" (
+	"numero" integer NOT NULL,
+	"data_publicacao" date,
+	"processada_em" timestamp with time zone NOT NULL DEFAULT now(),
+	PRIMARY KEY ("numero")
 );
 
 CREATE TABLE IF NOT EXISTS "historico" (
@@ -134,3 +143,10 @@ CREATE INDEX IF NOT EXISTS "idx_pagamentos_pi_id" ON "pagamentos" ("pi_id");
 CREATE INDEX IF NOT EXISTS "idx_pagamentos_data_de_vencimento" ON "pagamentos" ("data_de_vencimento");
 CREATE INDEX IF NOT EXISTS "idx_pagamentos_status" ON "pagamentos" ("status");
 CREATE INDEX IF NOT EXISTS "idx_autor_pi_pi_id_autor_id" ON "autor_pi" ("pi_id", "autor_id");
+
+-- Migração: monitor de publicações da RPI (notificações tipo 'rpi')
+ALTER TABLE "notificacoes" ALTER COLUMN "pagamento_id" DROP NOT NULL;
+ALTER TABLE "notificacoes" ADD COLUMN IF NOT EXISTS "rpi_numero" integer;
+CREATE UNIQUE INDEX IF NOT EXISTS "uq_notificacao_rpi"
+	ON "notificacoes" ("tipo", "pi_id", "usuario_id", "rpi_numero")
+	WHERE "tipo" = 'rpi';

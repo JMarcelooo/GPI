@@ -1,0 +1,203 @@
+.logrpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.logrpi-subtitle {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.logrpi-verificar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--transition);
+}
+
+.logrpi-verificar:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.logrpi-verificar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.logrpi-verificar .spin {
+  animation: logrpi-spin 1s linear infinite;
+}
+
+@keyframes logrpi-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.logrpi-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.logrpi-edicao {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-success);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.logrpi-edicao--vazia {
+  border-left-color: var(--color-border);
+}
+
+.logrpi-cabecalho {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.logrpi-cabecalho:disabled {
+  cursor: default;
+}
+
+.logrpi-numero {
+  font-weight: 700;
+  font-size: var(--text-base);
+  flex-shrink: 0;
+}
+
+.logrpi-datas {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.logrpi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+.logrpi-badge--vazia {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.logrpi-processada {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.logrpi-mudancas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-4) calc(var(--space-5) + 30px);
+}
+
+.logrpi-mudanca {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light, var(--color-border));
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-success);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.logrpi-mudanca:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.logrpi-mudanca-conteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.logrpi-pi-titulo {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.logrpi-mudanca:hover .logrpi-pi-titulo {
+  color: var(--color-primary);
+}
+
+.logrpi-pi-descricao {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.logrpi-mudanca-hora {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.logrpi-error {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.logrpi-empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.logrpi-empty--card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 720px) {
+  .logrpi-processada,
+  .logrpi-datas {
+    display: none;
+  }
+}

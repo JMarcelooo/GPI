@@ -31,6 +31,9 @@ app.use('/api/pagamentos', autenticar, require('./routes/pagamentoRoutes'));
 app.use('/api/notificacoes', autenticar, require('./routes/notificacaoRoutes'));
 app.use('/api/stats', autenticar, require('./routes/statRoutes'));
 app.use('/api/usuarios', require('./routes/userRoutes'));
+// Monitor de RPI: o próprio router exige admin (além do autenticar global).
+const { exigirAdmin } = require('./middlewares/authMiddleware');
+app.use('/api/rpi-monitor', autenticar, exigirAdmin, require('./routes/rpiMonitorRoutes'));
 
 // Middleware de erro
 app.use((err, req, res, _next) => {

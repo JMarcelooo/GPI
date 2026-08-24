@@ -2,9 +2,10 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
 const Notificacao = sequelize.define('Notificacao', {
+  // Null para notificações que não vêm de pagamento (ex.: tipo 'rpi').
   pagamento_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     unique: 'uq_notificacao_pagamento_usuario'
   },
   usuario_id: {
@@ -13,6 +14,12 @@ const Notificacao = sequelize.define('Notificacao', {
     unique: 'uq_notificacao_pagamento_usuario'
   },
   pi_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
+  // Número da edição da RPI que gerou a notificação (tipo 'rpi').
+  // Dedupe garantido pelo índice único parcial uq_notificacao_rpi.
+  rpi_numero: {
     type: DataTypes.INTEGER,
     allowNull: true
   },
