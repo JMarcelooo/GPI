@@ -6,6 +6,7 @@ var _Pagamento = require('./Pagamento');
 var _Notificacao = require('./Notificacao');
 var _Historico = require('./Historico');
 var _User = require('./User');
+var RpiEdicao = require('./RpiEdicao');
 
 function initModels(sequelize) {
   var autor = _autor(sequelize, DataTypes);
@@ -81,7 +82,8 @@ function initModels(sequelize) {
     Pagamento,
     Notificacao,
     Historico,
-    User
+    User,
+    RpiEdicao
   };
 }
 module.exports = initModels;

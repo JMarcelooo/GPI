@@ -12,7 +12,7 @@ async function main() {
 
     await sequelize.sync({ force: false });
 
-    console.log('Tabelas criadas/sincronizadas com sucesso: autor, pi, RPI, pagamentos, notificacoes, historico');
+    console.log('Tabelas criadas/sincronizadas com sucesso: autor, pi, RPI, pagamentos, notificacoes, historico, usuarios, rpi_edicoes');
     process.exit(0);
   } catch (err) {
     console.error('Erro ao criar as tabelas:', err);
