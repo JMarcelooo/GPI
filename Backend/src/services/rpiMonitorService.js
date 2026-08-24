@@ -7,6 +7,7 @@ const { PI, RPI, Notificacao, User, RpiEdicao, Historico } = require('../models/
 const URL_PAGINA_RPI = 'https://revistas.inpi.gov.br/rpi/';
 const URL_ZIP_PATENTES = (numero) => `https://revistas.inpi.gov.br/txt/P${numero}.zip`;
 const URL_ZIP_PROGRAMAS = (numero) => `https://revistas.inpi.gov.br/txt/PC${numero}.zip`;
+const URL_ZIP_MARCAS = (numero) => `https://revistas.inpi.gov.br/txt/RM${numero}.zip`;
 const TIMEOUT_MS = 60 * 1000;
 
 // Status que ainda podem receber despachos publicados na revista.
@@ -131,13 +132,50 @@ function parsearEventosXml(xml, numero) {
   return eventos;
 }
 
-// Baixa as seções monitoradas da edição (Patentes + Programas de Computador)
-// e mescla os eventos por protocolo.
-async function extrairEventosDaEdicao(numero) {
+// Parseia o XML da seção de Marcas (RM{n}.zip), cuja estrutura difere das
+// demais: <revista><processo numero="905934687"><despachos><despacho
+// codigo="IPAS161" nome="…"/> — número e despachos em atributos, e um mesmo
+// processo pode ter vários despachos.
+function parsearEventosXmlMarcas(xml, numero) {
+  const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
+  const doc = parser.parse(xml);
+  let processos = doc && doc.revista ? doc.revista.processo : null;
+  if (!processos) throw new Error(`XML de Marcas da RPI ${numero} sem <revista>/<processo>`);
+  if (!Array.isArray(processos)) processos = [processos];
+
   const eventos = new Map();
-  for (const url of [URL_ZIP_PATENTES(numero), URL_ZIP_PROGRAMAS(numero)]) {
+  for (const proc of processos) {
+    const chave = normalizarProtocolo(proc['@_numero']);
+    if (!chave) continue;
+
+    let despachos = proc.despachos ? proc.despachos.despacho : null;
+    if (!despachos) continue;
+    if (!Array.isArray(despachos)) despachos = [despachos];
+
+    for (const d of despachos) {
+      if (!eventos.has(chave)) eventos.set(chave, []);
+      eventos.get(chave).push({
+        codigo: d['@_codigo'] != null ? String(d['@_codigo']) : null,
+        titulo: d['@_nome'] != null ? String(d['@_nome']) : ''
+      });
+    }
+  }
+  return eventos;
+}
+
+// Baixa as seções monitoradas da edição (Patentes + Programas de Computador +
+// Marcas) e mescla os eventos por protocolo.
+async function extrairEventosDaEdicao(numero) {
+  const secoes = [
+    { url: URL_ZIP_PATENTES(numero), parsear: parsearEventosXml },
+    { url: URL_ZIP_PROGRAMAS(numero), parsear: parsearEventosXml },
+    { url: URL_ZIP_MARCAS(numero), parsear: parsearEventosXmlMarcas }
+  ];
+
+  const eventos = new Map();
+  for (const { url, parsear } of secoes) {
     const xml = await baixarXmlDaSecao(url, numero);
-    for (const [chave, evs] of parsearEventosXml(xml, numero)) {
+    for (const [chave, evs] of parsear(xml, numero)) {
       if (!eventos.has(chave)) eventos.set(chave, []);
       eventos.get(chave).push(...evs);
     }
@@ -148,6 +186,16 @@ async function extrairEventosDaEdicao(numero) {
 function truncar(texto, max) {
   const s = String(texto || '').trim();
   return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+}
+
+// codigo_evento é FLOAT: "100.1" → 100.1; códigos de marca como "IPAS161"
+// viram 161 (primeiro número do código); sem número → 0.
+function converterCodigo(codigo) {
+  if (codigo == null) return 0;
+  const m = /\d+(?:\.\d+)?/.exec(String(codigo));
+  if (!m) return 0;
+  const n = parseFloat(m[0]);
+  return Number.isNaN(n) ? 0 : n;
 }
 
 // Processa UMA edição já baixada/parseada: cruza com as PIs ativas e, para
@@ -204,9 +252,7 @@ async function processarEdicao(edicao, eventosPorProtocolo) {
             {
               pi_id: pi.id,
               data: dataEdicao,
-              codigo_evento: ev.codigo != null && !Number.isNaN(parseFloat(ev.codigo))
-                ? parseFloat(ev.codigo)
-                : 0,
+              codigo_evento: converterCodigo(ev.codigo),
               descricao_do_evento: descricaoEvento
             },
             { transaction: t }
