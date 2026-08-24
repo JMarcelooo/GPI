@@ -6,6 +6,7 @@ const { PI, RPI, Notificacao, User, RpiEdicao, Historico } = require('../models/
 
 const URL_PAGINA_RPI = 'https://revistas.inpi.gov.br/rpi/';
 const URL_ZIP_PATENTES = (numero) => `https://revistas.inpi.gov.br/txt/P${numero}.zip`;
+const URL_ZIP_PROGRAMAS = (numero) => `https://revistas.inpi.gov.br/txt/PC${numero}.zip`;
 const TIMEOUT_MS = 60 * 1000;
 
 // Status que ainda podem receber despachos publicados na revista.
@@ -13,8 +14,10 @@ const STATUS_ATIVOS = ['em analise', 'deferida', 'registrada', 'carta patente'];
 
 let emExecucao = false;
 
+// Remove espaços, hífens e pontos para tolerar variações de formato
+// ("BR 10 2024 001244-14", "BR10202400124414" e "BR5120260009359" casam).
 function normalizarProtocolo(protocolo) {
-  const s = String(protocolo || '').trim().replace(/\s+/g, '').toUpperCase();
+  const s = String(protocolo || '').trim().replace(/[\s.\-/\\]/g, '').toUpperCase();
   return s || null;
 }
 
@@ -85,19 +88,23 @@ async function listarEdicoesRecentes() {
   return edicoes.sort((a, b) => b.numero - a.numero);
 }
 
-// Baixa o ZIP de patentes da edição e extrai os eventos por protocolo:
-// Map<protocolo normalizado, [{ codigo, titulo }]>
-async function extrairEventosDaEdicao(numero) {
-  const res = await fetchComRetry(URL_ZIP_PATENTES(numero), {
+// Baixa um ZIP da RPI (patentes ou programas) e devolve o XML embutido.
+async function baixarXmlDaSecao(url, numero) {
+  const res = await fetchComRetry(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GPI-UERN/1.0)' }
   });
   const buffer = Buffer.from(await res.arrayBuffer());
 
   const zip = new AdmZip(buffer);
   const entradaXml = zip.getEntries().find((e) => e.entryName.toLowerCase().endsWith('.xml'));
-  if (!entradaXml) throw new Error(`ZIP da RPI ${numero} não contém XML`);
-  const xml = zip.readAsText(entradaXml.entryName, 'utf8');
+  if (!entradaXml) throw new Error(`ZIP ${url} da RPI ${numero} não contém XML`);
+  return zip.readAsText(entradaXml.entryName, 'utf8');
+}
 
+// Parseia o XML de uma seção (Patentes: <processo-patente>; Programas de
+// Computador: <processo-programa>) e devolve os eventos por protocolo:
+// Map<protocolo normalizado, [{ codigo, titulo }]>
+function parsearEventosXml(xml, numero) {
   const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
   const doc = parser.parse(xml);
   let despachos = doc && doc.revista ? doc.revista.despacho : null;
@@ -106,7 +113,7 @@ async function extrairEventosDaEdicao(numero) {
 
   const eventos = new Map();
   for (const d of despachos) {
-    let processos = d['processo-patente'];
+    let processos = d['processo-patente'] || d['processo-programa'];
     if (!processos) continue;
     if (!Array.isArray(processos)) processos = [processos];
 
@@ -119,6 +126,20 @@ async function extrairEventosDaEdicao(numero) {
       if (!chave) continue;
       if (!eventos.has(chave)) eventos.set(chave, []);
       eventos.get(chave).push({ codigo, titulo });
+    }
+  }
+  return eventos;
+}
+
+// Baixa as seções monitoradas da edição (Patentes + Programas de Computador)
+// e mescla os eventos por protocolo.
+async function extrairEventosDaEdicao(numero) {
+  const eventos = new Map();
+  for (const url of [URL_ZIP_PATENTES(numero), URL_ZIP_PROGRAMAS(numero)]) {
+    const xml = await baixarXmlDaSecao(url, numero);
+    for (const [chave, evs] of parsearEventosXml(xml, numero)) {
+      if (!eventos.has(chave)) eventos.set(chave, []);
+      eventos.get(chave).push(...evs);
     }
   }
   return eventos;
