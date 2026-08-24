@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight, ShieldCheck, Newspaper } from 'lucide-react';
+import { Home, FileText, Users, DollarSign, Settings, ChevronLeft, ChevronRight, ShieldCheck, ScrollText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const activeFor = (route) => ({
@@ -10,7 +10,7 @@ const activeFor = (route) => ({
   '/pagamentos': route === '/pagamentos',
   '/configuracoes': route === '/configuracoes',
   '/usuarios': route === '/usuarios',
-  '/log-rpi': route === '/log-rpi',
+  '/logs': route === '/logs',
 });
 
 const navItems = [
@@ -23,7 +23,7 @@ const navItems = [
 
 const adminItems = [
   { label: 'Usuários', icon: ShieldCheck, route: '/usuarios' },
-  { label: 'Log da RPI', icon: Newspaper, route: '/log-rpi' },
+  { label: 'Logs', icon: ScrollText, route: '/logs' },
 ];
 
 export default function Sidebar() {
