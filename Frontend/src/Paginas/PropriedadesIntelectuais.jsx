@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from '../Components/Sidebar';
@@ -63,6 +63,7 @@ function PropriedadesIntelectuais() {
         q: term || undefined,
         status: flt.status || undefined,
         tipo: flt.tipo || undefined,
+        ano: flt.ano || undefined,
         sort: sField || undefined,
         order: sDir
       };
@@ -114,6 +115,22 @@ function PropriedadesIntelectuais() {
   const indexOfLastPI = Math.min(currentPage * PAGE_SIZE, total);
   const pageNumbers = getPageWindow(currentPage, totalPages);
 
+  const temFiltrosAtivos = Boolean(filters.tipo || filters.status || filters.ano);
+
+  const removerFiltro = (campo) => {
+    setFilters(prev => {
+      const next = { ...prev };
+      delete next[campo];
+      return next;
+    });
+    setCurrentPage(1);
+  };
+
+  const limparFiltros = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
+
   const paginate = (page) => setCurrentPage(page);
 
   return (
@@ -128,17 +145,47 @@ function PropriedadesIntelectuais() {
             <div className="filtros-topo">
               <input
                 type="text"
-                placeholder="Buscar por protocolo, depositante ou parceiro..."
+                placeholder="Buscar por título, protocolo, depositante ou parceiro..."
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               />
               <button className="filter-button" onClick={() => setShowFilterModal(true)}>
                 <SlidersHorizontal size={16} className="filter-icon" /> Filtros
+                {temFiltrosAtivos && <span className="filtro-dot" />}
               </button>
               <button className="btn-novo-pi" onClick={() => navigate("/cadastro-pi")}>
                 + Cadastrar Nova PI
               </button>
             </div>
+
+            {temFiltrosAtivos && (
+              <div className="filtros-ativos">
+                <span className="filtros-ativos-label">
+                  <SlidersHorizontal size={13} /> Filtros:
+                </span>
+                {filters.tipo && (
+                  <span className="filtro-chip">
+                    Tipo: {formatTipo(filters.tipo)}
+                    <button onClick={() => removerFiltro('tipo')} title="Remover"><X size={12} /></button>
+                  </span>
+                )}
+                {filters.status && (
+                  <span className="filtro-chip">
+                    Status: {formatStatus(filters.status)}
+                    <button onClick={() => removerFiltro('status')} title="Remover"><X size={12} /></button>
+                  </span>
+                )}
+                {filters.ano && (
+                  <span className="filtro-chip">
+                    Ano: {filters.ano}
+                    <button onClick={() => removerFiltro('ano')} title="Remover"><X size={12} /></button>
+                  </span>
+                )}
+                <button className="filtro-limpar-tudo" onClick={limparFiltros}>
+                  Limpar tudo
+                </button>
+              </div>
+            )}
 
             <div className="tabela-pi-scroll">
             <table className="tabela-pi">
@@ -184,7 +231,11 @@ function PropriedadesIntelectuais() {
                   currentPIs.map(pi => (
                     <tr key={pi.id}>
                       <td>{formatTipo(pi.tipo)}</td>
-                      <td>{pi.titulo || "-"}</td>
+                      <td>
+                        <span className="pi-titulo" title={pi.titulo}>
+                          {pi.titulo || "-"}
+                        </span>
+                      </td>
                       <td>
                         <span className={`badge ${normalizeStatus(pi.status)}`}>
                           {formatStatus(pi.status)}
@@ -193,10 +244,12 @@ function PropriedadesIntelectuais() {
                       <td>{pi.protocolo || "-"}</td>
                       <td>{pi.depositante || "-"}</td>
                       <td>{formatDate(pi.data_entrada)}</td>
-                      <td style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => navigate(`/detalhes/${pi.id}`)} className="btn-acao" title="Visualizar"><Eye size={18} /></button>
-                        <button onClick={() => navigate(`/editar-pi/${pi.id}`)} className="btn-acao" title="Editar"><Pencil size={18} /></button>
-                        <button onClick={() => setPiToDelete(pi)} className="btn-acao" title="Excluir" style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
+                      <td>
+                        <div className="tabela-pi-acoes">
+                          <button onClick={() => navigate(`/detalhes/${pi.id}`)} className="btn-acao" title="Visualizar"><Eye size={18} /></button>
+                          <button onClick={() => navigate(`/editar-pi/${pi.id}`)} className="btn-acao" title="Editar"><Pencil size={18} /></button>
+                          <button onClick={() => setPiToDelete(pi)} className="btn-acao" title="Excluir" style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
+                        </div>
                       </td>
                     </tr>
                   ))

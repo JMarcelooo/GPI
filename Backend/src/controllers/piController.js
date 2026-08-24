@@ -126,7 +126,7 @@ exports.createPI = async (req, res) => {
 // Query: ?q=&status=&tipo=&sort=&order=&limit=&offset=
 exports.getAllPIs = async (req, res) => {
   try {
-    const { q, status, tipo, sort, order } = req.query;
+    const { q, status, tipo, ano, sort, order } = req.query;
     const where = {};
 
     if (q) {
@@ -140,6 +140,7 @@ exports.getAllPIs = async (req, res) => {
     }
     if (status) where.status = status;
     if (tipo) where.tipo = tipo;
+    if (ano && !Number.isNaN(Number(ano))) where.ano = Number(ano);
 
     const orderCol = SORT_COLS[sort] || null;
     const orderDir = (order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC';

@@ -80,7 +80,8 @@
 }
 
 .form-group input[type="text"],
-.form-group input[type="email"] {
+.form-group input[type="email"],
+.form-group select {
   width: 100%;
   padding: var(--space-3);
   border: 1px solid var(--color-border);
@@ -93,7 +94,8 @@
 }
 
 .form-group input[type="text"]:focus,
-.form-group input[type="email"]:focus {
+.form-group input[type="email"]:focus,
+.form-group select:focus {
   border-color: var(--color-primary);
   outline: none;
   box-shadow: 0 0 0 3px var(--color-primary-100);
