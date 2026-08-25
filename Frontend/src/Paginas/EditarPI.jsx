@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { X, UserPlus, Search, Plus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -52,8 +53,8 @@ export default function EditarPI() {
 
   useEffect(() => {
     Promise.all([
-      axios.get(`${process.env.REACT_APP_API_URL}/api/autores`),
-      axios.get(`${process.env.REACT_APP_API_URL}/api/pi/${id}`)
+      axios.get(`${API_URL}/api/autores`),
+      axios.get(`${API_URL}/api/pi/${id}`)
     ])
       .then(([autoresRes, piRes]) => {
         setAutoresDisponiveis(autoresRes.data.data || []);
@@ -107,7 +108,7 @@ export default function EditarPI() {
   };
 
   const handleRegisterAuthorSuccess = async (newAuthorData) => {
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/autores`, newAuthorData);
+    const response = await axios.post(`${API_URL}/api/autores`, newAuthorData);
     const created = response.data.data;
     setAutoresDisponiveis(prev => [...prev, created]);
     setAutoresSelecionados(prev => [...prev, created.id]);
@@ -139,7 +140,7 @@ export default function EditarPI() {
     }
     setSubmitting(true);
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/pi/${id}`, {
+      await axios.put(`${API_URL}/api/pi/${id}`, {
         ...form,
         ano: form.ano ? Number(form.ano) : null,
         data_entrada: form.data_entrada || null,

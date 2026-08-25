@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Pencil, Trash2, Edit2, FilePlus2, FilePen, Files, CircleDollarSign } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -55,14 +56,14 @@ export default function PatenteDetalhes() {
   const [toast, setToast] = useState(null);
 
   const loadHistorico = useCallback(() => {
-    const api = process.env.REACT_APP_API_URL;
+    const api = API_URL;
     axios.get(`${api}/api/pi/${id}/historico`)
       .then(res => setHistorico(res.data.data || []))
       .catch(err => console.error("Erro ao buscar histórico:", err));
   }, [id]);
 
   useEffect(() => {
-    const api = process.env.REACT_APP_API_URL;
+    const api = API_URL;
     axios.get(`${api}/api/pi/${id}`)
       .then(res => {
         setPi(res.data.data);
@@ -87,7 +88,7 @@ export default function PatenteDetalhes() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/pi/${id}`);
+      await axios.delete(`${API_URL}/api/pi/${id}`);
       invalidatePis();
       setToast({ message: 'PI excluída com sucesso!', type: 'success' });
       setTimeout(() => navigate('/propriedade-intelectual'), 1200);
@@ -106,7 +107,7 @@ export default function PatenteDetalhes() {
 
   const handleAddRPI = async (newRPI) => {
     try {
-      const api = process.env.REACT_APP_API_URL;
+      const api = API_URL;
       const res = await axios.post(`${api}/api/rpi`, { ...newRPI, pi_id: Number(id) });
       setRpiEvents(prev => [...prev, res.data.data]);
       loadHistorico();
@@ -126,7 +127,7 @@ export default function PatenteDetalhes() {
   const handleUpdateRPI = async (updatedEvent) => {
     try {
       const rpiId = rpiEvents[editingIndex].id;
-      const api = process.env.REACT_APP_API_URL;
+      const api = API_URL;
       const res = await axios.put(`${api}/api/rpi/${rpiId}`, updatedEvent);
       setRpiEvents(prev => prev.map((e, i) => i === editingIndex ? res.data.data : e));
       setEditingEvent(null);
@@ -142,7 +143,7 @@ export default function PatenteDetalhes() {
   const handleDeleteRPI = async () => {
     try {
       const rpiId = rpiEvents[editingIndex].id;
-      const api = process.env.REACT_APP_API_URL;
+      const api = API_URL;
       await axios.delete(`${api}/api/rpi/${rpiId}`);
       setRpiEvents(prev => prev.filter((_, i) => i !== editingIndex));
       setEditingEvent(null);

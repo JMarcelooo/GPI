@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useCallback } from 'react';
 import { UserPlus, Pencil, Trash2, RefreshCw } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
@@ -7,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import '../Components/AuthorModal.css';
 import './Autor.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 
 function Usuarios() {
   const { user: currentUser } = useAuth();

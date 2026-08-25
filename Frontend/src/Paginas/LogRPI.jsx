@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +8,7 @@ import Toast from '../Components/Toast';
 import '../Tela2.css';
 import './LogRPI.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 
 function formatarData(dataStr) {
   if (!dataStr) return '-';

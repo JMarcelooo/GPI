@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info } from 'lucide-react';
@@ -12,7 +13,7 @@ import { formatStatusPagamento, daysUntil, formatCurrency } from '../utils/forma
 import { getPis } from '../services/piApi';
 import './Payments.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 const PAGE_SIZE = 10;
 
 const toLocalDate = (str) => {

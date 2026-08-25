@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -33,7 +34,7 @@ export default function AutorDetalhes() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   useEffect(() => {
-    const api = process.env.REACT_APP_API_URL;
+    const api = API_URL;
     axios.get(`${api}/api/autores/${id}`)
       .then(res => {
         setAutor(res.data.data);
@@ -47,7 +48,7 @@ export default function AutorDetalhes() {
   }, [id]);
 
   const handleUpdateSuccess = async (updatedAuthor) => {
-    const api = process.env.REACT_APP_API_URL;
+    const api = API_URL;
     await axios.put(`${api}/api/autores/${updatedAuthor.id}`, updatedAuthor);
     setAutor(updatedAuthor);
   };

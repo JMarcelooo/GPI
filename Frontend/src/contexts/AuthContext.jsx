@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const AuthContext = createContext();
@@ -19,7 +20,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(readStoredUser);
 
   const login = useCallback(async (email, senha) => {
-    const API = process.env.REACT_APP_API_URL;
+    const API = API_URL;
     const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

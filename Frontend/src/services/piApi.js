@@ -1,6 +1,7 @@
+import API_URL from '../config';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 const TTL_MS = 60000;
 
 let cache = null;
