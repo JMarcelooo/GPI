@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import {
   FileText, Wallet, Newspaper, Users, ShieldCheck,
   Search, X, History, RefreshCw
@@ -10,7 +11,7 @@ import Toast from '../Components/Toast';
 import '../Tela2.css';
 import './Logs.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 const PAGE_SIZE = 30;
 
 const TIPOS = [
