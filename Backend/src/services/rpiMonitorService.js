@@ -2,7 +2,7 @@ const { Op } = require('sequelize');
 const AdmZip = require('adm-zip');
 const { XMLParser } = require('fast-xml-parser');
 const sequelize = require('../config/db');
-const { PI, RPI, Notificacao, User, RpiEdicao, Historico } = require('../models/index');
+const { PI, RPI, Notificacao, RpiEdicao, Historico } = require('../models/index');
 
 const URL_PAGINA_RPI = 'https://revistas.inpi.gov.br/rpi/';
 const URL_ZIP_PATENTES = (numero) => `https://revistas.inpi.gov.br/txt/P${numero}.zip`;
@@ -200,9 +200,9 @@ function converterCodigo(codigo) {
 
 // Processa UMA edição já baixada/parseada: cruza com as PIs ativas e, para
 // cada match, grava (numa única transação) registro RPI, evento no histórico
-// e uma notificação por usuário ativo. A edição só é marcada como processada
-// dentro da mesma transação — qualquer falha faz rollback e a execução
-// seguinte tenta de novo.
+// e uma notificação compartilhada (leitura global). A edição só é marcada
+// como processada dentro da mesma transação — qualquer falha faz rollback
+// e a execução seguinte tenta de novo.
 async function processarEdicao(edicao, eventosPorProtocolo) {
   const dataEdicao = converterData(edicao.dataPublicacao);
 
@@ -222,8 +222,6 @@ async function processarEdicao(edicao, eventosPorProtocolo) {
     await RpiEdicao.create({ numero: edicao.numero, data_publicacao: dataEdicao });
     return { status: 'sem_matches', edicao: edicao.numero };
   }
-
-  const usuarios = await User.findAll({ where: { ativo: true }, attributes: ['id'] });
 
   // Idempotência das RPIs: se uma execução anterior morreu no meio desta
   // edição, evita duplicar registros com mesmo PI + data + código.
@@ -277,19 +275,16 @@ async function processarEdicao(edicao, eventosPorProtocolo) {
           );
         }
 
-        for (const u of usuarios) {
-          notificacoesParaCriar.push({
-            usuario_id: u.id,
-            pi_id: pi.id,
-            rpi_numero: edicao.numero,
-            tipo: 'rpi',
-            mensagem: truncar(
-              `A PI "${pi.titulo || pi.protocolo}" apareceu na RPI nº ${edicao.numero} — Despacho ${ev.codigo}: ${descricaoEvento}`,
-              255
-            ),
-            lida: false
-          });
-        }
+        notificacoesParaCriar.push({
+          pi_id: pi.id,
+          rpi_numero: edicao.numero,
+          tipo: 'rpi',
+          mensagem: truncar(
+            `A PI "${pi.titulo || pi.protocolo}" apareceu na RPI nº ${edicao.numero} — Despacho ${ev.codigo}: ${descricaoEvento}`,
+            255
+          ),
+          lida: false
+        });
       }
     }
 
@@ -298,12 +293,12 @@ async function processarEdicao(edicao, eventosPorProtocolo) {
     if (notificacoesParaCriar.length > 0) {
       const existentes = await Notificacao.findAll({
         where: { tipo: 'rpi', rpi_numero: edicao.numero },
-        attributes: ['usuario_id', 'pi_id', 'mensagem'],
+        attributes: ['pi_id', 'mensagem'],
         transaction: t
       });
-      const chavesNotif = new Set(existentes.map((n) => `${n.usuario_id}|${n.pi_id}|${n.mensagem}`));
+      const chavesNotif = new Set(existentes.map((n) => `${n.pi_id}|${n.mensagem}`));
       const novas = notificacoesParaCriar.filter(
-        (n) => !chavesNotif.has(`${n.usuario_id}|${n.pi_id}|${n.mensagem}`)
+        (n) => !chavesNotif.has(`${n.pi_id}|${n.mensagem}`)
       );
       if (novas.length > 0) {
         await Notificacao.bulkCreate(novas, { transaction: t });

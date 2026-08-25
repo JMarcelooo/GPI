@@ -126,7 +126,7 @@ exports.createPI = async (req, res) => {
 // Query: ?q=&status=&tipo=&sort=&order=&limit=&offset=
 exports.getAllPIs = async (req, res) => {
   try {
-    const { q, status, tipo, sort, order } = req.query;
+    const { q, status, tipo, ano, sort, order } = req.query;
     const where = {};
 
     if (q) {
@@ -140,6 +140,7 @@ exports.getAllPIs = async (req, res) => {
     }
     if (status) where.status = status;
     if (tipo) where.tipo = tipo;
+    if (ano && !Number.isNaN(Number(ano))) where.ano = Number(ano);
 
     const orderCol = SORT_COLS[sort] || null;
     const orderDir = (order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC';
@@ -294,6 +295,16 @@ exports.deletePI = async (req, res) => {
     await Notificacao.destroy({ where: { pi_id: pi.id } });
 
     await pi.destroy();
+
+    // Registrado APÓS o destroy e com pi_id nulo: a FK historico→pi tem
+    // ON DELETE CASCADE, então um log com pi_id seria apagado junto.
+    await registrarHistorico({
+      tipo: 'pi',
+      acao: 'exclusao',
+      descricao: `PI "${pi.titulo}" (${pi.protocolo || 'sem protocolo'}) excluída`,
+      detalhes: { protocolo: pi.protocolo, titulo: pi.titulo, status: pi.status },
+      usuario: req.usuario
+    });
 
     res.status(200).json({
       message: 'PI removida com sucesso'

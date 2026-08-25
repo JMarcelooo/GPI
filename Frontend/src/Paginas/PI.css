@@ -87,6 +87,79 @@
   border-radius: var(--radius-lg);
 }
 
+/* ---- Filtros ativos (chips) ---- */
+.filtros-ativos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-4);
+}
+
+.filtros-ativos-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+}
+
+.filtro-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 10px;
+  border-radius: 999px;
+  background: var(--color-primary-100, rgba(0, 159, 223, 0.12));
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.filtro-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.filtro-chip button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.filtro-limpar-tudo {
+  border: none;
+  background: transparent;
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 2px 4px;
+}
+
+/* Indicador de filtro ativo no botão */
+.filter-button {
+  position: relative;
+}
+
+.filtro-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-warning);
+}
+
 .tabela-pi {
   width: 100%;
   border-collapse: collapse;
@@ -118,10 +191,21 @@
 .tabela-pi td:nth-child(2) {
   max-width: 320px;
   min-width: 180px;
-  word-break: break-word;
-  white-space: normal;
   color: var(--color-text);
   font-weight: 500;
+}
+
+/* Título longo em linha única, sem quebrar a tabela. */
+.pi-titulo {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabela-pi-acoes {
+  display: flex;
+  gap: 6px;
 }
 
 .tabela-pi td:nth-child(3) {

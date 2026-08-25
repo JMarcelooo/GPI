@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Pagamento, PI, Notificacao, User } = require('../models/index');
+const { Pagamento, PI, Notificacao } = require('../models/index');
 
 const TTL_SYNC_MS = 60 * 1000;
 let ultimaSync = 0;
@@ -27,16 +27,13 @@ function montarMensagem(p, diff) {
 }
 
 // Gera/mantém as notificações a partir dos pagamentos próximos do prazo.
-// Cada usuário ativo recebe a própria cópia, então a leitura é individual
-// (um usuário pode marcar como lida sem afetar o outro).
+// Existe UMA notificação por pagamento, compartilhada entre todos os
+// usuários; a leitura é global e registra quem marcou (lida_por_*).
 // Idempotente e em lote (sem N+1). O resultado é cacheado por ~1 min para
 // que um polling de N clientes não dispare N sincronizações.
 async function sincronizarNotificacoes(forcar = false) {
   if (!forcar && Date.now() - ultimaSync < TTL_SYNC_MS) return;
   ultimaSync = Date.now();
-
-  const usuarios = await User.findAll({ where: { ativo: true }, attributes: ['id'] });
-  if (usuarios.length === 0) return;
 
   const pagamentos = await Pagamento.findAll({
     include: [{ model: PI, as: 'pi' }]
@@ -55,36 +52,31 @@ async function sincronizarNotificacoes(forcar = false) {
     const qualifica = status !== 'pago' && prazo && diff !== null && diff <= Number(prazo);
 
     if (qualifica) {
-      for (const u of usuarios) {
-        qualificadas.push({
-          pagamento_id: p.id,
-          usuario_id: u.id,
-          pi_id: p.pi_id,
-          tipo: 'prazo',
-          mensagem: montarMensagem(p, diff),
-          data_vencimento: p.data_de_vencimento,
-          lida: false
-        });
-      }
+      qualificadas.push({
+        pagamento_id: p.id,
+        pi_id: p.pi_id,
+        tipo: 'prazo',
+        mensagem: montarMensagem(p, diff),
+        data_vencimento: p.data_de_vencimento
+      });
     } else {
       desqualificadas.push(p.id);
     }
   }
 
-  // Upsert em lote: cria as novas (uma por usuário) e atualiza
-  // mensagem/data de vencimento das existentes em uma única query.
-  // O campo "lida" fica de fora do update, então o estado de leitura de
-  // cada usuário é preservado.
+  // Upsert em lote: cria as novas e atualiza mensagem/data de vencimento
+  // das existentes em uma única query. "lida" e lida_por_* ficam de fora
+  // do update, preservando o estado de leitura.
   if (qualificadas.length > 0) {
     await Notificacao.bulkCreate(qualificadas, {
       updateOnDuplicate: ['mensagem', 'data_vencimento'],
-      conflictAttributes: ['pagamento_id', 'usuario_id']
+      conflictAttributes: ['pagamento_id']
     });
   }
 
-  // Pagamentos que deixaram de se qualificar (ex.: pagos) → marcar lidas
-  // para todos os usuários em lote. Escopado a tipo 'prazo' para nunca
-  // tocar nas notificações do monitor de RPI.
+  // Pagamentos que deixaram de se qualificar (ex.: pagos) → marcar a
+  // notificação como lida. Escopado a tipo 'prazo' para nunca tocar nas
+  // notificações do monitor de RPI.
   if (desqualificadas.length > 0) {
     await Notificacao.update(
       { lida: true },

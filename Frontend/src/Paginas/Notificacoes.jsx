@@ -32,6 +32,13 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('pt-BR');
 }
 
+function formatDateTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
 function Notificacoes() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +66,13 @@ function Notificacoes() {
 
   const handleToggleRead = async (n) => {
     try {
-      await axios.patch(`${API}/api/notificacoes/${n.id}`, { lida: !n.lida });
-      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, lida: !n.lida } : x));
+      const res = await axios.patch(`${API}/api/notificacoes/${n.id}`, { lida: !n.lida });
+      const updated = res.data?.data;
+      if (updated) {
+        setNotifications(prev => prev.map(x => x.id === updated.id ? updated : x));
+      } else {
+        setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, lida: !n.lida } : x));
+      }
       refresh();
     } catch (err) {
       console.error('Erro ao atualizar notificação:', err);
@@ -79,7 +91,7 @@ function Notificacoes() {
 
   const handleMarkAllRead = async () => {
     await markAllRead();
-    setNotifications(prev => prev.map(n => ({ ...n, lida: true })));
+    load();
   };
 
   const handleAbrir = (n) => {
@@ -185,7 +197,8 @@ function Notificacoes() {
                       )}
                       {n.lida && (
                         <span className="notificacao-read-tag">
-                          <CheckCircle2 size={12} /> Lida
+                          <CheckCircle2 size={12} />
+                          {n.lida_por_nome ? <>Lida por {n.lida_por_nome} em {formatDateTime(n.lida_em)}</> : 'Lida'}
                         </span>
                       )}
                     </div>

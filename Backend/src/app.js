@@ -36,6 +36,8 @@ app.use('/api/autores', autenticar, require('./routes/autorRoutes'));
 app.use('/api/rpi', autenticar, require('./routes/rpiRoutes'));
 app.use('/api/pagamentos', autenticar, require('./routes/pagamentoRoutes'));
 app.use('/api/notificacoes', autenticar, require('./routes/notificacaoRoutes'));
+// Histórico global: o próprio router exige admin (além do autenticar global).
+app.use('/api/historico', autenticar, require('./routes/historicoRoutes'));
 app.use('/api/stats', autenticar, require('./routes/statRoutes'));
 app.use('/api/usuarios', require('./routes/userRoutes'));
 // Monitor de RPI: o próprio router exige admin (além do autenticar global).
