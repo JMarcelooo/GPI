@@ -4,7 +4,14 @@ const sequelize = require('./config/db');
 
 const app = express();
 
-app.use(cors());
+// Origem(s) permitida(s) via FRONTEND_URL no .env (separadas por vírgula).
+// Sem a variável (desenvolvimento local), libera qualquer origem.
+const FRONTEND_URLS = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((u) => u.trim())
+  .filter(Boolean);
+
+app.use(cors(FRONTEND_URLS.length > 0 ? { origin: FRONTEND_URLS } : {}));
 app.use(express.json());
 
 app.use((req, res, next) => {

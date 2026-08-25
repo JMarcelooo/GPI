@@ -1,9 +1,10 @@
+import API_URL from '../config';
 import { useState } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import './AuthorModal.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 
 function CampoSenha({ label, id, value, onChange, autoComplete }) {
   const [mostrar, setMostrar] = useState(false);

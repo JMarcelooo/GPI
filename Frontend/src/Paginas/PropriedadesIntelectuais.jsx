@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useCallback } from "react";
 import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,7 @@ import FilterPIModal from '../Components/FilterPIModal';
 import Toast from '../Components/Toast';
 import { invalidatePis } from '../services/piApi';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 const PAGE_SIZE = 10;
 
 function normalizeStatus(status) {

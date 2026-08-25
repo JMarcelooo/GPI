@@ -1,9 +1,10 @@
+import API_URL from '../config';
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 
 const NotificacoesContext = createContext();
 

@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
@@ -10,7 +11,7 @@ import Toast from '../Components/Toast';
 import axios from 'axios';
 import './Autor.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 const PAGE_SIZE = 10;
 
 const formatPhone = (phone) => {

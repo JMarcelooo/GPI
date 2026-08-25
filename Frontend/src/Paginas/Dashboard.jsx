@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import { useState, useEffect } from 'react';
 import {
   FileText, Users, TrendingUp, Download, Clock, Award, DollarSign, GitBranch,
@@ -40,7 +41,7 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/stats`)
+    axios.get(`${API_URL}/api/stats`)
       .then(res => {
         const { pi, autores, pagamentos } = res.data;
         setStats({

@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import { Clock, Eye, EyeOff, CheckCircle2, MailOpen, CheckCheck, CalendarDays, Trash2, Bell, BellOff, Newspaper } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
@@ -7,7 +8,7 @@ import { useNotificacoes } from '../contexts/NotificacoesContext';
 import '../Tela2.css';
 import './Notificacoes.css';
 
-const API = process.env.REACT_APP_API_URL;
+const API = API_URL;
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';

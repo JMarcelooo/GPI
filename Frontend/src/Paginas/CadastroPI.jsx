@@ -1,3 +1,4 @@
+import API_URL from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { X, UserPlus, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -49,7 +50,7 @@ export default function CadastroPI() {
   const searchRef = useRef(null);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/autores`)
+    axios.get(`${API_URL}/api/autores`)
       .then(res => setAutoresDisponiveis(res.data.data || []))
       .catch(err => console.error("Erro ao buscar autores:", err));
   }, []);
@@ -80,7 +81,7 @@ export default function CadastroPI() {
   };
 
   const handleRegisterAuthorSuccess = async (newAuthorData) => {
-    const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/autores`, newAuthorData);
+    const response = await axios.post(`${API_URL}/api/autores`, newAuthorData);
     const created = response.data.data;
     setAutoresDisponiveis(prev => [...prev, created]);
     setAutoresSelecionados(prev => [...prev, created.id]);
@@ -112,7 +113,7 @@ export default function CadastroPI() {
     }
     setSubmitting(true);
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/pi`, {
+      await axios.post(`${API_URL}/api/pi`, {
         ...form,
         ano: form.ano ? Number(form.ano) : null,
         data_entrada: form.data_entrada || null,
