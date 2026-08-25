@@ -5,12 +5,23 @@ const { registrarHistorico } = require('../services/historicoService');
 
 const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
 
-// GET /api/pagamentos?pi_id=&q=&limit=&offset=
+// GET /api/pagamentos?pi_id=&q=&status=&venc_de=&venc_at=&limit=&offset=
 exports.listPagamentos = async (req, res) => {
   try {
-    const { pi_id, q } = req.query;
+    const { pi_id, q, status, venc_de, venc_at } = req.query;
     const where = {};
     if (pi_id) where.pi_id = pi_id;
+    if (status && STATUS_VALIDOS.includes(status)) {
+      // Registros sem status são tratados como "aguardando prazo".
+      where.status = status === 'aguardando prazo'
+        ? { [Op.or]: ['aguardando prazo', null] }
+        : status;
+    }
+    if (venc_de || venc_at) {
+      where.data_de_vencimento = {};
+      if (venc_de) where.data_de_vencimento[Op.gte] = venc_de;
+      if (venc_at) where.data_de_vencimento[Op.lte] = venc_at;
+    }
 
     const include = [];
     if (q) {

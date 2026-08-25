@@ -26,6 +26,7 @@ const genderLabel = (g) => {
 };
 
 export default function AutorDetalhes() {
+  document.title = 'GPI - Detalhes do Autor';
   const navigate = useNavigate();
   const { id } = useParams();
   const [autor, setAutor] = useState(null);

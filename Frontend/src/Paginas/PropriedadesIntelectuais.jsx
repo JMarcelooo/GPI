@@ -25,6 +25,7 @@ function getPageWindow(current, total) {
 }
 
 function PropriedadesIntelectuais() {
+  document.title = 'GPI - Propriedades Intelectuais';
   const navigate = useNavigate();
   const [pis, setPis] = useState([]);
   const [loading, setLoading] = useState(true);

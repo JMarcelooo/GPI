@@ -11,6 +11,7 @@ import './Autor.css';
 const API = API_URL;
 
 function Usuarios() {
+  document.title = 'GPI - Usuários';
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);

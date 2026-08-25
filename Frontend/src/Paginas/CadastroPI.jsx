@@ -27,6 +27,7 @@ const STATUS_PI = [
 ];
 
 export default function CadastroPI() {
+  document.title = 'GPI - Cadastro de PI';
   const navigate = useNavigate();
   const [form, setForm] = useState({
     tipo: '',

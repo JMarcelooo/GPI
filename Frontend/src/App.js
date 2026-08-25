@@ -11,7 +11,6 @@ import AutorDetalhes from './Paginas/AutorDetalhes';
 import Notificacoes from './Paginas/Notificacoes';
 import Configuracoes from './Paginas/Configuracoes';
 import Usuarios from './Paginas/Usuarios';
-import LogRPI from './Paginas/LogRPI';
 import Logs from './Paginas/Logs';
 import NotificationBell from './Components/NotificationBell';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -59,7 +58,6 @@ function App() {
               <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
               <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
               <Route path="/usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
-              <Route path="/log-rpi" element={<AdminRoute><LogRPI /></AdminRoute>} />
               <Route path="/logs" element={<AdminRoute><Logs /></AdminRoute>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

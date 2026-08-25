@@ -27,6 +27,7 @@ const STATUS_PI = [
 ];
 
 export default function EditarPI() {
+  document.title = 'GPI - Editar PI';
   const navigate = useNavigate();
   const { id } = useParams();
   const [form, setForm] = useState({

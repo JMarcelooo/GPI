@@ -39,6 +39,7 @@ const HISTORICO_ACOES = {
 };
 
 export default function PatenteDetalhes() {
+  document.title = 'GPI - Detalhes da PI';
   const navigate = useNavigate();
   const { id } = useParams();
   const [pi, setPi] = useState(null);

@@ -1,7 +1,7 @@
 import API_URL from '../config';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info, X } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import Calendar from '../Components/Calendar';
@@ -29,6 +29,7 @@ function getPageWindow(current, total) {
 }
 
 export default function Payments() {
+  document.title = 'GPI - Pagamentos';
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -41,6 +42,10 @@ export default function Payments() {
   const [tableLoading, setTableLoading] = useState(false);
   const [pis, setPis] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterPi, setFilterPi] = useState('');
+  const [filterVencDe, setFilterVencDe] = useState('');
+  const [filterVencAte, setFilterVencAte] = useState('');
   const [toast, setToast] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const openedFromParam = useRef(false);
@@ -50,11 +55,19 @@ export default function Payments() {
     setAllPayments(res.data.data || []);
   }, []);
 
-  const loadTable = useCallback(async (page, term) => {
+  const loadTable = useCallback(async (page, term, flt) => {
     setTableLoading(true);
     try {
       const res = await axios.get(`${API}/api/pagamentos`, {
-        params: { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, q: term || undefined }
+        params: {
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
+          q: term || undefined,
+          status: flt?.status || undefined,
+          pi_id: flt?.pi || undefined,
+          venc_de: flt?.vencDe || undefined,
+          venc_at: flt?.vencAte || undefined
+        }
       });
       setTablePayments(res.data.data || []);
       setTotal(res.data.total || 0);
@@ -74,12 +87,34 @@ export default function Payments() {
       .catch(err => console.error("Erro ao buscar PIs:", err));
   }, [loadAllPayments]);
 
+  const temFiltros = Boolean(filterStatus || filterPi || filterVencDe || filterVencAte);
+
+  const limparFiltros = () => {
+    setFilterStatus('');
+    setFilterPi('');
+    setFilterVencDe('');
+    setFilterVencAte('');
+    setCurrentPage(1);
+  };
+
+  const filtrosAtuais = () => ({
+    status: filterStatus,
+    pi: filterPi,
+    vencDe: filterVencDe,
+    vencAte: filterVencAte
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadTable(currentPage, searchTerm);
+      loadTable(currentPage, searchTerm, {
+        status: filterStatus,
+        pi: filterPi,
+        vencDe: filterVencDe,
+        vencAte: filterVencAte
+      });
     }, searchTerm ? 300 : 0);
     return () => clearTimeout(timer);
-  }, [currentPage, searchTerm, loadTable]);
+  }, [currentPage, searchTerm, filterStatus, filterPi, filterVencDe, filterVencAte, loadTable]);
 
   const piMap = {};
   pis.forEach(pi => { piMap[pi.id] = pi; });
@@ -155,6 +190,14 @@ export default function Payments() {
     .sort((a, b) => a.dueDate - b.dueDate)
     .slice(0, 5);
 
+  // Pagamentos que vencem no dia selecionado no calendário.
+  const pagamentosDoDia = enrichedPayments.filter(p =>
+    p.dueDate &&
+    p.dueDate.getDate() === calendarSelectedDate.getDate() &&
+    p.dueDate.getMonth() === calendarSelectedDate.getMonth() &&
+    p.dueDate.getFullYear() === calendarSelectedDate.getFullYear()
+  );
+
   const handleOpenUpdateModal = (payment) => {
     setSelectedPayment(payment);
     setShowUpdateModal(true);
@@ -167,13 +210,13 @@ export default function Payments() {
 
   const handleRegister = async (payload) => {
     await axios.post(`${API}/api/pagamentos`, payload);
-    await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm)]);
+    await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm, filtrosAtuais())]);
     setToast({ message: 'Pagamento registrado com sucesso!', type: 'success' });
   };
 
   const handleUpdate = async (payload) => {
     await axios.put(`${API}/api/pagamentos/${selectedPayment.id}`, payload);
-    await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm)]);
+    await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm, filtrosAtuais())]);
     setToast({ message: 'Pagamento atualizado com sucesso!', type: 'success' });
   };
 
@@ -183,7 +226,7 @@ export default function Payments() {
     if (tablePayments.length === 1 && currentPage > 1) {
       setCurrentPage(currentPage - 1);
     } else {
-      await loadTable(currentPage, searchTerm);
+      await loadTable(currentPage, searchTerm, filtrosAtuais());
     }
     setToast({ message: 'Pagamento removido com sucesso!', type: 'success' });
   };
@@ -262,6 +305,55 @@ export default function Payments() {
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     className="search-input"
                   />
+                </div>
+                <div className="payments-filtros">
+                  <select
+                    className="filtro-select"
+                    value={filterStatus}
+                    onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                    title="Filtrar por status"
+                  >
+                    <option value="">Todos os status</option>
+                    <option value="aguardando prazo">Aguardando prazo</option>
+                    <option value="em andamento">Em andamento</option>
+                    <option value="pago">Pago</option>
+                  </select>
+
+                  <select
+                    className="filtro-select"
+                    value={filterPi}
+                    onChange={e => { setFilterPi(e.target.value); setCurrentPage(1); }}
+                    title="Filtrar por PI"
+                  >
+                    <option value="">Todas as PIs</option>
+                    {[...pis]
+                      .sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''))
+                      .map(pi => (
+                        <option key={pi.id} value={pi.id}>{pi.titulo || pi.protocolo || `PI ${pi.id}`}</option>
+                      ))}
+                  </select>
+
+                  <input
+                    type="date"
+                    className="filtro-date"
+                    value={filterVencDe}
+                    onChange={e => { setFilterVencDe(e.target.value); setCurrentPage(1); }}
+                    title="Vencimento a partir de"
+                  />
+                  <span className="filtro-periodo-sep">–</span>
+                  <input
+                    type="date"
+                    className="filtro-date"
+                    value={filterVencAte}
+                    onChange={e => { setFilterVencAte(e.target.value); setCurrentPage(1); }}
+                    title="Vencimento até"
+                  />
+
+                  {temFiltros && (
+                    <button className="filtro-limpar" onClick={limparFiltros} title="Limpar filtros">
+                      <X size={14} /> Limpar
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="table-scroll">
@@ -378,6 +470,43 @@ export default function Payments() {
               setSelectedDate={setCalendarSelectedDate}
               payments={enrichedPayments}
             />
+
+            <div className="day-payments-card">
+              <h2 className="section-title day-payments-title">
+                <CalendarIcon size={14} />
+                {calendarSelectedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                <span className="day-payments-count">
+                  {pagamentosDoDia.length} pagamento{pagamentosDoDia.length !== 1 ? 's' : ''}
+                </span>
+              </h2>
+              {pagamentosDoDia.length === 0 ? (
+                <p className="day-payments-empty">
+                  Nenhum pagamento vence neste dia.
+                </p>
+              ) : (
+                <div className="day-payments-list">
+                  {pagamentosDoDia.map(p => (
+                    <button
+                      key={p.id}
+                      className={`day-payment-item ${p.dueDate < today ? 'day-payment-item--atrasado' : ''}`}
+                      onClick={() => handleOpenViewModal(p)}
+                      title="Ver detalhes"
+                    >
+                      <div className="day-payment-left">
+                        <span className="day-payment-tipo">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</span>
+                        <span className="day-payment-pi">{p.pi}</span>
+                      </div>
+                      <div className="day-payment-right">
+                        <span className={`status-badge status-badge--${(p.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '')}`}>
+                          {formatStatusPagamento(p.status)}
+                        </span>
+                        <span className="day-payment-valor">{formatCurrency(parseFloat(p.valor) || 0)}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {upcomingPayments.length > 0 && (
               <div className="upcoming-section">

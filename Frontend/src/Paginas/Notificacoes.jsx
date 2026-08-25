@@ -40,6 +40,7 @@ function formatDateTime(dateStr) {
 }
 
 function Notificacoes() {
+  document.title = 'GPI - Notificações';
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

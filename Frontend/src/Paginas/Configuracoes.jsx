@@ -9,6 +9,7 @@ import '../Tela2.css';
 import './Configuracoes.css';
 
 function Configuracoes() {
+  document.title = 'GPI - Configurações';
   const navigate = useNavigate();
   const { dark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();

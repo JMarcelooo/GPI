@@ -5,6 +5,7 @@ import '../Telas.css';
 import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
+  document.title = 'Gestão de Propriedades Intelectuais';
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');

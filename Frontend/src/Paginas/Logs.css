@@ -275,6 +275,35 @@
   margin-bottom: 12px;
 }
 
+.logs-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.logs-tab {
+  position: relative;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  bottom: -1px;
+  border-bottom: 2px solid transparent;
+}
+
+.logs-tab:hover {
+  color: var(--color-text);
+}
+
+.logs-tab--ativo {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
 @media (max-width: 720px) {
   .logs-header {
     flex-direction: column;

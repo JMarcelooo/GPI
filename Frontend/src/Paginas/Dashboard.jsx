@@ -26,6 +26,7 @@ const STATUS_META = {
 const CHART_COLORS = ['var(--chart-primary)', 'var(--chart-pink)', 'var(--chart-orange)', 'var(--chart-lime)', 'var(--chart-primary-light)', 'var(--chart-green)', 'var(--chart-cyan)', 'var(--chart-gray)'];
 
 function Dashboard() {
+  document.title = 'GPI - Dashboard';
   const { user, updateUser } = useAuth();
   const [showForcaTroca, setShowForcaTroca] = useState(!!user?.deveTrocarSenha);
   const [loading, setLoading] = useState(true);

@@ -33,6 +33,7 @@ function getPageWindow(current, total) {
 }
 
 export default function Autor() {
+  document.title = 'GPI - Autores';
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);

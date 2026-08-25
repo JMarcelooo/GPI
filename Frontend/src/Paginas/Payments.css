@@ -469,3 +469,164 @@
     flex-direction: column;
   }
 }
+
+/* ---- Filtros da tabela ---- */
+.table-toolbar {
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.payments-filtros {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filtro-select,
+.filtro-date {
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  outline: none;
+}
+
+.filtro-select:focus,
+.filtro-date:focus {
+  border-color: var(--color-primary);
+}
+
+.filtro-select {
+  max-width: 220px;
+}
+
+.filtro-periodo-sep {
+  color: var(--color-text-muted);
+  margin: 0 -4px;
+}
+
+.filtro-limpar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.filtro-limpar:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* ---- Card do dia (calendário) ---- */
+.day-payments-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+}
+
+.day-payments-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-transform: capitalize;
+}
+
+.day-payments-count {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.day-payments-empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-4) 0;
+}
+
+.day-payments-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.day-payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-light, var(--color-border));
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-bg);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.day-payment-item:hover {
+  border-color: var(--color-primary);
+  transform: translateX(2px);
+}
+
+.day-payment-item--atrasado {
+  border-left-color: var(--color-error);
+}
+
+.day-payment-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.day-payment-tipo {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-payment-pi {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.day-payment-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.day-payment-valor {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
