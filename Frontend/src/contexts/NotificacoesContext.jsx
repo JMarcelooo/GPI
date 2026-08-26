@@ -10,10 +10,10 @@ const NotificacoesContext = createContext();
 export function NotificacoesProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const refreshing = useRef(false);
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   const refresh = useCallback(async () => {
-    if (!token) return;
+    if (!user) return;
     if (refreshing.current) return;
     refreshing.current = true;
     try {
@@ -24,24 +24,24 @@ export function NotificacoesProvider({ children }) {
     } finally {
       refreshing.current = false;
     }
-  }, [token]);
+  }, [user]);
 
   const markAllRead = useCallback(async () => {
-    if (!token) return;
+    if (!user) return;
     try {
       await axios.post(`${API}/api/notificacoes/marcar-todas-lidas`);
       setUnreadCount(0);
     } catch (err) {
       console.error('Erro ao marcar notificações como lidas:', err);
     }
-  }, [token]);
+  }, [user]);
 
   useEffect(() => {
     // Sem polling: a contagem só é buscada ao carregar a página
     // (e atualizada manualmente via refresh() nas ações do usuário).
-    if (token) refresh();
+    if (user) refresh();
     else setUnreadCount(0);
-  }, [refresh, token]);
+  }, [refresh, user]);
 
   return (
     <NotificacoesContext.Provider value={{ unreadCount, refresh, markAllRead }}>

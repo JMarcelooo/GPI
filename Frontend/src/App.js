@@ -19,20 +19,20 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './services/apiClient';
 
 function ProtectedRoute({ children }) {
-  const { token } = useAuth();
-  if (!token) return <Navigate to="/login" replace />;
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function LoginRoute({ children }) {
-  const { token } = useAuth();
-  if (token) return <Navigate to="/dashboard" replace />;
+  const { user } = useAuth();
+  if (user) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
 function AdminRoute({ children }) {
-  const { token, isAdmin } = useAuth();
-  if (!token) return <Navigate to="/login" replace />;
+  const { user, isAdmin } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return children;
 }

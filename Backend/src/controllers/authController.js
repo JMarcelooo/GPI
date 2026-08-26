@@ -1,12 +1,24 @@
 const bcrypt = require('bcryptjs');
 const { User } = require('../models/index');
 const { assinarToken } = require('../middlewares/authMiddleware');
+const { revogar } = require('../services/revogacaoService');
 const { registrarHistorico } = require('../services/historicoService');
 
 function sanitizeUser(user) {
   const plain = user.get({ plain: true });
   delete plain.senha;
   return plain;
+}
+
+function cookieOptions() {
+  const producao = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    sameSite: producao ? 'none' : 'lax',
+    secure: producao,
+    maxAge: 8 * 60 * 60 * 1000,
+    path: '/'
+  };
 }
 
 // POST /api/auth/login
@@ -35,6 +47,9 @@ exports.login = async (req, res) => {
     }
 
     const token = assinarToken(usuario);
+    // BUG-006: token em cookie httpOnly (ilegível via JS → mitiga XSS).
+    // O token também é retornado no corpo para clientes não-navegador/APIs.
+    res.cookie('gpi_token', token, cookieOptions());
     res.json({
       token,
       user: sanitizeUser(usuario)
@@ -111,5 +126,18 @@ exports.alterarSenha = async (req, res) => {
   } catch (error) {
     console.error('Erro ao alterar senha:', error);
     res.status(500).json({ error: 'Erro ao alterar senha.' });
+  }
+};
+
+// POST /api/auth/logout
+exports.logout = async (req, res) => {
+  try {
+    // Revoga o jti atual (blacklist) para que o token não seja reaproveitado.
+    await revogar(req.jti, req.tokenExp);
+    res.clearCookie('gpi_token', { path: '/' });
+    res.json({ message: 'Logout realizado.' });
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+    res.status(500).json({ error: 'Erro ao fazer logout.' });
   }
 };

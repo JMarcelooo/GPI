@@ -3,7 +3,6 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const AuthContext = createContext();
 
-const STORAGE_TOKEN = 'gpi_token';
 const STORAGE_USER = 'gpi_user';
 
 function readStoredUser() {
@@ -16,7 +15,8 @@ function readStoredUser() {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(STORAGE_TOKEN));
+  // BUG-006: não guardamos o token em localStorage (XSS-stealable). O token
+  // fica em cookie httpOnly; aqui mantemos apenas o usuário para a UI.
   const [user, setUser] = useState(readStoredUser);
 
   const login = useCallback(async (email, senha) => {
@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
     const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, senha })
     });
 
@@ -34,17 +35,21 @@ export function AuthProvider({ children }) {
       throw err;
     }
 
-    localStorage.setItem(STORAGE_TOKEN, data.token);
     localStorage.setItem(STORAGE_USER, JSON.stringify(data.user));
-    setToken(data.token);
     setUser(data.user);
     return data.user;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_TOKEN);
+  const logout = useCallback(async () => {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch {
+      // ignora erros de rede no logout
+    }
     localStorage.removeItem(STORAGE_USER);
-    setToken(null);
     setUser(null);
   }, []);
 
@@ -57,7 +62,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, updateUser, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );

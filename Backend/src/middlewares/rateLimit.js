@@ -11,11 +11,16 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,
+  // Desativa a validação padrão do express-rate-limit: ela dispara
+  // ERR_ERL_KEY_GEN_IPV6 sempre que o keyGenerator referencia req.ip, mesmo
+  // quando o IP já está sanitizado (sem ':').
+  validate: false,
   keyGenerator: (req) => {
+    const ip = (req.ip || req.socket.remoteAddress || 'desconhecido').replace(/:/g, '.');
     const email = req.body && req.body.email
       ? String(req.body.email).toLowerCase().trim()
       : 'desconhecido';
-    return `${req.ip}:${email}`;
+    return `${ip}_${email}`;
   },
   statusCode: 429,
   message: {

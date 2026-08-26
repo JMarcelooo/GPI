@@ -1,18 +1,25 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const sequelize = require('./config/db');
 
 const app = express();
 
 // Origem(s) permitida(s) via FRONTEND_URL no .env (separadas por vírgula).
-// Sem a variável (desenvolvimento local), libera qualquer origem.
-const FRONTEND_URLS = (process.env.FRONTEND_URL || '')
+// Em dev (sem a variável) usamos o endereço do CRA (porta 3001). O cors com
+// array de origens define 'Access-Control-Allow-Origin' explícito (não o
+// curinga '*'), o que é obrigatório quando credentials:true (cookie httpOnly
+// do BUG-006). Sem origin explícito, o reflexo de req.headers.origin falha e
+// o navegador bloqueia com 'No Access-Control-Allow-Origin header'.
+const FRONTEND_URLS = (process.env.FRONTEND_URL
+  || 'http://localhost:3001,http://127.0.0.1:3001')
   .split(',')
   .map((u) => u.trim())
   .filter(Boolean);
 
-app.use(cors(FRONTEND_URLS.length > 0 ? { origin: FRONTEND_URLS } : {}));
+app.use(cors({ origin: FRONTEND_URLS, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
