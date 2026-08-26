@@ -29,7 +29,15 @@ async function autenticar(req, res, next) {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    if (await estaRevogado(payload.jti)) {
+    // Falha aberta: se a checagem de revogação der erro (ex.: tabela
+    // token_blacklist ausente), não derruba todas as sessões com 401.
+    let revogado = false;
+    try {
+      revogado = await estaRevogado(payload.jti);
+    } catch (err) {
+      console.error('Erro ao verificar revogação de token:', err.message);
+    }
+    if (revogado) {
       return res.status(401).json({ error: 'Sessão inválida ou expirada.' });
     }
     req.usuario = { id: payload.id, role: payload.role };

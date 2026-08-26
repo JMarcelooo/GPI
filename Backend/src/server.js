@@ -1,7 +1,15 @@
 const app = require('./app');
 const PORT = process.env.PORT || 3000;
+const { sequelize } = require('./config/db');
 const { sincronizarNotificacoes } = require('./services/notificacaoService');
 const { verificarNovasEdicoesComTrava } = require('./services/rpiMonitorService');
+
+// Cria tabelas faltantes (ex.: token_blacklist do BUG-006) sem dropar nada.
+// Evita que um modelo novo quebre o boot ou deixe rotas autenticadas em 401
+// por falta de tabela. Idempotente (force:false).
+sequelize.sync({ force: false })
+  .then(() => console.log('✅ Tabelas sincronizadas (sequelize.sync).'))
+  .catch((err) => console.error('⚠️ Falha ao sincronizar tabelas:', err.message));
 
 const INTERVALO_RPI_MS = 24 * 60 * 60 * 1000; // 1×/dia
 
