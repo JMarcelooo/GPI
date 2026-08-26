@@ -1,8 +1,16 @@
 CREATE TABLE IF NOT EXISTS "usuarios" (
 	"id" serial NOT NULL UNIQUE,
-	"nome" varchar(50) NOT NULL,
-	"email" varchar(50) NOT NULL,
-	PRIMARY KEY ("id")
+	"nome" varchar(150) NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"senha" varchar(255) NOT NULL,
+	"role" varchar(50) NOT NULL DEFAULT 'usuario',
+	"ativo" boolean NOT NULL DEFAULT true,
+	"deveTrocarSenha" boolean NOT NULL DEFAULT false,
+	"createdAt" timestamp with time zone,
+	"updatedAt" timestamp with time zone,
+	PRIMARY KEY ("id"),
+	CONSTRAINT "uq_usuarios_email" UNIQUE ("email"),
+	CONSTRAINT "chk_usuarios_role" CHECK ("role" IN ('admin', 'usuario'))
 );
 
 CREATE TABLE IF NOT EXISTS "pi" (
@@ -17,7 +25,11 @@ CREATE TABLE IF NOT EXISTS "pi" (
 	"data_entrada" date,
 	"ano" integer,
 	"termo_cessao" boolean NOT NULL DEFAULT false,
-	PRIMARY KEY ("id")
+	"createdAt" timestamp with time zone,
+	"updatedAt" timestamp with time zone,
+	PRIMARY KEY ("id"),
+	CONSTRAINT "chk_pi_tipo" CHECK ("tipo" IN ('patente de invencao', 'modelo de utilidade', 'marca', 'programa de computador')),
+	CONSTRAINT "chk_pi_status" CHECK ("status" IN ('indeferida', 'anulada', 'arquivada', 'em analise', 'deferida', 'registrada', 'carta patente'))
 );
 
 CREATE TABLE IF NOT EXISTS "pagamentos" (
@@ -30,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "pagamentos" (
 	"status" varchar(50) NOT NULL DEFAULT 'aguardando prazo',
 	"prazo_dias" integer,
 	"processo_sei" varchar(100),
-	"observacao" varchar(255) NOT NULL,
+	"observacao" varchar(255),
 	PRIMARY KEY ("id")
 );
 
@@ -66,13 +78,13 @@ CREATE TABLE IF NOT EXISTS "indicadores_anuais" (
 CREATE TABLE IF NOT EXISTS "autor" (
 	"id" serial NOT NULL UNIQUE,
 	"name" varchar(50) NOT NULL,
-	"email" varchar(50) NOT NULL,
-	"bond" varchar(30) NOT NULL,
-	"department" varchar(50) NOT NULL,
-	"campus" varchar(30) NOT NULL,
-  "university" varchar(50) NOT NULL,
-  "gender" varchar(20) NOT NULL DEFAULT 'Nao informado',
-  "phone" varchar(20) NOT NULL,
+	"email" varchar(50),
+	"bond" varchar(30),
+	"department" varchar(50),
+	"campus" varchar(30),
+  "university" varchar(50),
+  "gender" varchar(20) DEFAULT 'Nao informado',
+  "phone" varchar(20),
 	PRIMARY KEY ("id")
 );
 
