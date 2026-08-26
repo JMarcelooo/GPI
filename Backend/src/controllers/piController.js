@@ -28,6 +28,21 @@ const STATUS_VALIDOS = [
   'carta patente'
 ];
 
+const parseAutorIds = (arr) => {
+  if (!Array.isArray(arr)) {
+    return { error: 'autores deve ser um array' };
+  }
+  const ids = [];
+  for (const item of arr) {
+    const n = Number(item);
+    if (!Number.isInteger(n) || n <= 0) {
+      return { error: `ID de autor inválido: ${item}` };
+    }
+    ids.push(n);
+  }
+  return { ids };
+};
+
 const validatePIData = (data, isUpdate = false) => {
   const errors = [];
 
@@ -83,10 +98,12 @@ exports.createPI = async (req, res) => {
 
     const newPI = await PI.create(piData);
 
-    if (req.body.autores && Array.isArray(req.body.autores) && req.body.autores.length > 0) {
-      const autorIds = req.body.autores;
-      const values = autorIds.map(autorId => `(${newPI.id}, ${autorId})`).join(', ');
-      await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
+    if (req.body.autores !== undefined && req.body.autores !== null) {
+      const parsed = parseAutorIds(req.body.autores);
+      if (parsed.error) {
+        return res.status(400).json({ errors: [parsed.error] });
+      }
+      await newPI.addAutores(parsed.ids);
     }
 
     await registrarHistorico({
@@ -201,12 +218,17 @@ exports.getPIById = async (req, res) => {
 // UPDATE
 exports.updatePI = async (req, res) => {
   try {
+    const piId = Number(req.params.id);
+    if (!Number.isInteger(piId) || piId <= 0) {
+      return res.status(400).json({ errors: ['ID de PI inválido'] });
+    }
+
     const errors = validatePIData(req.body, true);
     if (errors.length > 0) {
       return res.status(400).json({ errors });
     }
 
-    const existingPI = await PI.findByPk(req.params.id);
+    const existingPI = await PI.findByPk(piId);
     if (!existingPI) {
       return res.status(404).json({
         error: 'PI não encontrada'
@@ -233,17 +255,17 @@ exports.updatePI = async (req, res) => {
       });
     }
 
-    await PI.update(updateData, { where: { id: req.params.id } });
+    await PI.update(updateData, { where: { id: piId } });
 
     const alterados = camposAlterados(existingPI.toJSON(), updateData);
     let textoAlteracoes = descricaoCamposAlterados(alterados);
 
     if (req.body.autores !== undefined) {
-      await PI.sequelize.query(`DELETE FROM autor_pi WHERE pi_id = ${req.params.id}`);
-      if (Array.isArray(req.body.autores) && req.body.autores.length > 0) {
-        const values = req.body.autores.map(autorId => `(${req.params.id}, ${autorId})`).join(', ');
-        await PI.sequelize.query(`INSERT INTO autor_pi (pi_id, autor_id) VALUES ${values}`);
+      const parsed = parseAutorIds(req.body.autores);
+      if (parsed.error) {
+        return res.status(400).json({ errors: [parsed.error] });
       }
+      await existingPI.setAutores(parsed.ids);
       textoAlteracoes = textoAlteracoes
         ? `${textoAlteracoes}; Autores: atualizados`
         : 'Autores: atualizados';
