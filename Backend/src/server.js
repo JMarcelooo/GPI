@@ -1,6 +1,6 @@
 const app = require('./app');
 const PORT = process.env.PORT || 3000;
-const { sequelize } = require('./config/db');
+const sequelize = require('./config/db');
 const { sincronizarNotificacoes } = require('./services/notificacaoService');
 const { verificarNovasEdicoesComTrava } = require('./services/rpiMonitorService');
 
