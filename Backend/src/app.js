@@ -13,9 +13,13 @@ const FRONTEND_URLS = (process.env.FRONTEND_URL || '')
   .map((u) => u.trim())
   .filter(Boolean);
 
+// Em produção, restrinja às origens do FRONTEND_URL (credentials:true).
+// Em dev (sem FRONTEND_URL), reflete a origem da requisição (origin:true) —
+// necessário porque o navegador envia credenciais (cookie httpOnly) e o
+// cabeçalho não pode ser o curinga '*'.
 app.use(cors(FRONTEND_URLS.length > 0
   ? { origin: FRONTEND_URLS, credentials: true }
-  : { credentials: true }));
+  : { origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
