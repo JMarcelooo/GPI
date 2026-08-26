@@ -10,12 +10,16 @@ function sanitizeUser(user) {
   return plain;
 }
 
-function cookieOptions() {
-  const producao = process.env.NODE_ENV === 'production';
+// O protocolo real vem em x-forwarded-proto quando há proxy reverso (nginx)
+// terminando o TLS: o Node enxerga HTTP, mas o navegador está em HTTPS.
+// Nesse caso o cookie precisa de Secure + SameSite=None para ser enviado em
+// requisições cross-site com credentials. Se for HTTP (dev), usa Lax.
+function cookieOptions(req) {
+  const isHttps = req && (req.secure || req.headers['x-forwarded-proto'] === 'https');
   return {
     httpOnly: true,
-    sameSite: producao ? 'none' : 'lax',
-    secure: producao,
+    sameSite: isHttps ? 'none' : 'lax',
+    secure: isHttps,
     maxAge: 8 * 60 * 60 * 1000,
     path: '/'
   };
@@ -49,7 +53,7 @@ exports.login = async (req, res) => {
     const token = assinarToken(usuario);
     // BUG-006: token em cookie httpOnly (ilegível via JS → mitiga XSS).
     // O token também é retornado no corpo para clientes não-navegador/APIs.
-    res.cookie('gpi_token', token, cookieOptions());
+    res.cookie('gpi_token', token, cookieOptions(req));
     res.json({
       token,
       user: sanitizeUser(usuario)
@@ -134,7 +138,7 @@ exports.logout = async (req, res) => {
   try {
     // Revoga o jti atual (blacklist) para que o token não seja reaproveitado.
     await revogar(req.jti, req.tokenExp);
-    res.clearCookie('gpi_token', { path: '/' });
+    res.clearCookie('gpi_token', cookieOptions(req));
     res.json({ message: 'Logout realizado.' });
   } catch (error) {
     console.error('Erro ao fazer logout:', error);

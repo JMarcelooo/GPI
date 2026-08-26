@@ -5,6 +5,11 @@ const sequelize = require('./config/db');
 
 const app = express();
 
+// Confia no proxy reverso (nginx) para req.secure / X-Forwarded-* / req.ip
+// corretos — necessário para o cookie httpOnly ficar Secure atrás de HTTPS
+// e para o rate-limit usar o IP real do cliente.
+app.set('trust proxy', true);
+
 // Origem(s) permitida(s) via FRONTEND_URL no .env (separadas por vírgula).
 // Em dev (sem a variável) usamos o endereço do CRA (porta 3001). O cors com
 // array de origens define 'Access-Control-Allow-Origin' explícito (não o
