@@ -22,7 +22,8 @@ function initModels(sequelize) {
     through: 'autor_pi',
     foreignKey: 'pi_id',
     otherKey: 'autor_id',
-    timestamps: false
+    timestamps: false,
+    onDelete: 'CASCADE'
   });
 
   autor.belongsToMany(PI, {
@@ -30,27 +31,32 @@ function initModels(sequelize) {
     through: 'autor_pi',
     foreignKey: 'autor_id',
     otherKey: 'pi_id',
-    timestamps: false
+    timestamps: false,
+    onDelete: 'CASCADE'
   });
 
   PI.hasMany(RPI, {
     as: 'rpis',
-    foreignKey: 'pi_id'
+    foreignKey: 'pi_id',
+    onDelete: 'CASCADE'
   });
 
   RPI.belongsTo(PI, {
     as: 'pi',
-    foreignKey: 'pi_id'
+    foreignKey: 'pi_id',
+    onDelete: 'CASCADE'
   });
 
   PI.hasMany(Pagamento, {
     as: 'pagamentos',
-    foreignKey: 'pi_id'
+    foreignKey: 'pi_id',
+    onDelete: 'CASCADE'
   });
 
   Pagamento.belongsTo(PI, {
     as: 'pi',
-    foreignKey: 'pi_id'
+    foreignKey: 'pi_id',
+    onDelete: 'CASCADE'
   });
 
   PI.hasMany(Historico, {
@@ -62,7 +68,7 @@ function initModels(sequelize) {
   Historico.belongsTo(PI, {
     as: 'pi',
     foreignKey: 'pi_id',
-    onDelete: 'SET NULL'
+    onDelete: 'CASCADE'
   });
 
   return {
