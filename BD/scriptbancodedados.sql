@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS "rpi_edicoes" (
 
 CREATE TABLE IF NOT EXISTS "historico" (
 	"id" serial NOT NULL UNIQUE,
-	"pi_id" integer NOT NULL,
+	"pi_id" integer,
 	"usuario_id" integer,
 	"usuario_nome" varchar(150),
 	"tipo" varchar(30) NOT NULL,
@@ -121,22 +121,22 @@ CREATE TABLE IF NOT EXISTS "historico" (
 
 
 
-ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
+ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
 -- Migração para tabelas existentes (adiciona novos campos de pagamento)
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "status" varchar(50) NOT NULL DEFAULT 'aguardando prazo';
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "processo_sei" varchar(100);
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "prazo_dias" integer;
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "data_informada" date;
-ALTER TABLE "controle_processos" ADD CONSTRAINT "controle_processos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
-ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
+ALTER TABLE "controle_processos" ADD CONSTRAINT "controle_processos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
+ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
-ALTER TABLE "historico" ADD CONSTRAINT "historico_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE "historico" ADD CONSTRAINT "historico_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
 
-ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk0" FOREIGN KEY ("pi_id") REFERENCES "pi"("id");
+ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk0" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
-ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk1" FOREIGN KEY ("autor_id") REFERENCES "autor"("id");
+ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk1" FOREIGN KEY ("autor_id") REFERENCES "autor"("id") ON DELETE CASCADE;
 
 -- Índices de performance (Fase 1)
 CREATE INDEX IF NOT EXISTS "idx_pagamentos_pi_id" ON "pagamentos" ("pi_id");
