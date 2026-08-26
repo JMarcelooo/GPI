@@ -84,17 +84,19 @@ CREATE TABLE IF NOT EXISTS "autor_pi" (
 CREATE TABLE IF NOT EXISTS "notificacoes" (
 	"id" serial NOT NULL UNIQUE,
 	"pagamento_id" integer,
-	"usuario_id" integer NOT NULL,
 	"pi_id" integer,
 	"rpi_numero" integer,
 	"tipo" varchar(50) NOT NULL DEFAULT 'prazo',
 	"mensagem" varchar(255) NOT NULL,
 	"data_vencimento" date,
 	"lida" boolean NOT NULL DEFAULT false,
+	"lida_por_id" integer,
+	"lida_por_nome" varchar(150),
+	"lida_em" timestamp with time zone,
 	"createdAt" timestamp with time zone,
 	"updatedAt" timestamp with time zone,
 	PRIMARY KEY ("id"),
-	CONSTRAINT "uq_notificacao_pagamento_usuario" UNIQUE ("pagamento_id", "usuario_id")
+	CONSTRAINT "uq_notificacao_pagamento" UNIQUE ("pagamento_id")
 );
 
 -- Edições da RPI (INPI) já processadas pelo monitor de publicações
@@ -121,6 +123,7 @@ CREATE TABLE IF NOT EXISTS "historico" (
 
 
 
+ALTER TABLE "pagamentos" DROP CONSTRAINT IF EXISTS "pagamentos_fk1";
 ALTER TABLE "pagamentos" ADD CONSTRAINT "pagamentos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
 -- Migração para tabelas existentes (adiciona novos campos de pagamento)
@@ -128,14 +131,18 @@ ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "status" varchar(50) NOT NULL 
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "processo_sei" varchar(100);
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "prazo_dias" integer;
 ALTER TABLE "pagamentos" ADD COLUMN IF NOT EXISTS "data_informada" date;
+ALTER TABLE "controle_processos" DROP CONSTRAINT IF EXISTS "controle_processos_fk1";
 ALTER TABLE "controle_processos" ADD CONSTRAINT "controle_processos_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
+ALTER TABLE "RPI" DROP CONSTRAINT IF EXISTS "RPI_fk2";
 ALTER TABLE "RPI" ADD CONSTRAINT "RPI_fk2" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
+ALTER TABLE "historico" DROP CONSTRAINT IF EXISTS "historico_fk1";
 ALTER TABLE "historico" ADD CONSTRAINT "historico_fk1" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
-
+ALTER TABLE "autor_pi" DROP CONSTRAINT IF EXISTS "autor_pi_fk0";
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk0" FOREIGN KEY ("pi_id") REFERENCES "pi"("id") ON DELETE CASCADE;
 
+ALTER TABLE "autor_pi" DROP CONSTRAINT IF EXISTS "autor_pi_fk1";
 ALTER TABLE "autor_pi" ADD CONSTRAINT "autor_pi_fk1" FOREIGN KEY ("autor_id") REFERENCES "autor"("id") ON DELETE CASCADE;
 
 -- Índices de performance (Fase 1)
@@ -144,9 +151,16 @@ CREATE INDEX IF NOT EXISTS "idx_pagamentos_data_de_vencimento" ON "pagamentos" (
 CREATE INDEX IF NOT EXISTS "idx_pagamentos_status" ON "pagamentos" ("status");
 CREATE INDEX IF NOT EXISTS "idx_autor_pi_pi_id_autor_id" ON "autor_pi" ("pi_id", "autor_id");
 
--- Migração: monitor de publicações da RPI (notificações tipo 'rpi')
+-- Migração: alinha notificações ao modelo atual (globais, sem usuario_id, com lida_por_*)
+ALTER TABLE "notificacoes" DROP CONSTRAINT IF EXISTS "uq_notificacao_pagamento_usuario";
 ALTER TABLE "notificacoes" ALTER COLUMN "pagamento_id" DROP NOT NULL;
+ALTER TABLE "notificacoes" DROP COLUMN IF EXISTS "usuario_id";
+ALTER TABLE "notificacoes" ADD COLUMN IF NOT EXISTS "lida_por_id" integer;
+ALTER TABLE "notificacoes" ADD COLUMN IF NOT EXISTS "lida_por_nome" varchar(150);
+ALTER TABLE "notificacoes" ADD COLUMN IF NOT EXISTS "lida_em" timestamp with time zone;
 ALTER TABLE "notificacoes" ADD COLUMN IF NOT EXISTS "rpi_numero" integer;
+
+DROP INDEX IF EXISTS "uq_notificacao_rpi";
 CREATE UNIQUE INDEX IF NOT EXISTS "uq_notificacao_rpi"
-	ON "notificacoes" ("tipo", "pi_id", "usuario_id", "rpi_numero")
+	ON "notificacoes" ("tipo", "pi_id", "rpi_numero")
 	WHERE "tipo" = 'rpi';
