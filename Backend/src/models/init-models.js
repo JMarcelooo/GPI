@@ -6,6 +6,7 @@ var _Pagamento = require('./Pagamento');
 var _Notificacao = require('./Notificacao');
 var _Historico = require('./Historico');
 var _User = require('./User');
+var _RevokedToken = require('./RevokedToken');
 var RpiEdicao = require('./RpiEdicao');
 
 function initModels(sequelize) {
@@ -16,6 +17,7 @@ function initModels(sequelize) {
   var Notificacao = _Notificacao;
   var Historico = _Historico;
   var User = _User;
+  var RevokedToken = _RevokedToken;
 
   PI.belongsToMany(autor, {
     as: 'autores',
@@ -79,6 +81,7 @@ function initModels(sequelize) {
     Notificacao,
     Historico,
     User,
+    RevokedToken,
     RpiEdicao
   };
 }

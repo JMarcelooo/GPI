@@ -1,18 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const sequelize = require('./config/db');
 
 const app = express();
 
 // Origem(s) permitida(s) via FRONTEND_URL no .env (separadas por vírgula).
-// Sem a variável (desenvolvimento local), libera qualquer origem.
+// Sem a variável (desenvolvimento local via proxy do CRA), reflete a origem.
+// credentials:true é necessário para enviar o cookie httpOnly (BUG-006).
 const FRONTEND_URLS = (process.env.FRONTEND_URL || '')
   .split(',')
   .map((u) => u.trim())
   .filter(Boolean);
 
-app.use(cors(FRONTEND_URLS.length > 0 ? { origin: FRONTEND_URLS } : {}));
+app.use(cors(FRONTEND_URLS.length > 0
+  ? { origin: FRONTEND_URLS, credentials: true }
+  : { credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);

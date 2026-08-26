@@ -5,6 +5,7 @@ const { autenticar } = require('../middlewares/authMiddleware');
 const { loginLimiter } = require('../middlewares/rateLimit');
 
 router.post('/login', loginLimiter, authController.login);
+router.post('/logout', autenticar, authController.logout);
 router.get('/me', autenticar, authController.me);
 router.post('/alterar-senha', autenticar, authController.alterarSenha);
 
