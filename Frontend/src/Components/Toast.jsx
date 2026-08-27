@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, X } from 'lucide-react';
 
-export default function Toast({ message, type = 'success', onClose, duration = 3000 }) {
+export default function Toast({ message, type = 'success', onClose, duration = 3000, actionLabel, onAction }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -29,6 +29,13 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
     }}>
       <Icon size={20} />
       <span style={{ flex: 1 }}>{message}</span>
+      {actionLabel && (
+        <button onClick={() => { if (onAction) onAction(); if (onClose) onClose(); }} style={{
+          background: 'rgba(255,255,255,0.22)', border: 'none', color: '#fff',
+          cursor: 'pointer', padding: '6px 12px', borderRadius: 6,
+          fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap'
+        }}>{actionLabel}</button>
+      )}
       <button onClick={() => { setVisible(false); setTimeout(onClose, 300); }} style={{
         background: 'none', border: 'none', color: '#fff',
         cursor: 'pointer', padding: 2, display: 'flex', opacity: 0.8

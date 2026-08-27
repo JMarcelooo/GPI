@@ -1,23 +1,43 @@
 import API_URL from '../config';
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { onSessionExpired } from '../services/events';
 
 const AuthContext = createContext();
 
 const STORAGE_USER = 'gpi_user';
 
-function readStoredUser() {
-  try {
-    const raw = localStorage.getItem(STORAGE_USER);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
   // BUG-006: não guardamos o token em localStorage (XSS-stealable). O token
   // fica em cookie httpOnly; aqui mantemos apenas o usuário para a UI.
-  const [user, setUser] = useState(readStoredUser);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // UX-02 (início): não confiamos no localStorage para definir o estado
+  // inicial — validamos a sessão real em /api/auth/me. Se o cookie estiver
+  // expirado/inválido, o app inicia no login (e não "pula" para o dashboard).
+  useEffect(() => {
+    let active = true;
+    fetch(`${API_URL}/api/auth/me`, { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('no-auth'))))
+      .then((data) => { if (active) setUser(data.user || data); })
+      .catch(() => {
+        if (active) {
+          localStorage.removeItem(STORAGE_USER);
+          setUser(null);
+        }
+      });
+    return () => { active = false; };
+  }, []);
+
+  // UX-02: o interceptor avisa (toast) e, após 5s, dispara isso. Limpa o estado
+  // local e manda para o login preservando a rota de origem (state.from), para
+  // o usuário voltar de onde estava após relogar.
+  useEffect(() => onSessionExpired(({ from }) => {
+    localStorage.removeItem(STORAGE_USER);
+    setUser(null);
+    navigate('/login', { state: { from: from || '/dashboard' } });
+  }), [navigate]);
 
   const login = useCallback(async (email, senha) => {
     const API = API_URL;

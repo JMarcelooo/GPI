@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import '../Telas.css';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +7,9 @@ import { useAuth } from '../contexts/AuthContext';
 function Login() {
   document.title = 'Gestão de Propriedades Intelectuais';
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+  const from = location.state?.from || '/dashboard';
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -26,7 +28,7 @@ function Login() {
     setLoading(true);
     try {
       await login(email, senha);
-      navigate('/dashboard');
+      navigate(from);
     } catch (err) {
       setError(err.message || 'Falha ao autenticar. Tente novamente.');
     } finally {
