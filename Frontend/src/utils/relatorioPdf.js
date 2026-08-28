@@ -6,8 +6,8 @@ const PRIMARY = '#93278F';
 const PRIMARY_DARK = '#5E1A5C';
 const WHITE = '#FFFFFF';
 const BG = '#FFFFFF';
-const TEXT = '#1F2937';
-const MUTED = '#6B7280';
+const TEXT = '#000000';
+const MUTED = '#374151';
 const BORDER = '#E5E7EB';
 
 const TIPO_LABELS = {
