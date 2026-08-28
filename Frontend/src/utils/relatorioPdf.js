@@ -397,10 +397,8 @@ async function desenharCapa(doc, W, H, hl) {
   }
   doc.setFont(hl, 'bold'); doc.setFontSize(24); applyText(doc, WHITE);
   doc.text('Relatório de Propriedades Intelectuais', W / 2, H * 0.55, { align: 'center' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(13); applyText(doc, '#F3E8FF');
-  doc.text('Gestão de Propriedade Intelectual · UERN Inova', W / 2, H * 0.605, { align: 'center' });
   doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); applyText(doc, '#E9D5F5');
-  doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, W / 2, H * 0.64, { align: 'center' });
+  doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, W / 2, H * 0.605, { align: 'center' });
   const ag = await loadImage(`${process.env.PUBLIC_URL || ''}/imagens/Inova-Rodape.png`);
   if (ag) {
     const tw = 150;
