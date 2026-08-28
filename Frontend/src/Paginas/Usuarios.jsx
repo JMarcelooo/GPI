@@ -6,7 +6,8 @@ import Toast from '../Components/Toast';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import '../Components/AuthorModal.css';
-import './Autor.css';
+import './PI.css';
+import '../Tela2.css';
 
 const API = API_URL;
 
@@ -134,68 +135,70 @@ function Usuarios() {
   const roleLabel = (role) => role === 'admin' ? 'Administrador' : 'Usuário';
 
   return (
-    <div className="authors-container">
+    <div className="container">
       <Sidebar />
-      <div className="authors-content">
-        <h1 className="authors-title">Usuários</h1>
+      <div className="main">
+        <div className="container-pi">
+          <div className="conteudo-pi">
+            <h2>Usuários</h2>
 
-        <div className="authors-header">
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Buscar por nome ou e-mail"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="header-buttons">
-            <button className="filter-button" onClick={openAdd}>
-              <UserPlus size={16} className="filter-icon" /> Novo usuário
-            </button>
-          </div>
-        </div>
+            <div className="filtros-topo">
+              <input
+                type="text"
+                placeholder="Buscar por nome ou e-mail"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button className="btn-novo-pi" onClick={openAdd}>
+                <UserPlus size={16} /> Novo usuário
+              </button>
+            </div>
 
-        <div className="authors-table-wrapper">
-          <table className="authors-table">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>E-mail</th>
-                <th>Papel</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum usuário encontrado</td></tr>
-              ) : filtered.map(u => (
-                <tr key={u.id}>
-                  <td>{u.nome}{isSelf(u) && <span style={{ marginLeft: 8, fontSize: '0.75rem', color: 'var(--color-primary)' }}>(você)</span>}</td>
-                  <td>{u.email}</td>
-                  <td>{roleLabel(u.role)}</td>
-                  <td>
-                    <span style={{ color: u.ativo ? 'var(--color-success, #16a34a)' : 'var(--color-error)' }}>
-                      {u.ativo ? 'Ativo' : 'Desativado'}
-                    </span>
-                  </td>
-                  <td>
-                    <button className="edit-author-button" onClick={() => openEdit(u)} disabled={isSelf(u)} title={isSelf(u) ? 'Não é possível editar a própria conta' : 'Editar'} style={{ opacity: isSelf(u) ? 0.4 : 1 }}>
-                      <Pencil size={16} />
-                    </button>
-                    <button className="edit-author-button" onClick={() => openEdit(u)} disabled={isSelf(u)} title={isSelf(u) ? 'Não é possível resetar a própria senha' : 'Resetar senha'} style={{ marginLeft: 4, opacity: isSelf(u) ? 0.4 : 1 }}>
-                      <RefreshCw size={16} />
-                    </button>
-                    <button className="delete-author-button" onClick={() => openDelete(u)} disabled={isSelf(u)} title={isSelf(u) ? 'Não é possível excluir a própria conta' : 'Excluir'} style={{ marginLeft: 4, opacity: isSelf(u) ? 0.4 : 1 }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            <div className="tabela-pi-scroll">
+              <table className="tabela-pi">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Papel</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum usuário encontrado</td></tr>
+                  ) : filtered.map(u => (
+                    <tr key={u.id}>
+                      <td style={{ color: 'var(--color-text)', fontWeight: 500 }}>{u.nome}{isSelf(u) && <span style={{ marginLeft: 8, fontSize: '0.75rem', color: 'var(--color-primary)' }}>(você)</span>}</td>
+                      <td>{u.email}</td>
+                      <td>{roleLabel(u.role)}</td>
+                      <td>
+                        <span className={`badge ${u.ativo ? 'green' : 'gray'}`}>
+                          {u.ativo ? 'Ativo' : 'Desativado'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="tabela-pi-acoes">
+                          <button className="btn-acao" onClick={() => openEdit(u)} disabled={isSelf(u)} title={isSelf(u) ? 'Não é possível editar a própria conta' : 'Editar'} style={{ opacity: isSelf(u) ? 0.4 : 1 }}>
+                            <Pencil size={18} />
+                          </button>
+                          <button className="btn-acao" onClick={() => openEdit(u)} disabled={isSelf(u)} title={isSelf(u) ? 'Não é possível resetar a própria senha' : 'Resetar senha'} style={{ marginLeft: 4, opacity: isSelf(u) ? 0.4 : 1 }}>
+                            <RefreshCw size={18} />
+                          </button>
+                          <button className="btn-acao" onClick={() => openDelete(u)} disabled={isSelf(u)} title={isSelf(u) ? 'Não é possível excluir a própria conta' : 'Excluir'} style={{ marginLeft: 4, opacity: isSelf(u) ? 0.4 : 1, color: 'var(--color-error)' }}>
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 

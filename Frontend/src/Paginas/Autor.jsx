@@ -1,15 +1,15 @@
 import API_URL from '../config';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { SlidersHorizontal, Pencil, Trash2, Eye, ChevronUp, ChevronDown, X } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
-import RegisterAuthorModal from '../Components/RegisterAuthorModal';
 import UpdateAuthorModal from '../Components/UpdateAuthorModal';
 import FilterAuthorModal from '../Components/FilterAuthorModal';
 import ConfirmDeleteModal from '../Components/ConfirmDeleteModal';
 import Toast from '../Components/Toast';
 import axios from 'axios';
-import './Autor.css';
+import "./PI.css";
+import "../Tela2.css";
 
 const API = API_URL;
 const PAGE_SIZE = 10;
@@ -32,6 +32,14 @@ function getPageWindow(current, total) {
   return Array.from({ length: 5 }, (_, i) => start + i);
 }
 
+const FILTRO_LABELS = {
+  gender: 'Gênero',
+  bond: 'Vínculo',
+  campus: 'Campus',
+  department: 'Departamento',
+  university: 'Universidade'
+};
+
 export default function Autor() {
   document.title = 'GPI - Autores';
     const navigate = useNavigate();
@@ -42,7 +50,6 @@ export default function Autor() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -112,15 +119,30 @@ export default function Autor() {
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    // Funções para abrir/fechar modais
-    const handleCloseRegisterModal = () => setShowRegisterModal(false);
+    // Filtros
     const handleOpenFilterModal = () => setShowFilterModal(true);
     const handleCloseFilterModal = () => setShowFilterModal(false);
     const handleApplyFilters = (newFilters) => {
       setFilters(newFilters);
       setCurrentPage(1);
     };
+    const temFiltrosAtivos = Boolean(
+      filters.gender || filters.bond || filters.campus || filters.department || filters.university
+    );
+    const removerFiltro = (campo) => {
+      setFilters(prev => {
+        const next = { ...prev };
+        delete next[campo];
+        return next;
+      });
+      setCurrentPage(1);
+    };
+    const limparFiltros = () => {
+      setFilters({});
+      setCurrentPage(1);
+    };
 
+    // Modal de edição
     const handleOpenUpdateModal = (author) => {
         setSelectedAuthor(author);
         setShowUpdateModal(true);
@@ -138,14 +160,6 @@ export default function Autor() {
     const handleCloseDeleteModal = () => {
       setAuthorToDelete(null);
       setShowDeleteModal(false);
-    };
-
-    // Funções de callback para quando o modal de cadastro/edição tiver sucesso
-    const handleRegisterSuccess = async (newAuthor) => {
-        await axios.post(`${API}/api/autores`, newAuthor);
-        setCurrentPage(1);
-        loadAuthors(1, searchTerm, filters, sortField, sortDir);
-        handleCloseRegisterModal();
     };
 
     const handleUpdateSuccess = async (updatedAuthor) => {
@@ -176,119 +190,131 @@ export default function Autor() {
     }
     };
 
-
     return (
-        <div className="authors-container">
+        <div className="container">
             <Sidebar />
-            <div className="authors-content">
-                <h1 className="authors-title">Autores</h1>
+            <div className="main">
+                <div className="container-pi">
+                    <div className="conteudo-pi">
+                        <h2>Autores</h2>
 
-                {/* Header com busca e botões */}
-                <div className="authors-header">
-                    <div className="search-bar">
-                        <input
-                            type="text"
-                            placeholder="Buscar por nome, sobrenome, instituição, etc."
-                            value={searchTerm}
-                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                        />
-                    </div>
-                    <div className="header-buttons">
-                        <button className="filter-button" onClick={handleOpenFilterModal}>
-                            <SlidersHorizontal size={16} className="filter-icon" /> Filtros
-                        </button>
-
-                    </div>
-                </div>
-
-                {/* Tabela de Autores */}
-                <div className="authors-table-wrapper">
-                    <table className="authors-table">
-                        <thead>
-                            <tr>
-                                <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>Nome {sortIcon('name')}</th>
-                                <th>E-mail</th>
-                                <th>Telefone</th>
-                                <th onClick={() => handleSort('gender')} style={{ cursor: 'pointer', userSelect: 'none' }}>Gênero {sortIcon('gender')}</th>
-                                <th onClick={() => handleSort('university')} style={{ cursor: 'pointer', userSelect: 'none' }}>Universidade {sortIcon('university')}</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
-                            ) : error ? (
-                                <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-error)', padding: 24 }}>{error}</td></tr>
-                            ) : currentAuthors.length === 0 ? (
-                                <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum autor encontrado</td></tr>
-                            ) : currentAuthors.map(author => (
-                                <tr key={author.id}>
-                                    <td>{author.name}</td>
-                                    <td>{author.email}</td>
-                                    <td>{formatPhone(author.phone)}</td>
-                                    <td>{author.gender}</td>
-                                    <td>{author.university}</td>
-                                    <td>
-                                        <button className="edit-author-button" onClick={() => handleOpenViewModal(author)} title="Visualizar">
-                                            <Eye size={16} />
-                                        </button>
-                                        <button className="edit-author-button" onClick={() => handleOpenUpdateModal(author)} style={{ marginLeft: 4 }} title="Editar">
-                                            <Pencil size={16} />
-                                        </button>
-                                        <button className="delete-author-button" onClick={() => handleOpenDeleteModal(author)} style={{ marginLeft: 4 }} title="Excluir">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Paginação */}
-                {total > PAGE_SIZE && (
-                <div className="authors-pagination">
-                    <span className="pagination-info">
-                        Exibindo {indexOfFirstAuthor + 1} a {indexOfLastAuthor} de {total} autores
-                    </span>
-                    <div className="pagination-controls">
-                        <button
-                            onClick={() => paginate(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className="pagination-button"
-                        >
-                            Anterior
-                        </button>
-                        {pageNumbers.map(number => (
-                            <button
-                                key={number}
-                                onClick={() => paginate(number)}
-                                className={`pagination-button ${currentPage === number ? 'active' : ''}`}
-                            >
-                                {number}
+                        <div className="filtros-topo">
+                            <input
+                                type="text"
+                                placeholder="Buscar por nome, e-mail, instituição..."
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            />
+                            <button className="filter-button" onClick={handleOpenFilterModal}>
+                                <SlidersHorizontal size={16} className="filter-icon" /> Filtros
+                                {temFiltrosAtivos && <span className="filtro-dot" />}
                             </button>
-                        ))}
-                        <button
-                            onClick={() => paginate(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className="pagination-button"
-                        >
-                            Próxima
-                        </button>
+                        </div>
+
+                        {temFiltrosAtivos && (
+                            <div className="filtros-ativos">
+                                <span className="filtros-ativos-label">
+                                    <SlidersHorizontal size={13} /> Filtros:
+                                </span>
+                                {Object.entries(filters).map(([campo, valor]) => (
+                                    valor ? (
+                                        <span className="filtro-chip" key={campo}>
+                                            {FILTRO_LABELS[campo] || campo}: {valor}
+                                            <button onClick={() => removerFiltro(campo)} title="Remover"><X size={12} /></button>
+                                        </span>
+                                    ) : null
+                                ))}
+                                <button className="filtro-limpar-tudo" onClick={limparFiltros}>
+                                    Limpar tudo
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="tabela-pi-scroll">
+                            <table className="tabela-pi">
+                                <thead>
+                                    <tr>
+                                        <th onClick={() => handleSort('name')} style={{ cursor: 'pointer', userSelect: 'none' }}>Nome {sortIcon('name')}</th>
+                                        <th>E-mail</th>
+                                        <th>Telefone</th>
+                                        <th onClick={() => handleSort('gender')} style={{ cursor: 'pointer', userSelect: 'none' }}>Gênero {sortIcon('gender')}</th>
+                                        <th onClick={() => handleSort('university')} style={{ cursor: 'pointer', userSelect: 'none' }}>Universidade {sortIcon('university')}</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
+                                    ) : error ? (
+                                        <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-error)', padding: 24 }}>{error}</td></tr>
+                                    ) : currentAuthors.length === 0 ? (
+                                        <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum autor encontrado</td></tr>
+                                    ) : currentAuthors.map(author => (
+                                        <tr key={author.id}>
+                                            <td style={{ color: 'var(--color-text)', fontWeight: 500 }}>{author.name}</td>
+                                            <td>{author.email}</td>
+                                            <td>{formatPhone(author.phone)}</td>
+                                            <td>{author.gender || '—'}</td>
+                                            <td>{author.university || '—'}</td>
+                                            <td>
+                                                <div className="tabela-pi-acoes">
+                                                    <button onClick={() => handleOpenViewModal(author)} className="btn-acao" title="Visualizar"><Eye size={18} /></button>
+                                                    <button onClick={() => handleOpenUpdateModal(author)} className="btn-acao" title="Editar"><Pencil size={18} /></button>
+                                                    <button onClick={() => handleOpenDeleteModal(author)} className="btn-acao" title="Excluir" style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {total > PAGE_SIZE && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, fontSize: 14, flexWrap: 'wrap', gap: 12 }}>
+                                <span style={{ color: 'var(--color-text-secondary)' }}>
+                                    Exibindo {indexOfFirstAuthor + 1}–{indexOfLastAuthor} de {total} autores
+                                </span>
+                                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                    <button
+                                        onClick={() => paginate(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        style={{
+                                            padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                                            background: currentPage === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
+                                            color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                                            fontWeight: 600, fontSize: 13, cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                                        }}
+                                    >Anterior</button>
+                                    {pageNumbers.map(number => (
+                                        <button
+                                            key={number}
+                                            onClick={() => paginate(number)}
+                                            style={{
+                                                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
+                                                background: currentPage === number ? 'var(--color-primary)' : 'var(--color-surface)',
+                                                color: currentPage === number ? '#fff' : 'var(--color-text-secondary)',
+                                                fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
+                                            }}
+                                        >{number}</button>
+                                    ))}
+                                    <button
+                                        onClick={() => paginate(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        style={{
+                                            padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                                            background: currentPage === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
+                                            color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                                            fontWeight: 600, fontSize: 13, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                                        }}
+                                    >Próxima</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-                )}
             </div>
 
-            {/* Renderizar o modal de CADASTRO apenas se showRegisterModal for true */}
-            {showRegisterModal && (
-                <RegisterAuthorModal
-                    onClose={handleCloseRegisterModal}
-                    onRegisterSuccess={handleRegisterSuccess}
-                />
-            )}
-
-            {/* Renderizar o modal de EDIÇÃO apenas se showUpdateModal for true e um autor estiver selecionado */}
+            {/* Modal de EDIÇÃO */}
             {showUpdateModal && selectedAuthor && (
                 <UpdateAuthorModal
                     onClose={handleCloseUpdateModal}

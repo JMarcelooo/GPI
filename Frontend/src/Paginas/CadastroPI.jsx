@@ -260,7 +260,7 @@ export default function CadastroPI() {
                   onChange={e => { setSearchAutor(e.target.value); setShowDropdown(true); }}
                   onFocus={() => setShowDropdown(true)}
                   onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                  style={{ width: '100%', padding: '10px 12px', paddingLeft: '36px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.875rem', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px 12px', paddingLeft: '36px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.875rem', boxSizing: 'border-box', background: 'var(--color-bg)', color: 'var(--color-text)' }}
                 />
                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
                 {showDropdown && searchAutor && autoresFiltrados.length > 0 && (
