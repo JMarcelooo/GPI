@@ -72,6 +72,31 @@ const validatePIData = (data, isUpdate = false) => {
     }
   }
 
+  // ano: inteiro entre 1900 e 2100 (quando informado)
+  if (data.ano !== undefined && data.ano !== null && data.ano !== '') {
+    const anoNum = Number(data.ano);
+    if (!Number.isInteger(anoNum) || anoNum < 1900 || anoNum > 2100) {
+      errors.push('Ano inválido. Use um número inteiro entre 1900 e 2100.');
+    }
+  }
+
+  // data_entrada: data válida e não futura (quando informada)
+  if (data.data_entrada !== undefined && data.data_entrada !== null && data.data_entrada !== '') {
+    const d = new Date(data.data_entrada);
+    if (isNaN(d.getTime())) {
+      errors.push('Data de entrada inválida.');
+    } else if (d.getTime() > Date.now()) {
+      errors.push('A data de entrada não pode ser posterior à data atual.');
+    }
+  }
+
+  // titular: array ou texto (quando informado)
+  if (data.titular !== undefined && data.titular !== null) {
+    if (!Array.isArray(data.titular) && typeof data.titular !== 'string') {
+      errors.push('Titular deve ser um array ou texto.');
+    }
+  }
+
   return errors;
 };
 
@@ -92,7 +117,7 @@ exports.createPI = async (req, res) => {
       status: req.body.status || 'em analise',
       protocolo: req.body.protocolo,
       data_entrada: req.body.data_entrada || null,
-      ano: req.body.ano || null,
+      ano: (req.body.ano === '' || req.body.ano == null) ? null : req.body.ano,
       termo_cessao: req.body.termo_cessao || false
     };
 
@@ -168,18 +193,28 @@ exports.getAllPIs = async (req, res) => {
     const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
 
     if (isPaginated) {
+      const limitNum = Number(limitRaw);
+      const offsetNum = (offsetRaw !== undefined && offsetRaw !== '') ? Number(offsetRaw) : 0;
+
+      if (!Number.isInteger(limitNum) || limitNum < 1 || limitNum > 100) {
+        return res.status(400).json({ errors: ['limit deve ser um inteiro entre 1 e 100.'] });
+      }
+      if (!Number.isInteger(offsetNum) || offsetNum < 0) {
+        return res.status(400).json({ errors: ['offset deve ser um inteiro não negativo.'] });
+      }
+
       const total = await PI.count({ where });
       const rows = await PI.findAll({
         where,
         order: orderClause,
-        limit: Math.min(Number(limitRaw) || 10, 100),
-        offset: Number(offsetRaw) || 0
+        limit: limitNum,
+        offset: offsetNum
       });
       return res.json({
         count: rows.length,
         total,
-        limit: Number(limitRaw),
-        offset: Number(offsetRaw) || 0,
+        limit: limitNum,
+        offset: offsetNum,
         data: rows
       });
     }
