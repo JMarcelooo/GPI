@@ -396,6 +396,21 @@
   color: var(--color-primary);
 }
 
+/* Maior contraste no modo claro: textos de status um pouco mais escuros */
+:root:not([data-theme="dark"]) .status-badge--pago {
+  color: #047857;
+}
+:root:not([data-theme="dark"]) .status-badge--atrasado {
+  color: #b91c1c;
+}
+:root:not([data-theme="dark"]) .status-badge--pendente,
+:root:not([data-theme="dark"]) .status-badge--aguardandoprazo {
+  color: #8a6d00;
+}
+:root:not([data-theme="dark"]) .status-badge--emandamento {
+  color: #7B1F78;
+}
+
 .edit-btn {
   background: none;
   border: 1px solid var(--color-border);
@@ -629,4 +644,29 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text);
+}
+
+/* ---- Link de PI clicável (vai para detalhes da PI) ---- */
+.pi-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+
+.pi-link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.pi-link--sm {
+  font-size: var(--text-xs);
 }

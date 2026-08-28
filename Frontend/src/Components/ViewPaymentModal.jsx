@@ -1,130 +1,93 @@
-import { Calendar, DollarSign, FileText, Tag, ShieldCheck, Timer } from 'lucide-react';
-import { formatStatusPagamento, daysUntil } from '../utils/formatDate';
-import '../Paginas/Modal.css';
-
-const formatCurrency = (val) =>
-  `R$ ${Number(val || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
-
-const formatDate = (date) => {
-  if (!date) return '-';
-  if (date instanceof Date && !isNaN(date)) return date.toLocaleDateString('pt-BR');
-  const d = new Date(String(date).slice(0, 10) + 'T00:00:00');
-  if (isNaN(d.getTime())) return '-';
-  return d.toLocaleDateString('pt-BR');
-};
+import { useNavigate } from 'react-router-dom';
+import { X, Tag, FileText, DollarSign, Calendar, ShieldCheck, Timer, ExternalLink } from 'lucide-react';
+import { formatStatusPagamento, daysUntil, formatCurrency, formatDate } from '../utils/formatDate';
+import './ViewPaymentModal.css';
 
 export default function ViewPaymentModal({ payment, onClose }) {
+  const navigate = useNavigate();
+  if (!payment) return null;
+
+  const goToPi = () => {
+    if (payment.pi_id) {
+      onClose();
+      navigate(`/detalhes/${payment.pi_id}`);
+    }
+  };
+
+  const diff = daysUntil(payment.data_de_vencimento);
+  let diffText = null;
+  let diffClass = '';
+  if (diff !== null && diff !== undefined) {
+    if (diff > 0) { diffText = `Vence em ${diff} dia${diff !== 1 ? 's' : ''}`; diffClass = 'vp-diff--ok'; }
+    else if (diff === 0) { diffText = 'Vence hoje'; diffClass = 'vp-diff--warn'; }
+    else { const a = Math.abs(diff); diffText = `Venceu há ${a} dia${a !== 1 ? 's' : ''}`; diffClass = 'vp-diff--late'; }
+  }
+
+  const statusKey = (payment.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '');
+  const piLabel = payment.pi || (payment.pi_id ? `PI ${payment.pi_id}` : '-');
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Detalhes do Pagamento</h2>
-
-        <div style={{ margin: '16px 0', padding: '20px', background: 'var(--color-bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Tag size={16} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-              Tipo de Pagamento
-            </span>
+    <div className="vp-overlay" onClick={onClose}>
+      <div className="vp-modal" onClick={(e) => e.stopPropagation()}>
+        <header className="vp-header">
+          <div className="vp-header-main">
+            <span className="vp-eyebrow"><Tag size={14} /> Tipo de pagamento</span>
+            <h2 className="vp-title">{payment.tipo_de_pagamento || `Pagamento #${payment.id}`}</h2>
           </div>
-          <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: 'var(--color-text)', fontWeight: 600 }}>
-            {payment.tipo_de_pagamento || '-'}
-          </p>
+          <button className="vp-close" onClick={onClose} title="Fechar"><X size={20} /></button>
+        </header>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <FileText size={16} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-              Propriedade Intelectual
-            </span>
-          </div>
-          <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: 'var(--color-text)' }}>
-            {payment.pi || '-'}
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <DollarSign size={16} style={{ color: 'var(--color-primary)' }} />
-                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Valor
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: '1rem', color: 'var(--color-text)', fontWeight: 700 }}>
-                {formatCurrency(payment.valor)}
-              </p>
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Calendar size={16} style={{ color: 'var(--color-primary)' }} />
-                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Data Calculada
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)', fontWeight: 600 }}>
-                {formatDate(payment.dueDate || payment.data_de_vencimento)}
-              </p>
-              <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                Informada: {formatDate(payment.data_informada || payment.data_de_vencimento)}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Tag size={16} style={{ color: 'var(--color-primary)' }} />
-                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Status
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
-                {formatStatusPagamento(payment.status)}
-              </p>
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <ShieldCheck size={16} style={{ color: 'var(--color-primary)' }} />
-                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-                  Processo SEI
-                </span>
-              </div>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)' }}>
-                {payment.processo_sei || '-'}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Timer size={16} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-              Prazo
-            </span>
-          </div>
-          <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: 'var(--color-text)' }}>
-            {payment.prazo_dias ? `${payment.prazo_dias} dia${payment.prazo_dias !== 1 ? 's' : ''}` : '-'}
-            {payment.prazo_dias && payment.data_de_vencimento && (() => {
-              const diff = daysUntil(payment.data_de_vencimento);
-              if (diff === null) return null;
-              if (diff > 0) return <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>{` · Vence em ${diff} dia${diff !== 1 ? 's' : ''}`}</span>;
-              if (diff === 0) return <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>{' · Vence hoje'}</span>;
-              const abs = Math.abs(diff);
-              return <span style={{ color: 'var(--color-error)', fontWeight: 600 }}>{` · Venceu há ${abs} dia${abs !== 1 ? 's' : ''}`}</span>;
-            })()}
-          </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <FileText size={16} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>
-              Observações
-            </span>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
-            {payment.observacao || '-'}
-          </p>
+        <div className="vp-status-row">
+          <span className={`status-badge status-badge--${statusKey}`}>
+            {formatStatusPagamento(payment.status)}
+          </span>
+          {diffText && <span className={`vp-diff ${diffClass}`}>{diffText}</span>}
         </div>
 
-        <div className="modal-actions">
-          <button type="button" className="cancel-btn" onClick={onClose}>Fechar</button>
+        <div className="vp-body">
+          <div className="vp-field vp-field--pi">
+            <span className="vp-label"><FileText size={14} /> Propriedade Intelectual</span>
+            <button className="vp-pi-link" onClick={goToPi} title="Abrir detalhes da PI">
+              {piLabel}
+              <ExternalLink size={15} />
+            </button>
+          </div>
+
+          <div className="vp-grid">
+            <div className="vp-field">
+              <span className="vp-label"><DollarSign size={14} /> Valor</span>
+              <p className="vp-value">{formatCurrency(payment.valor)}</p>
+            </div>
+            <div className="vp-field">
+              <span className="vp-label"><Calendar size={14} /> Data calculada</span>
+              <p className="vp-text">{formatDate(payment.data_de_vencimento)}</p>
+              <p className="vp-sub">Informada: {formatDate(payment.data_informada)}</p>
+            </div>
+            <div className="vp-field">
+              <span className="vp-label"><ShieldCheck size={14} /> Processo SEI</span>
+              <p className="vp-text">{payment.processo_sei || '-'}</p>
+            </div>
+            <div className="vp-field">
+              <span className="vp-label"><Timer size={14} /> Prazo</span>
+              <p className="vp-text">
+                {payment.prazo_dias ? `${payment.prazo_dias} dia${payment.prazo_dias !== 1 ? 's' : ''}` : '-'}
+                {diffText && <span className={`vp-diff ${diffClass}`}> · {diffText}</span>}
+              </p>
+            </div>
+          </div>
+
+          <div className="vp-field">
+            <span className="vp-label"><FileText size={14} /> Observações</span>
+            <p className="vp-obs">{payment.observacao || 'Nenhuma observação.'}</p>
+          </div>
         </div>
+
+        <footer className="vp-footer">
+          <button className="vp-btn-ghost" onClick={onClose}>Fechar</button>
+          <button className="vp-btn-primary" onClick={goToPi}>
+            <ExternalLink size={16} /> Ver PI
+          </button>
+        </footer>
       </div>
     </div>
   );

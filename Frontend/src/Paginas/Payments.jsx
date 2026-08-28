@@ -1,6 +1,6 @@
 import API_URL from '../config';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info, X } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
@@ -49,6 +49,8 @@ export default function Payments() {
   const [toast, setToast] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const openedFromParam = useRef(false);
+  const navigate = useNavigate();
+  const goToPi = (piId) => { if (piId) navigate(`/detalhes/${piId}`); };
 
   const loadAllPayments = useCallback(async () => {
     const res = await axios.get(`${API}/api/pagamentos`);
@@ -373,7 +375,11 @@ export default function Payments() {
                     {enrichedTablePayments.map((p, i) => (
                       <tr key={i}>
                         <td className="td-desc">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</td>
-                        <td className="td-pi">{p.pi}</td>
+                         <td className="td-pi">
+                           <button className="pi-link" onClick={() => goToPi(p.pi_id)} title="Ver detalhes da PI">
+                             {p.pi}
+                           </button>
+                         </td>
                         <td className="td-value">{formatCurrency(parseFloat(p.valor) || 0)}</td>
                         <td>
                           <div>{p.data_informada ? toLocalDate(p.data_informada)?.toLocaleDateString('pt-BR') : '-'}</div>
@@ -494,7 +500,11 @@ export default function Payments() {
                     >
                       <div className="day-payment-left">
                         <span className="day-payment-tipo">{p.tipo_de_pagamento || `Pagamento #${p.id}`}</span>
-                        <span className="day-payment-pi">{p.pi}</span>
+                        <span className="day-payment-pi">
+                          <button className="pi-link pi-link--sm" onClick={(e) => { e.stopPropagation(); goToPi(p.pi_id); }} title="Ver detalhes da PI">
+                            {p.pi}
+                          </button>
+                        </span>
                       </div>
                       <div className="day-payment-right">
                         <span className={`status-badge status-badge--${(p.status || 'aguardando prazo').toLowerCase().replace(/\s+/g, '')}`}>
