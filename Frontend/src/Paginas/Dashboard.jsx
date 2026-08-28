@@ -78,6 +78,7 @@ function Dashboard() {
   const [error, setError] = useState(null);
   const [tab, setTab] = useState('geral');
   const [data, setData] = useState(null);
+  const [gerando, setGerando] = useState(false);
 
   useEffect(() => {
     axios.get(`${API_URL}/api/stats`)
@@ -90,6 +91,19 @@ function Dashboard() {
   const fmtDias = d => (d === null || d === undefined) ? '—' : (d >= 365 ? `${Math.round((d / 365) * 10) / 10} anos` : `${Math.round(d)} dias`);
   const fmtPct = v => `${v || 0}%`;
   const fmtDate = s => { if (!s) return '—'; const d = new Date(s); return isNaN(d) ? '—' : d.toLocaleDateString('pt-BR'); };
+
+  const handleGerarRelatorio = async () => {
+    setGerando(true);
+    try {
+      const { gerarRelatorioPDF } = await import('../utils/relatorioPdf');
+      await gerarRelatorioPDF({ pi, autores, pagamentos, cruzamentos, fmtBRL, fmtDias, fmtPct, fmtDate });
+    } catch (err) {
+      console.error('Erro ao gerar relatório:', err);
+      alert('Não foi possível gerar o relatório.');
+    } finally {
+      setGerando(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -140,8 +154,8 @@ function Dashboard() {
               Visão geral · {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
-          <button className="btn-relatorio" onClick={() => window.print()}>
-            <Download size={16} /> Relatório
+          <button className="btn-relatorio" onClick={handleGerarRelatorio} disabled={gerando}>
+            <Download size={16} /> {gerando ? 'Gerando...' : 'Relatório'}
           </button>
         </header>
 
