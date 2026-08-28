@@ -39,20 +39,40 @@ function formatDateTime(dateStr) {
   return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+const PAGE_SIZE = 10;
+
+function getPageWindow(current, total) {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  return Array.from({ length: 5 }, (_, i) => start + i);
+}
+
 function Notificacoes() {
   document.title = 'GPI - Notificações';
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('todas');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { refresh, markAllRead } = useNotificacoes();
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (currentPage, currentFilter) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/api/notificacoes`);
+      const lidaParam = currentFilter === 'lidas' ? 'true' : currentFilter === 'nao-lidas' ? 'false' : undefined;
+      const res = await axios.get(`${API}/api/notificacoes`, {
+        params: {
+          limit: PAGE_SIZE,
+          offset: (currentPage - 1) * PAGE_SIZE,
+          lida: lidaParam
+        }
+      });
       setNotifications(res.data.data || []);
+      setTotal(res.data.total || 0);
+      setUnreadCount(res.data.unreadCount || 0);
       setError('');
     } catch (err) {
       setError('Erro ao carregar notificações.');
@@ -62,8 +82,8 @@ function Notificacoes() {
   }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load(page, filter);
+  }, [page, filter, load]);
 
   const handleToggleRead = async (n) => {
     try {
@@ -75,6 +95,7 @@ function Notificacoes() {
         setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, lida: !n.lida } : x));
       }
       refresh();
+      await load(page, filter);
     } catch (err) {
       console.error('Erro ao atualizar notificação:', err);
     }
@@ -83,8 +104,12 @@ function Notificacoes() {
   const handleDelete = async (n) => {
     try {
       await axios.delete(`${API}/api/notificacoes/${n.id}`);
-      setNotifications(prev => prev.filter(x => x.id !== n.id));
       refresh();
+      if (notifications.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        await load(page, filter);
+      }
     } catch (err) {
       console.error('Erro ao excluir notificação:', err);
     }
@@ -92,7 +117,8 @@ function Notificacoes() {
 
   const handleMarkAllRead = async () => {
     await markAllRead();
-    load();
+    setPage(1);
+    await load(1, filter);
   };
 
   const handleAbrir = (n) => {
@@ -103,13 +129,15 @@ function Notificacoes() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.lida).length;
+  const changeFilter = (key) => {
+    setFilter(key);
+    setPage(1);
+  };
 
-  const filtered = notifications.filter(n => {
-    if (filter === 'nao-lidas') return !n.lida;
-    if (filter === 'lidas') return n.lida;
-    return true;
-  });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const indexOfFirst = (page - 1) * PAGE_SIZE + 1;
+  const indexOfLast = Math.min(page * PAGE_SIZE, total);
+  const pageNumbers = getPageWindow(page, totalPages);
 
   const filters = [
     { key: 'todas', label: 'Todas' },
@@ -145,7 +173,7 @@ function Notificacoes() {
             <button
               key={f.key}
               className={`filter-btn${filter === f.key ? ' filter-btn--active' : ''}`}
-              onClick={() => setFilter(f.key)}
+              onClick={() => changeFilter(f.key)}
             >
               {f.key === 'todas' ? <Bell size={15} /> : f.key === 'lidas' ? <CheckCircle2 size={15} /> : <BellOff size={15} />}
               {f.label}
@@ -157,7 +185,7 @@ function Notificacoes() {
 
         {loading ? (
           <p className="notificacoes-empty">Carregando...</p>
-        ) : filtered.length === 0 ? (
+        ) : notifications.length === 0 ? (
           <div className="notificacoes-empty">
             <MailOpen size={40} />
             <p>
@@ -168,7 +196,7 @@ function Notificacoes() {
           </div>
         ) : (
           <div className="notificacoes-list">
-            {filtered.map((n) => (
+            {notifications.map((n) => (
               <div
                 key={n.id}
                 className={`notificacao-item${n.lida ? ' is-read' : ''}`}
@@ -224,6 +252,51 @@ function Notificacoes() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {!loading && total > PAGE_SIZE && (
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginTop: 20, fontSize: 14, flexWrap: 'wrap', gap: 12
+          }}>
+            <span style={{ color: 'var(--color-text-secondary)' }}>
+              Exibindo {indexOfFirst}–{indexOfLast} de {total} notificações
+            </span>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+                style={{
+                  padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                  background: page === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
+                  color: page === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                  fontWeight: 600, fontSize: 13, cursor: page === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >Anterior</button>
+              {pageNumbers.map(number => (
+                <button
+                  key={number}
+                  onClick={() => setPage(number)}
+                  style={{
+                    padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
+                    background: page === number ? 'var(--color-primary)' : 'var(--color-surface)',
+                    color: page === number ? '#fff' : 'var(--color-text-secondary)',
+                    fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
+                  }}
+                >{number}</button>
+              ))}
+              <button
+                onClick={() => setPage(page + 1)}
+                disabled={page === totalPages}
+                style={{
+                  padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                  background: page === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
+                  color: page === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                  fontWeight: 600, fontSize: 13, cursor: page === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >Próxima</button>
+            </div>
           </div>
         )}
       </div>

@@ -3,8 +3,12 @@ const { Notificacao, User } = require('../models/index');
 // GET /api/notificacoes
 exports.listNotificacoes = async (req, res) => {
   try {
-    const { limit: limitRaw, offset: offsetRaw } = req.query;
+    const { limit: limitRaw, offset: offsetRaw, lida } = req.query;
     const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
+
+    const where = {};
+    if (lida === 'true') where.lida = true;
+    else if (lida === 'false') where.lida = false;
 
     if (isPaginated) {
       const limitNum = Number(limitRaw);
@@ -17,9 +21,10 @@ exports.listNotificacoes = async (req, res) => {
         return res.status(400).json({ errors: ['offset deve ser um inteiro não negativo.'] });
       }
 
-      const total = await Notificacao.count();
+      const total = await Notificacao.count({ where });
       const unreadCount = await Notificacao.count({ where: { lida: false } });
       const data = await Notificacao.findAll({
+        where,
         order: [['lida', 'ASC'], ['createdAt', 'DESC']],
         limit: limitNum,
         offset: offsetNum
@@ -35,6 +40,7 @@ exports.listNotificacoes = async (req, res) => {
     }
 
     const data = await Notificacao.findAll({
+      where,
       order: [['lida', 'ASC'], ['createdAt', 'DESC']]
     });
     const unreadCount = data.filter(n => !n.lida).length;
