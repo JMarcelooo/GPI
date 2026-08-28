@@ -26,6 +26,16 @@ app.use(cors({ origin: FRONTEND_URLS, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+// Tratamento de erro de parsing de JSON (corpo malformado) -> 400.
+// Em Express 5, express.json() repassa o SyntaxError (type 'entity.parse.failed')
+// para o next, que cairia no handler global e responderia 500.
+app.use((err, req, res, next) => {
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'JSON inválido no corpo da requisição.' });
+  }
+  next(err);
+});
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
