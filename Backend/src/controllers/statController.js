@@ -68,13 +68,15 @@ exports.getStats = async (req, res) => {
       `, { type: Sequelize.QueryTypes.SELECT })
     ]);
 
-    // ---- PIs por titular/instituição (titular é texto no formato de array JSON) ----
+    // ---- PIs por titular/instituição (titular é jsonb / array JSON) ----
     const piTitular = await sequelize.query(`
-      SELECT trim(both '"' from elem) AS label, COUNT(*) AS value
+      SELECT elem AS label, COUNT(*) AS value
       FROM (
-        SELECT unnest(string_to_array(trim(both '[]' from titular), '","')) AS elem
+        SELECT jsonb_array_elements_text(titular::jsonb) AS elem
         FROM pi
-        WHERE titular IS NOT NULL AND titular <> '' AND titular <> '[]'
+        WHERE titular IS NOT NULL
+          AND titular::text <> '[]'
+          AND titular::text <> 'null'
       ) s
       WHERE elem IS NOT NULL AND elem <> ''
       GROUP BY label
