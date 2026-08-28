@@ -71,7 +71,7 @@ exports.createUsuario = async (req, res) => {
       deveTrocarSenha: true
     });
     // Gera as cópias de notificações para o novo usuário.
-    sincronizarNotificacoes(true);
+    await sincronizarNotificacoes(true);
     await registrarHistorico({
       tipo: 'usuario',
       acao: 'criacao',
@@ -95,6 +95,7 @@ exports.updateUsuario = async (req, res) => {
     if (!usuario) {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
+    const ativoOriginal = usuario.ativo;
 
     if (role && !ROLES_VALIDOS.includes(role)) {
       return res.status(400).json({
@@ -137,8 +138,11 @@ exports.updateUsuario = async (req, res) => {
     if (ativo !== undefined) usuario.ativo = ativo;
 
     await usuario.save();
-    // Reativação/edição pode mudar o conjunto de notificações do usuário.
-    sincronizarNotificacoes(true);
+    // Apenas (des)ativação afeta o conjunto de notificações visíveis; nesses
+    // casos reexecuta a sincronização aguardando o término (sem fire-and-forget).
+    if (ativo !== undefined && ativo !== ativoOriginal) {
+      await sincronizarNotificacoes(true);
+    }
     if (mudancas.length > 0) {
       await registrarHistorico({
         tipo: 'usuario',

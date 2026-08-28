@@ -139,7 +139,7 @@ exports.createPagamento = async (req, res) => {
       usuario: req.usuario
     });
 
-    sincronizarNotificacoes(true);
+    await sincronizarNotificacoes(true);
 
     res.status(201).json({ data: pagamento });
   } catch (error) {
@@ -208,7 +208,7 @@ exports.updatePagamento = async (req, res) => {
       usuario: req.usuario
     });
 
-    sincronizarNotificacoes(true);
+    await sincronizarNotificacoes(true);
 
     const updated = await Pagamento.findByPk(req.params.id);
     res.json({ data: updated });
@@ -241,7 +241,7 @@ exports.deletePagamento = async (req, res) => {
     });
 
     await pagamento.destroy();
-    sincronizarNotificacoes(true);
+    await sincronizarNotificacoes(true);
     res.json({ message: 'Pagamento removido com sucesso.' });
   } catch (error) {
     console.error('Erro ao remover pagamento:', error);
