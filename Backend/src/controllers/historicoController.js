@@ -33,17 +33,21 @@ exports.listHistorico = async (req, res) => {
       if (fim) where.createdAt[Op.lte] = new Date(`${fim}T23:59:59.999`);
     }
 
-    const limitRaw = req.query.limit;
-    const offsetRaw = req.query.offset;
-    const isPaginated = limitRaw !== undefined && limitRaw !== null && limitRaw !== '';
-    const findOpts = { where, order: [['createdAt', 'DESC']] };
-
-    if (isPaginated) {
-      findOpts.limit = Math.min(Number(limitRaw) || 30, 100);
-      findOpts.offset = Number(offsetRaw) || 0;
+    const pageSize = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    let offset = Number(req.query.offset);
+    if (!Number.isFinite(offset) || offset < 0) {
+      offset = (page - 1) * pageSize;
     }
+    const findOpts = {
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: pageSize,
+      offset
+    };
 
     const { rows, count } = await Historico.findAndCountAll(findOpts);
+    const totalPages = Math.ceil(count / pageSize) || 1;
 
     // Enriquece com o título atual da PI quando ainda existe.
     const piIds = [...new Set(rows.map(r => r.pi_id).filter(Boolean))];
@@ -59,6 +63,9 @@ exports.listHistorico = async (req, res) => {
     res.json({
       count: rows.length,
       total: count,
+      page,
+      pageSize,
+      totalPages,
       data: rows.map(r => ({
         ...r.toJSON(),
         pi_titulo: r.pi_id ? (pisPorId[r.pi_id] || null) : null

@@ -2,7 +2,7 @@ import API_URL from '../config';
 import {
   FileText, Wallet, Newspaper, Users, ShieldCheck,
   Search, X, History, RefreshCw,
-  ChevronDown, ChevronRight, CheckCircle2, MinusCircle
+  ChevronDown, ChevronRight, ChevronLeft, CheckCircle2, MinusCircle
 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
@@ -14,7 +14,7 @@ import './Logs.css';
 import './LogRPI.css';
 
 const API = API_URL;
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 15;
 
 const TIPOS = [
   { value: 'pi', label: 'PI', icon: FileText },
@@ -60,10 +60,11 @@ function Logs() {
   document.title = 'GPI - Logs';
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(1);
 
   const [tipo, setTipo] = useState('');
   const [acao, setAcao] = useState('');
@@ -85,12 +86,12 @@ function Logs() {
 
   const [aba, setAba] = useState('eventos');
 
-  const carregar = useCallback(async (off, acumular) => {
+  const carregar = useCallback(async (pag) => {
     setLoading(true);
     try {
       const params = {
         limit: PAGE_SIZE,
-        offset: off,
+        offset: (pag - 1) * PAGE_SIZE,
         ...(tipo && { tipo }),
         ...(acao && { acao }),
         ...(usuario && { usuario }),
@@ -99,23 +100,49 @@ function Logs() {
         ...(fim && { fim })
       };
       const res = await axios.get(`${API}/api/historico`, { params });
-      setItems(prev => (acumular ? [...prev, ...res.data.data] : res.data.data));
+      setItems(res.data.data || []);
       setTotal(res.data.total || 0);
+      setTotalPages(res.data.totalPages || 1);
       setError('');
     } catch (err) {
       setError(err.response?.status === 403
         ? 'Acesso restrito a administradores.'
         : 'Erro ao carregar o histórico.');
-      if (!acumular) setItems([]);
+      setItems([]);
     } finally {
       setLoading(false);
     }
   }, [tipo, acao, usuario, qDebounced, inicio, fim]);
 
   useEffect(() => {
-    setOffset(0);
-    carregar(0, false);
+    setPage(1);
+    carregar(1);
   }, [carregar]);
+
+  const irParaPagina = (pag) => {
+    const p = Math.min(Math.max(pag, 1), totalPages);
+    setPage(p);
+    carregar(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const paginasVisiveis = () => {
+    const janela = 2;
+    const nums = [];
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || (p >= page - janela && p <= page + janela)) {
+        nums.push(p);
+      }
+    }
+    const resultado = [];
+    let prev = 0;
+    nums.forEach(p => {
+      if (prev && p - prev > 1) resultado.push('...');
+      resultado.push(p);
+      prev = p;
+    });
+    return resultado;
+  };
 
   useEffect(() => {
     axios.get(`${API}/api/historico/usuarios`)
@@ -132,12 +159,6 @@ function Logs() {
     setQ('');
     setInicio('');
     setFim('');
-  };
-
-  const carregarMais = () => {
-    const proximo = offset + PAGE_SIZE;
-    setOffset(proximo);
-    carregar(proximo, true);
   };
 
   const abrirDestino = (item) => {
@@ -277,10 +298,44 @@ function Logs() {
               })}
             </div>
 
-            {items.length < total && (
-              <button className="logs-mais" onClick={carregarMais} disabled={loading}>
-                {loading ? 'Carregando...' : 'Carregar mais'}
-              </button>
+            {loading && items.length > 0 && (
+              <p className="logs-loading-mini">Carregando...</p>
+            )}
+
+            {totalPages > 1 && (
+              <div className="logs-paginacao">
+                <button
+                  type="button"
+                  className="logs-pag-btn"
+                  onClick={() => irParaPagina(page - 1)}
+                  disabled={page <= 1 || loading}
+                >
+                  <ChevronLeft size={16} /> Anterior
+                </button>
+
+                {paginasVisiveis().map((p, i) => p === '...' ? (
+                  <span key={`e${i}`} className="logs-pag-ellipsis">…</span>
+                ) : (
+                  <button
+                    type="button"
+                    key={p}
+                    className={`logs-pag-btn${p === page ? ' logs-pag-btn--ativo' : ''}`}
+                    onClick={() => irParaPagina(p)}
+                    disabled={loading}
+                  >
+                    {p}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  className="logs-pag-btn"
+                  onClick={() => irParaPagina(page + 1)}
+                  disabled={page >= totalPages || loading}
+                >
+                  Próxima <ChevronRight size={16} />
+                </button>
+              </div>
             )}
           </>
         )}
