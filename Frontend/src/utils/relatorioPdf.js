@@ -99,6 +99,27 @@ async function loadImage(url) {
   }
 }
 
+async function loadBahnschrift(doc) {
+  try {
+    const res = await fetch(`${process.env.PUBLIC_URL || ''}/fonts/Bahnschrift.ttf`);
+    if (!res.ok) return false;
+    const blob = await res.blob();
+    const dataUrl = await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(fr.result);
+      fr.onerror = reject;
+      fr.readAsDataURL(blob);
+    });
+    const base64 = String(dataUrl).split(',')[1];
+    doc.addFileToVFS('Bahnschrift.ttf', base64);
+    doc.addFont('Bahnschrift.ttf', 'Bahnschrift', 'normal');
+    doc.addFont('Bahnschrift.ttf', 'Bahnschrift', 'bold');
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function trunc(doc, str, maxW) {
   str = String(str == null ? '' : str);
   if (doc.getTextWidth(str) <= maxW) return str;
@@ -295,7 +316,7 @@ function drawSemaforo(doc, x, y, w, h, seg) {
   });
 }
 
-async function desenharCapa(doc, W, H) {
+async function desenharCapa(doc, W, H, hl) {
   for (let yy = 0; yy < H; yy += 3) {
     doc.setFillColor(...mixRgb(PRIMARY, PRIMARY_DARK, yy / H));
     doc.rect(0, yy, W, 3, 'F');
@@ -311,7 +332,7 @@ async function desenharCapa(doc, W, H) {
     { x: W * 0.78, y: H * 0.22, s: 36, c: PALETTE[4] }
   ];
   squares.forEach(s => {
-    doc.setFillColor(...mixRgb(s.c, PRIMARY, 0.55));
+    doc.setFillColor(...mixRgb(s.c, PRIMARY, 0.2));
     doc.roundedRect(s.x, s.y, s.s, s.s, 8, 8, 'F');
   });
   const gpi = await loadImage(`${process.env.PUBLIC_URL || ''}/imagens/Sistema-Logo.png`);
@@ -320,7 +341,7 @@ async function desenharCapa(doc, W, H) {
     const th = tw * gpi.height / gpi.width;
     doc.addImage(gpi.dataUrl, 'PNG', (W - tw) / 2, H * 0.30, tw, th);
   }
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(22); applyText(doc, WHITE);
+  doc.setFont(hl, 'bold'); doc.setFontSize(22); applyText(doc, WHITE);
   doc.text('Relatório de Propriedades Intelectuais', W / 2, H * 0.56, { align: 'center' });
   doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
   doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, W / 2, H * 0.62, { align: 'center' });
@@ -344,10 +365,11 @@ export async function gerarRelatorioPDF(dados) {
   const M = 40;
   let y = M;
   let tabTitle = '';
+  const hl = (await loadBahnschrift(doc).catch(() => false)) ? 'Bahnschrift' : 'helvetica';
 
   function drawTabHeader() {
     applyFill(doc, PRIMARY); doc.rect(0, 0, W, 40, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(14); applyText(doc, WHITE);
+    doc.setFont(hl, 'bold'); doc.setFontSize(14); applyText(doc, WHITE);
     doc.text(tabTitle, M, 26, { baseline: 'middle' });
     y = 56;
   }
@@ -355,7 +377,7 @@ export async function gerarRelatorioPDF(dados) {
   function novaPagina(titulo) { doc.addPage(); tabTitle = titulo; y = M + 50; drawTabHeader(); }
   function sectionTitle(t) {
     ensure(26);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(12); applyText(doc, TEXT);
+    doc.setFont(hl, 'bold'); doc.setFontSize(12); applyText(doc, TEXT);
     doc.text(t, M, y, { baseline: 'top' });
     y += 22;
   }
@@ -379,12 +401,17 @@ export async function gerarRelatorioPDF(dados) {
     y += Math.ceil(items.length / perRow) * (cardH + gap);
   }
   function chartCard(title, chartH, draw, text) {
-    const cardH = chartH + (text ? 52 : 0) + 40;
+    let textH = 0;
+    if (text) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      textH = doc.splitTextToSize(text, W - 2 * M - 24).length * 12 + 10;
+    }
+    const cardH = chartH + textH + 40;
     ensure(cardH);
     const x = M, w = W - 2 * M, h = cardH;
     applyDraw(doc, BORDER); doc.setLineWidth(1); applyFill(doc, BG);
     doc.roundedRect(x, y, w, h, 6, 6, 'FD');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); applyText(doc, TEXT);
+    doc.setFont(hl, 'bold'); doc.setFontSize(11); applyText(doc, TEXT);
     doc.text(title, x + 12, y + 16, { baseline: 'top' });
     applyDraw(doc, BORDER); doc.line(x + 12, y + 30, x + w - 12, y + 30);
     draw(doc, x + 12, y + 38, w - 24, chartH);
@@ -414,7 +441,7 @@ export async function gerarRelatorioPDF(dados) {
   const risco = invest.filter(s => !SUCESSO.includes(s.label)).reduce((a, s) => a + Number(s.value || 0), 0);
   const riscoPct = totalInvest ? Math.round(risco / totalInvest * 100) : 0;
 
-  await desenharCapa(doc, W, H);
+  await desenharCapa(doc, W, H, hl);
 
   novaPagina('Visão Geral');
   sectionTitle('Indicadores gerais');
@@ -425,13 +452,13 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'Valor pendente', value: fmtBRL(pagamentos.valorPendente || 0) },
     { label: 'Taxa de sucesso', value: fmtPct(pi.funil?.taxaSucesso), sub: `${(pi.funil?.comDesfecho || 0)} com desfecho` }
   ]);
-  chartCard('Distribuição de resultados', 44, (d, x, yy, w, hh) => drawSemaforo(d, x, yy, w, hh, [
+  chartCard('Distribuição de resultados', 80, (d, x, yy, w, hh) => drawSemaforo(d, x, yy, w, hh, [
     { label: 'Concedidas', value: concedidas, color: PALETTE[3] },
     { label: 'Em andamento', value: emAndamento, color: PALETTE[2] },
     { label: 'Indeferidas', value: indeferidas, color: PALETTE[1] }
-  ]), `A distribuição de resultados mostra ${concedidas} PIs concedidas (${Math.round(concedidas / totalPI * 100)}% do total), ${emAndamento} em andamento e ${indeferidas} indeferidas, anuladas ou arquivadas.`);
-  chartCard('Funil de status das PIs', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), `O funil apresenta a trajetória das PIs pelos estágios. Taxa de sucesso de ${pi.funil?.taxaSucesso || 0}% e de insucesso ${pi.funil?.taxaInsucesso || 0}%.`);
-  chartCard('PIs por tipo', 130, (d, x, yy, w, hh) => drawDonut(d, x, yy, w, hh, (pi.porTipo || []).map(s => ({ label: tipoLabel(s.label), value: s.value, color: tipoColor(s.label) })), pi.total || 0), 'Distribuição das PIs pelos tipos de propriedade intelectual.');
+  ]), `Das ${pi.total || 0} PIs registradas, ${concedidas} foram concedidas (${Math.round(concedidas / totalPI * 100)}% do total), refletindo o resultado positivo do processo de propriedade intelectual. Outras ${emAndamento} seguem em andamento e ${indeferidas} foram indeferidas, anuladas ou arquivadas, o que aponta oportunidades de melhoria na qualidade dos depósitos.`);
+  chartCard('Funil de status das PIs', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), `O funil de status apresenta a trajetória das PIs desde o depósito até a concessão. A taxa de sucesso é de ${pi.funil?.taxaSucesso || 0}% e a de insucesso ${pi.funil?.taxaInsucesso || 0}%, considerando ${pi.funil?.comDesfecho || 0} PIs com desfecho conhecido. Entender essas etapas ajuda a identificar onde ocorrem as perdas.`);
+  chartCard('PIs por tipo', 130, (d, x, yy, w, hh) => drawDonut(d, x, yy, w, hh, (pi.porTipo || []).map(s => ({ label: tipoLabel(s.label), value: s.value, color: tipoColor(s.label) })), pi.total || 0), 'As PIs dividem-se entre patente de invenção, modelo de utilidade, marca e programa de computador. Conhecer essa distribuição auxilia no planejamento de recursos e na priorização das áreas com maior retorno sobre a proteção.');
 
   novaPagina('Autores');
   sectionTitle('Indicadores de autores');
@@ -441,10 +468,10 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'Campi', value: String((autores.porCampus || []).length) },
     { label: 'Departamentos', value: String((autores.porDepartamento || []).length) }
   ]);
-  chartCard('Distribuição por gênero', 130, (d, x, yy, w, hh) => drawDonut(d, x, yy, w, hh, (autores.porGenero || []).map(g => ({ label: genderLabel(g.label), value: g.value, color: genderColor(g.label) })), autores.total || 0), `Composição dos ${autores.total || 0} autores por gênero.`);
-  chartCard('Autores por vínculo', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, autores.porVinculo || []), 'Quantidade de autores por tipo de vínculo com a instituição.');
-  chartCard('Autores por campus', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, autores.porCampus || []), 'Distribuição dos autores pelos campi.');
-  chartCard('Ranking de autores mais produtivos', 140, (d, x, yy, w, hh) => drawRanking(d, x, yy, w, hh, (autores.topAutores || []).map(a => ({ label: a.name, value: a.pis, suffix: 'PIs' }))), 'Autores com maior número de PIs vinculadas.');
+  chartCard('Distribuição por gênero', 130, (d, x, yy, w, hh) => drawDonut(d, x, yy, w, hh, (autores.porGenero || []).map(g => ({ label: genderLabel(g.label), value: g.value, color: genderColor(g.label) })), autores.total || 0), `A distribuição por gênero retrata a composição dos ${autores.total || 0} autores cadastrados. Equilibrar a participação de masculino, feminino e não informado é importante para políticas de inclusão e para garantir o preenchimento correto dos dados.`);
+  chartCard('Autores por vínculo', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, autores.porVinculo || []), 'Os autores distribuem-se por vínculos (docente, discente, técnico e instituição). Essa visão apoia a identificação dos perfis mais produtivos e de eventuais gargalos de engajamento.');
+  chartCard('Autores por campus', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, autores.porCampus || []), 'A presença dos autores nos campi mostra a capilaridade da inovação na instituição e orienta ações de capacitação regional.');
+  chartCard('Ranking de autores mais produtivos', 140, (d, x, yy, w, hh) => drawRanking(d, x, yy, w, hh, (autores.topAutores || []).map(a => ({ label: a.name, value: a.pis, suffix: 'PIs' }))), 'O ranking destaca os autores com maior número de PIs vinculadas, útil para reconhecimento institucional e para identificar multiplicadores de propriedade intelectual.');
 
   novaPagina('PIs');
   sectionTitle('Indicadores de PIs');
@@ -454,10 +481,10 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'Pendentes (terminal)', value: String(pi.pendentes || 0) },
     { label: 'Tempo médio', value: fmtDias(pi.tempoMedioDias), sub: `custo médio ${fmtBRL(pi.custoMedioPorPI)}/PI` }
   ]);
-  chartCard('Evolução temporal por tipo de PI', 130, (d, x, yy, w, hh) => drawAnoChart(d, x, yy, w, hh, pi.porAnoTipo || []), 'Evolução anual da quantidade de PIs (soma dos tipos).');
-  chartCard('PIs por tipo', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, (pi.porTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value }))), 'Distribuição das PIs por tipo.');
-  chartCard('Funil de status detalhado', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), 'Estágios do processo de propriedade intelectual.');
-  chartCard('PIs por titular / instituição', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, pi.porTitular || []), 'PIs agrupadas por titular ou instituição.');
+  chartCard('Evolução temporal por tipo de PI', 130, (d, x, yy, w, hh) => drawAnoChart(d, x, yy, w, hh, pi.porAnoTipo || []), 'A série histórica por ano revela a evolução da quantidade de PIs depositadas e permite observar tendências de crescimento ou estagnação ao longo do tempo.');
+  chartCard('PIs por tipo', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, (pi.porTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value }))), 'A distribuição por tipo de PI orienta a alocação de esforço de proteção conforme o perfil de cada invento.');
+  chartCard('Funil de status detalhado', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), 'O funil detalhado reforça as etapas críticas do processo e onde ocorrem as perdas por indeferimento, anulação ou arquivamento.');
+  chartCard('PIs por titular / instituição', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, pi.porTitular || []), 'Agrupar PIs por titular ou instituição evidencia quem detém a propriedade e facilita o acompanhamento de transferências e cessões.');
 
   novaPagina('Financeiro');
   sectionTitle('Indicadores financeiros');
@@ -469,14 +496,14 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'A vencer (30 dias)', value: String(pagamentos.aVencer30 || 0) },
     { label: 'Total de pagamentos', value: String(pagamentos.total || 0) }
   ]);
-  chartCard('Valor pago por ano', 130, (d, x, yy, w, hh) => drawVerticalBars(d, x, yy, w, hh, (pagamentos.porAnoPago || []).map(d2 => ({ label: String(d2.ano), value: d2.value })), fmtBRL), 'Valores pagos por ano.');
+  chartCard('Valor pago por ano', 130, (d, x, yy, w, hh) => drawVerticalBars(d, x, yy, w, hh, (pagamentos.porAnoPago || []).map(d2 => ({ label: String(d2.ano), value: d2.value })), fmtBRL), 'O valor pago por ano evidencia o esforço financeiro anual com proteção e pode ser comparado à evolução do número de PIs depositadas.');
   chartCard('Situação dos pagamentos', 130, (d, x, yy, w, hh) => drawDonut(d, x, yy, w, hh, [
     { label: 'Pagos', value: pagamentos.pago || 0, color: PALETTE[4] },
     { label: 'Em andamento', value: pagamentos.emAndamento || 0, color: PALETTE[0] },
     { label: 'Aguardando', value: pagamentos.aguardandoPrazo || 0, color: PALETTE[2] }
-  ], pagamentos.total || 0), 'Distribuição dos pagamentos por situação.');
-  chartCard('Custo médio por tipo de PI', 120, (d, x, yy, w, hh) => drawVerticalBars(d, x, yy, w, hh, (pagamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value })), fmtBRL), 'Custo médio por tipo de PI.');
-  chartCard('Próximos vencimentos', 100, (d, x, yy, w, hh) => drawUpcoming(d, x, yy, w, hh, pagamentos.proximosVencimentos || [], fmtDate, fmtBRL), 'Pagamentos com vencimento próximo.');
+  ], pagamentos.total || 0), 'A situação dos pagamentos (pagos, em andamento e aguardando) indica a saúde do fluxo financeiro e o volume de pendências a tratar.');
+  chartCard('Custo médio por tipo de PI', 120, (d, x, yy, w, hh) => drawVerticalBars(d, x, yy, w, hh, (pagamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value })), fmtBRL), 'O custo médio por tipo de PI apoia o dimensionamento de orçamento e a análise de retorno por categoria.');
+  chartCard('Próximos vencimentos', 100, (d, x, yy, w, hh) => drawUpcoming(d, x, yy, w, hh, pagamentos.proximosVencimentos || [], fmtDate, fmtBRL), 'Os próximos vencimentos exigem atenção para evitar inadimplência e manter as proteções ativas; itens vencidos ou próximos de 30 dias são prioridade.');
 
   novaPagina('Cruzamentos');
   sectionTitle('Cruzamentos e risco');
@@ -486,12 +513,12 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'Departamentos ativos', value: String((cruzamentos.produtividadePorDepartamento || []).length) },
     { label: 'Campi ativos', value: String((cruzamentos.produtividadePorCampus || []).length) }
   ]);
-  chartCard('Investimento por status da PI', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, invest.map(s => ({ label: statusLabel(s.label), value: s.value })), fmtBRL), `Risco financeiro (PIs ainda não concedidas): ${fmtBRL(risco)}.`);
-  chartCard('Heatmap gênero × vínculo × PIs', 140, (d, x, yy, w, hh) => drawHeatmap(d, x, yy, w, hh, cruzamentos.generoVinculoPIs || []), 'Cruzamento de gênero e vínculo dos autores pelas PIs.');
-  chartCard('Produtividade por departamento (PIs)', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, cruzamentos.produtividadePorDepartamento || []), 'PIs por departamento.');
-  chartCard('Produtividade por campus (PIs)', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, cruzamentos.produtividadePorCampus || []), 'PIs por campus.');
-  chartCard('Custo médio por tipo de PI', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, (cruzamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value })), fmtBRL), 'Custo médio por tipo.');
-  chartCard('Top 10 departamentos (autores)', 140, (d, x, yy, w, hh) => drawRanking(d, x, yy, w, hh, (autores.porDepartamento || []).slice(0, 10).map(d2 => ({ label: d2.label, value: d2.value, suffix: 'autores' }))), 'Departamentos com mais autores.');
+  chartCard('Investimento por status da PI', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, invest.map(s => ({ label: statusLabel(s.label), value: s.value })), fmtBRL), `O investimento por status da PI separa o valor já aplicado em PIs concedidas do risco financeiro em PIs ainda não concedidas (${fmtBRL(risco)}, ${riscoPct}% do investimento total).`);
+  chartCard('Heatmap gênero × vínculo × PIs', 140, (d, x, yy, w, hh) => drawHeatmap(d, x, yy, w, hh, cruzamentos.generoVinculoPIs || []), 'O cruzamento gênero × vínculo × PIs revela padrões de atuação dos autores e pode orientar ações de fomento direcionadas a cada perfil.');
+  chartCard('Produtividade por departamento (PIs)', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, cruzamentos.produtividadePorDepartamento || []), 'A produtividade por departamento indica os centros mais ativos em propriedade intelectual.');
+  chartCard('Produtividade por campus (PIs)', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, cruzamentos.produtividadePorCampus || []), 'A produtividade por campus mostra a distribuição territorial da produção e onde há maior densidade de inventos.');
+  chartCard('Custo médio por tipo de PI', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, (cruzamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value })), fmtBRL), 'O custo médio por tipo de PI, na visão de cruzamento, reforça a análise de custo-benefício por categoria.');
+  chartCard('Top 10 departamentos (autores)', 140, (d, x, yy, w, hh) => drawRanking(d, x, yy, w, hh, (autores.porDepartamento || []).slice(0, 10).map(d2 => ({ label: d2.label, value: d2.value, suffix: 'autores' }))), 'Os 10 departamentos com mais autores evidenciam onde está o maior capital humano voltado à inovação.');
 
   doc.save('relatorio-propriedades-intelectuais.pdf');
 }
