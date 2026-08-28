@@ -220,7 +220,7 @@ function drawAnoChart(doc, x, y, w, h, rows) {
   const tipos = [...new Set(rows.map(r => r.tipo))];
   const get = (a, t) => rows.find(r => r.ano === a && r.tipo === t)?.value || 0;
   const max = Math.max(1, ...anos.flatMap(a => tipos.map(t => get(a, t))));
-  const padL = 26, padR = 12, padT = 8, padB = 28;
+  const padL = 26, padR = 12, padT = 8, padB = 48;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
   const plotBottom = y + h - padB;
@@ -249,7 +249,7 @@ function drawAnoChart(doc, x, y, w, h, rows) {
   applyText(doc, MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
   anos.forEach((a, i) => doc.text(String(a), xOf(i), plotBottom + 12, { align: 'center', baseline: 'middle' }));
   let lx = x + padL;
-  let ly = y + h - 14;
+  let ly = y + h - 16;
   tipos.forEach(t => {
     const label = tipoLabel(t);
     const itemW = 12 + doc.getTextWidth(label) + 12;
