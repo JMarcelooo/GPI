@@ -148,7 +148,7 @@ function Notificacoes() {
   return (
     <div className="container">
       <Sidebar />
-      <div className="main">
+      <div className="main anim-rise">
         <header className="topbar">
           <h2>Notificações</h2>
         </header>

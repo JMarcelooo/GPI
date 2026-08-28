@@ -5,12 +5,10 @@
 .tela {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   padding: var(--space-6);
   position: relative;
+  overflow-y: auto;
 }
 
 /* ---- Decorative squares ---- */
@@ -28,7 +26,8 @@
 }
 
 /* ---- Login Card ---- */
-.login-card {
+.login-wrap {
+  margin: auto;
   width: 100%;
   max-width: 400px;
   display: flex;
@@ -37,13 +36,17 @@
   z-index: 1;
 }
 
+.login-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .login-logo {
-  position: absolute;
-  top: calc(6% + 70px);
-  left: 50%;
-  transform: translateX(-50%);
   max-width: 200px;
   height: auto;
+  margin-bottom: var(--space-5);
 }
 
 .login-card h2 {
@@ -111,11 +114,10 @@
 
 /* ---- Footer ---- */
 .login-footer {
-  max-width: 180px;
+  max-width: 160px;
   height: auto;
   opacity: 0.9;
-  position: absolute;
-  bottom: var(--space-6);
+  margin-top: var(--space-6);
 }
 
 /* ---- Old Cadastro styles (kept for Cadastro.jsx) ---- */

@@ -193,7 +193,7 @@ export default function Autor() {
     return (
         <div className="container">
             <Sidebar />
-            <div className="main">
+            <div className="main anim-rise">
                 <div className="container-pi">
                     <div className="conteudo-pi">
                         <h2>Autores</h2>

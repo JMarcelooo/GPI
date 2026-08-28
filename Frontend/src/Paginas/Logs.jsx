@@ -147,7 +147,7 @@ function Logs() {
   return (
     <div className="container">
       <Sidebar />
-      <div className="main">
+      <div className="main anim-fade">
         <header className="topbar">
           <h2>Logs</h2>
         </header>

@@ -241,7 +241,7 @@ export default function Payments() {
   return (
     <div className="payments-page">
       <Sidebar />
-      <div className="payments-content">
+      <div className="payments-content anim-rise">
         <div className="payments-header">
           <div>
             <h1 className="payments-title">Gestão de Pagamentos</h1>

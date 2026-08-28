@@ -39,7 +39,7 @@ function Configuracoes() {
   return (
     <div className="container">
       <Sidebar />
-      <div className="main">
+      <div className="main anim-fade">
         <header className="topbar">
           <h2>Configurações</h2>
         </header>

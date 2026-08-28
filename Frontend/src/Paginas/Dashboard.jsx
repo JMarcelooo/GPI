@@ -95,7 +95,7 @@ function Dashboard() {
     return (
       <div className="container">
         <Sidebar />
-        <div className="main">
+        <div className="main anim-fade">
           <div className="dash-loading">
             <div className="dash-loading-spinner" role="status" aria-label="Carregando"></div>
             <p>Carregando dados...</p>
@@ -109,7 +109,7 @@ function Dashboard() {
     return (
       <div className="container">
         <Sidebar />
-        <div className="main">
+        <div className="main anim-fade">
           <div className="dash-error" role="alert">
             <p>{error || 'Sem dados.'}</p>
             <button onClick={() => window.location.reload()}>Tentar novamente</button>

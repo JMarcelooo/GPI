@@ -1,0 +1,118 @@
+/* ===========================================================
+   UI ENHANCEMENTS — hover, foco e responsividade global
+   Importado globalmente (após variables.css).
+   Complementa os estilos específicos de cada tela sem
+   sobrescrevê-los.
+   =========================================================== */
+
+/* ---- Transições suaves em elementos interativos ---- */
+.container button,
+.container a,
+.container input,
+.container select,
+.container textarea,
+.kpi-card,
+.chart-card,
+.pay-kpi-card,
+.notificacao-item,
+.day-payment-item,
+.calendar-day,
+.tabela-pi tbody tr,
+.payments-table tbody tr {
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition), box-shadow var(--transition),
+              transform var(--transition), filter var(--transition);
+}
+
+/* ---- Realce ao passar o mouse em linhas de tabela ---- */
+.tabela-pi tbody tr:hover,
+.payments-table tbody tr:hover {
+  background: var(--color-hover);
+}
+
+/* ---- Realce em cards ---- */
+.kpi-card:hover,
+.chart-card:hover,
+.pay-kpi-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ---- Realce em itens de lista ---- */
+.notificacao-item:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-100);
+}
+
+.day-payment-item:hover {
+  border-color: var(--color-primary);
+}
+
+/* ---- Calendário: dia com pagamento e hover ---- */
+.calendar-day {
+  cursor: default;
+}
+.calendar-day--has {
+  cursor: pointer;
+}
+.calendar-day--has:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+.calendar-day.is-selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ---- Foco visível e acessível ---- */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Segurança de rolagem em modais ---- */
+.modal,
+.vp-modal,
+.modal-content-author {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ---- Responsividade complementar ---- */
+@media (max-width: 900px) {
+  .payments-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .payments-header,
+  .notificacoes-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+  .payments-filtros,
+  .notificacoes-filters {
+    width: 100%;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pay-kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid,
+  .pay-kpis {
+    grid-template-columns: 1fr;
+  }
+  .dash-tab {
+    padding: var(--space-3) var(--space-3);
+  }
+}

@@ -188,7 +188,7 @@ export default function PatenteDetalhes() {
     <div className="container">
       <Sidebar />
 
-      <main style={{ flex: 1, backgroundColor: "var(--color-bg)", overflowY: 'auto' }}>
+      <main className="anim-drop" style={{ flex: 1, backgroundColor: "var(--color-bg)", overflowY: 'auto' }}>
         <div className="detalhes-header" style={{
           padding: '40px 40px 32px',
         }}>

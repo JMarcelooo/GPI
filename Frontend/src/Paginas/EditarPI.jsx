@@ -201,7 +201,7 @@ export default function EditarPI() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="anim-pop">
           <div className="card-form-section">
             <h3 className="section-title">Informações principais</h3>
             <div className="form-grid">

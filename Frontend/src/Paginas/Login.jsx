@@ -52,44 +52,46 @@ function Login() {
         <span className="dec-square" style={{ top: '34%', right: '8%', width: 26, height: 26, background: 'rgba(16, 185, 129, 1)', transform: 'rotate(15deg)' }} />
         <span className="dec-square" style={{ top: '70%', left: '8%', width: 30, height: 30, background: 'rgba(250, 127, 12, 1)', transform: 'rotate(-12deg)' }} />
       </div>
-      <form className="login-card" onSubmit={handleEntrar}>
-        <img src="/imagens/Sistema-Logo.png" alt="UERN inova" className="login-logo" />
-        <h2>Seja bem-vindo(a)!</h2>
-        <label htmlFor="login-email">Email</label>
-        <input
-          id="login-email"
-          type="email"
-          placeholder="Digite seu e-mail"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          autoComplete="email"
-        />
-        <label htmlFor="login-senha">Senha</label>
-        <div className="password-field">
+      <div className="login-wrap anim-pop">
+        <form className="login-card" onSubmit={handleEntrar}>
+          <img src="/imagens/Sistema-Logo.png" alt="UERN inova" className="login-logo" />
+          <h2>Seja bem-vindo(a)!</h2>
+          <label htmlFor="login-email">Email</label>
           <input
-            id="login-senha"
-            type={mostrarSenha ? 'text' : 'password'}
-            placeholder="Digite sua senha"
-            value={senha}
-            onChange={e => setSenha(e.target.value)}
-            autoComplete="current-password"
+            id="login-email"
+            type="email"
+            placeholder="Digite seu e-mail"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            autoComplete="email"
           />
-          <button
-            type="button"
-            className="password-toggle"
-            onClick={() => setMostrarSenha(!mostrarSenha)}
-            title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-            aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
-          >
-            {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+          <label htmlFor="login-senha">Senha</label>
+          <div className="password-field">
+            <input
+              id="login-senha"
+              type={mostrarSenha ? 'text' : 'password'}
+              placeholder="Digite sua senha"
+              value={senha}
+              onChange={e => setSenha(e.target.value)}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setMostrarSenha(!mostrarSenha)}
+              title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+            >
+              {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          {error && <p style={{ color: '#fff', background: 'rgba(239,68,68,0.85)', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>{error}</p>}
+          <button className="entrar" type="submit" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
-        </div>
-        {error && <p style={{ color: '#fff', background: 'rgba(239,68,68,0.85)', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>{error}</p>}
-        <button className="entrar" type="submit" disabled={loading}>
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
-      </form>
-      <img src="/imagens/Inova-Rodape.png" alt="UERN inova" className="login-footer" />
+        </form>
+        <img src="/imagens/Inova-Rodape.png" alt="UERN inova" className="login-footer" />
+      </div>
     </div>
   );
 }

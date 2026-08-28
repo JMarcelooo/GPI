@@ -1150,3 +1150,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Entrada dos cards (de baixo para cima) ---- */
+@keyframes dash-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kpi-card,
+.chart-card {
+  animation: dash-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kpi-card:nth-child(1),
+.chart-card:nth-child(1) { animation-delay: 0.06s; }
+
+.kpi-card:nth-child(2),
+.chart-card:nth-child(2) { animation-delay: 0.12s; }
+
+.kpi-card:nth-child(3),
+.chart-card:nth-child(3) { animation-delay: 0.18s; }
+
+.kpi-card:nth-child(4),
+.chart-card:nth-child(4) { animation-delay: 0.24s; }
+
+.kpi-card:nth-child(5),
+.chart-card:nth-child(5) { animation-delay: 0.30s; }
+
+.kpi-card:nth-child(6),
+.chart-card:nth-child(6) { animation-delay: 0.36s; }
+
+.kpi-card:nth-child(n + 7),
+.chart-card:nth-child(n + 7) { animation-delay: 0.42s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi-card,
+  .chart-card {
+    animation: none;
+  }
+}

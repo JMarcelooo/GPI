@@ -139,7 +139,7 @@ function PropriedadesIntelectuais() {
     <div className="container">
       <Sidebar />
 
-      <div className="main">
+      <div className="main anim-rise">
         <div className="container-pi">
           <div className="conteudo-pi">
             <h2>Propriedades Intelectuais</h2>
