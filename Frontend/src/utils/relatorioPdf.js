@@ -6,8 +6,8 @@ const PRIMARY = '#93278F';
 const PRIMARY_DARK = '#5E1A5C';
 const WHITE = '#FFFFFF';
 const BG = '#FFFFFF';
-const TEXT = '#1F2937';
-const MUTED = '#6B7280';
+const TEXT = '#000000';
+const MUTED = '#374151';
 const BORDER = '#E5E7EB';
 
 const TIPO_LABELS = {
@@ -395,10 +395,10 @@ async function desenharCapa(doc, W, H, hl) {
     const th = tw * gpi.height / gpi.width;
     doc.addImage(gpi.dataUrl, 'PNG', (W - tw) / 2, H * 0.30, tw, th);
   }
-  doc.setFont(hl, 'bold'); doc.setFontSize(22); applyText(doc, WHITE);
-  doc.text('Relatório de Propriedades Intelectuais', W / 2, H * 0.56, { align: 'center' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
-  doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, W / 2, H * 0.62, { align: 'center' });
+  doc.setFont(hl, 'bold'); doc.setFontSize(24); applyText(doc, WHITE);
+  doc.text('Relatório de Propriedades Intelectuais', W / 2, H * 0.55, { align: 'center' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); applyText(doc, '#E9D5F5');
+  doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, W / 2, H * 0.605, { align: 'center' });
   const ag = await loadImage(`${process.env.PUBLIC_URL || ''}/imagens/Inova-Rodape.png`);
   if (ag) {
     const tw = 150;
@@ -419,21 +419,28 @@ export async function gerarRelatorioPDF(dados) {
   const M = 40;
   let y = M;
   let tabTitle = '';
+  let tabSubtitle = '';
   const hl = (await loadBahnschrift(doc).catch(() => false)) ? 'Bahnschrift' : 'helvetica';
 
   function drawTabHeader() {
     applyFill(doc, PRIMARY); doc.rect(0, 0, W, 40, 'F');
-    doc.setFont(hl, 'bold'); doc.setFontSize(14); applyText(doc, WHITE);
-    doc.text(tabTitle, M, 26, { baseline: 'middle' });
+    doc.setFont(hl, 'bold'); doc.setFontSize(16); applyText(doc, WHITE);
+    doc.text(tabTitle, M, 25, { baseline: 'middle' });
     y = 56;
+    if (tabSubtitle) {
+      applyText(doc, MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+      doc.text(trunc(doc, tabSubtitle, W - 2 * M), M, 50, { baseline: 'top' });
+      y = 66;
+    }
   }
   function ensure(h) { if (y + h > H - M) { doc.addPage(); y = M + 50; drawTabHeader(); } }
-  function novaPagina(titulo) { doc.addPage(); tabTitle = titulo; y = M + 50; drawTabHeader(); }
+  function novaPagina(titulo, subtitulo) { doc.addPage(); tabTitle = titulo; tabSubtitle = subtitulo || ''; y = M + 50; drawTabHeader(); }
   function sectionTitle(t) {
     ensure(26);
+    applyFill(doc, PRIMARY); doc.rect(M, y, 3, 14, 'F');
     doc.setFont(hl, 'bold'); doc.setFontSize(12); applyText(doc, TEXT);
-    doc.text(t, M, y, { baseline: 'top' });
-    y += 22;
+    doc.text(t, M + 10, y, { baseline: 'top' });
+    y += 24;
   }
   function drawKpis(items) {
     const gap = 10;
@@ -465,7 +472,7 @@ export async function gerarRelatorioPDF(dados) {
     const x = M, w = W - 2 * M, h = cardH;
     applyDraw(doc, BORDER); doc.setLineWidth(1); applyFill(doc, BG);
     doc.roundedRect(x, y, w, h, 6, 6, 'FD');
-    doc.setFont(hl, 'bold'); doc.setFontSize(11); applyText(doc, TEXT);
+    doc.setFont(hl, 'bold'); doc.setFontSize(10.5); applyText(doc, PRIMARY);
     doc.text(title, x + 12, y + 16, { baseline: 'top' });
     applyDraw(doc, BORDER); doc.line(x + 12, y + 30, x + w - 12, y + 30);
     draw(doc, x + 12, y + 38, w - 24, chartH);
@@ -497,7 +504,7 @@ export async function gerarRelatorioPDF(dados) {
 
   await desenharCapa(doc, W, H, hl);
 
-  novaPagina('Visão Geral');
+  novaPagina('Visão Geral', 'Resumo consolidado dos principais indicadores de PIs, autores e financeiro.');
   sectionTitle('Indicadores gerais');
   drawKpis([
     { label: 'Total de PIs', value: String(pi.total || 0), sub: `${(pi.ativos || 0)} ativas` },
@@ -514,7 +521,7 @@ export async function gerarRelatorioPDF(dados) {
   chartCard('Funil de status das PIs', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), `O funil de status apresenta a trajetória das PIs desde o depósito até a concessão. A taxa de sucesso é de ${pi.funil?.taxaSucesso || 0}% e a de insucesso ${pi.funil?.taxaInsucesso || 0}%, considerando ${pi.funil?.comDesfecho || 0} PIs com desfecho conhecido. Entender essas etapas ajuda a identificar onde ocorrem as perdas.`);
   chartCard('PIs por tipo', 130, (d, x, yy, w, hh) => drawDonut(d, x, yy, w, hh, (pi.porTipo || []).map(s => ({ label: tipoLabel(s.label), value: s.value, color: tipoColor(s.label) })), pi.total || 0), 'As PIs dividem-se entre patente de invenção, modelo de utilidade, marca e programa de computador. Conhecer essa distribuição auxilia no planejamento de recursos e na priorização das áreas com maior retorno sobre a proteção.');
 
-  novaPagina('Autores');
+  novaPagina('Autores', 'Perfil dos autores por gênero, vínculo, campus e produtividade.');
   sectionTitle('Indicadores de autores');
   drawKpis([
     { label: 'Total de autores', value: String(autores.total || 0) },
@@ -527,7 +534,7 @@ export async function gerarRelatorioPDF(dados) {
   chartCard('Autores por campus', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, autores.porCampus || []), 'A presença dos autores nos campi mostra a capilaridade da inovação na instituição e orienta ações de capacitação regional.');
   chartCard('Ranking de autores mais produtivos', 140, (d, x, yy, w, hh) => drawRanking(d, x, yy, w, hh, (autores.topAutores || []).map(a => ({ label: a.name, value: a.pis, suffix: 'PIs' }))), 'O ranking destaca os autores com maior número de PIs vinculadas, útil para reconhecimento institucional e para identificar multiplicadores de propriedade intelectual.');
 
-  novaPagina('PIs');
+  novaPagina('PIs', 'Detalhamento das PIs por tipo, status, titular e evolução temporal.');
   sectionTitle('Indicadores de PIs');
   drawKpis([
     { label: 'Total de PIs', value: String(pi.total || 0), sub: `${(pi.ativos || 0)} ativas` },
@@ -540,7 +547,7 @@ export async function gerarRelatorioPDF(dados) {
   chartCard('Funil de status detalhado', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), 'O funil detalhado reforça as etapas críticas do processo e onde ocorrem as perdas por indeferimento, anulação ou arquivamento.');
   chartCard('PIs por titular / instituição', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, pi.porTitular || []), 'Agrupar PIs por titular ou instituição evidencia quem detém a propriedade e facilita o acompanhamento de transferências e cessões.');
 
-  novaPagina('Financeiro');
+  novaPagina('Financeiro', 'Composição de pagamentos, custos e prazos de vencimento.');
   sectionTitle('Indicadores financeiros');
   drawKpis([
     { label: 'Valor pago', value: fmtBRL(pagamentos.valorPago || 0) },
@@ -561,7 +568,7 @@ export async function gerarRelatorioPDF(dados) {
   const vencH = Math.max(100, 16 + proximos.length * 16 + 12);
   chartCard('Próximos vencimentos', vencH, (d, x, yy, w, hh) => drawUpcoming(d, x, yy, w, hh, proximos, fmtDate, fmtBRL), 'Os próximos vencimentos exigem atenção para evitar inadimplência e manter as proteções ativas; itens vencidos ou próximos de 30 dias são prioridade.');
 
-  novaPagina('Cruzamentos');
+  novaPagina('Cruzamentos', 'Relações entre indicadores e análise de risco financeiro.');
   sectionTitle('Cruzamentos e risco');
   drawKpis([
     { label: 'Investimento total', value: fmtBRL(pi.totalInvestido || 0), sub: `custo médio ${fmtBRL(pi.custoMedioPorPI || 0)}/PI` },
