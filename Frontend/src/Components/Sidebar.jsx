@@ -34,6 +34,8 @@ export default function Sidebar() {
 
     useEffect(() => {
         localStorage.setItem('sidebarCollapsed', collapsed);
+        const container = document.querySelector('.container');
+        if (container) container.classList.toggle('is-sidebar-collapsed', collapsed);
     }, [collapsed]);
 
     const items = isAdmin ? [...navItems, ...adminItems] : navItems;

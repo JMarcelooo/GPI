@@ -25,6 +25,25 @@ const TIPO_COLORS = {
 };
 const tipoColor = t => TIPO_COLORS[t] || CHART_COLORS[(t || '').length % CHART_COLORS.length];
 
+const TIPO_LABELS = {
+  'patente de invencao': 'Patente de Invenção',
+  'modelo de utilidade': 'Modelo de Utilidade',
+  'marca': 'Marca',
+  'programa de computador': 'Programa de Computador'
+};
+const tipoLabel = t => TIPO_LABELS[t] || (t ? String(t).replace(/\b\w/g, c => c.toUpperCase()) : t);
+
+const STATUS_LABELS = {
+  'deferida': 'Deferida',
+  'registrada': 'Registrada',
+  'carta patente': 'Carta Patente',
+  'indeferida': 'Indeferida',
+  'anulada': 'Anulada',
+  'arquivada': 'Arquivada',
+  'em analise': 'Em análise'
+};
+const statusLabel = s => STATUS_LABELS[s] || (s ? String(s).replace(/\b\w/g, c => c.toUpperCase()) : s);
+
 const GENDER_META = {
   'masculino': { label: 'Masculino', color: PALETTE[0] },
   'feminino': { label: 'Feminino', color: PALETTE[1] },
@@ -145,7 +164,7 @@ function Dashboard() {
           {tab === 'autores' && <AutoresTab autores={autores} fmtBRL={fmtBRL} />}
           {tab === 'pis' && <PisTab pi={pi} autores={autores} fmtBRL={fmtBRL} fmtDias={fmtDias} fmtPct={fmtPct} />}
           {tab === 'fin' && <FinanceiroTab pagamentos={pagamentos} pi={pi} fmtBRL={fmtBRL} fmtDate={fmtDate} />}
-          {tab === 'cruz' && <CruzamentosTab cruzamentos={cruzamentos} autores={autores} fmtBRL={fmtBRL} />}
+          {tab === 'cruz' && <CruzamentosTab cruzamentos={cruzamentos} autores={autores} pi={pi} fmtBRL={fmtBRL} />}
         </div>
       </div>
     </div>
@@ -222,7 +241,7 @@ function VisaoGeral({ pi, autores, pagamentos, fmtBRL, fmtDias, fmtPct }) {
         </div>
 
         <Card title="PIs por tipo" icon={PieChart} className="geral-tipo-card">
-          <DonutChart total={pi.total} stacked rows={pi.porTipo.map((s, i) => ({ label: s.label, value: s.value, color: tipoColor(s.label) }))} />
+          <DonutChart total={pi.total} stacked rows={pi.porTipo.map((s, i) => ({ label: tipoLabel(s.label), value: s.value, color: tipoColor(s.label) }))} />
         </Card>
       </section>
     </>
@@ -308,20 +327,17 @@ function PisTab({ pi, autores, fmtBRL, fmtDias, fmtPct }) {
       </section>
 
       <section className="chart-grid">
-        <Card title="PIs por tipo" icon={FileText}>
-          <Bars rows={pi.porTipo || []} max={Math.max(1, ...(pi.porTipo || []).map(t => t.value))} color={CHART_COLORS} />
+        <Card title="Evolução temporal por tipo de PI" icon={TrendingUp}>
+          <LineTiposChart rows={pi.porAnoTipo || []} />
         </Card>
-        <Card title="Funil de status detalhado" icon={GitMerge} wide>
+        <Card title="PIs por tipo" icon={FileText}>
+          <Bars rows={(pi.porTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value }))} max={Math.max(1, ...(pi.porTipo || []).map(t => t.value))} color={CHART_COLORS} />
+        </Card>
+        <Card title="Funil de status detalhado" icon={GitMerge}>
           <Bars rows={funilEtapas} max={Math.max(1, ...funilEtapas.map(e => e.value))} color={funilEtapas.map(e => e.color)} />
           <div className="funnel-meta">
             <span><strong>{pi.funil.taxaSucesso}%</strong> sucesso · <strong>{pi.funil.taxaInsucesso}%</strong> insucesso</span>
           </div>
-        </Card>
-        <Card title="Evolução temporal por tipo de PI" icon={TrendingUp} wide>
-          <StackedYearChart rows={pi.porAnoTipo || []} />
-        </Card>
-        <Card title="PIs por depositante (top 10)" icon={Users}>
-          <Bars rows={autores.topAutores.map(a => ({ label: a.name, value: a.pis }))} max={Math.max(1, ...autores.topAutores.map(a => a.pis))} color={CHART_COLORS} />
         </Card>
         <Card title="PIs por titular / instituição" icon={Building2}>
           <Bars rows={pi.porTitular || []} max={Math.max(1, ...(pi.porTitular || []).map(t => t.value))} color={CHART_COLORS} />
@@ -347,21 +363,25 @@ function FinanceiroTab({ pagamentos, pi, fmtBRL, fmtDate }) {
         <Kpi label="Total de pagamentos" value={pagamentos.total || 0} icon={CreditCard} tone="accent" />
       </section>
 
-      <section className="chart-grid">
-        <Card title="Valor pago por ano" icon={TrendingUp}>
-          <AnoChart data={(pagamentos.porAnoPago || []).map(d => ({ label: String(d.ano), value: d.value }))} valueFmt={fmtBRL} />
-        </Card>
-        <Card title="Custo médio por tipo de PI" icon={DollarSign}>
-          <Bars rows={pagamentos.custoMedioPorTipo || []} max={Math.max(1, ...(pagamentos.custoMedioPorTipo || []).map(t => t.value))} color={CHART_COLORS} valueFmt={fmtBRL} />
-        </Card>
-        <Card title="Situação dos pagamentos" icon={PieChart}>
-          <DonutChart total={pagamentos.total || 0} rows={[
-            { label: 'Pagos', value: pagamentos.pago || 0, color: PALETTE[4] },
-            { label: 'Em andamento', value: pagamentos.emAndamento || 0, color: PALETTE[0] },
-            { label: 'Aguardando', value: pagamentos.aguardandoPrazo || 0, color: PALETTE[2] }
-          ]} />
-        </Card>
-        <Card title="Próximos vencimentos" icon={CalendarClock} wide>
+      <section className="fin-layout">
+        <div className="fin-left">
+          <div className="fin-top">
+            <Card title="Valor pago por ano" icon={TrendingUp}>
+              <AnoChart data={(pagamentos.porAnoPago || []).map(d => ({ label: String(d.ano), value: d.value }))} valueFmt={fmtBRL} />
+            </Card>
+            <Card title="Situação dos pagamentos" icon={PieChart}>
+              <DonutChart total={pagamentos.total || 0} rows={[
+                { label: 'Pagos', value: pagamentos.pago || 0, color: PALETTE[4] },
+                { label: 'Em andamento', value: pagamentos.emAndamento || 0, color: PALETTE[0] },
+                { label: 'Aguardando', value: pagamentos.aguardandoPrazo || 0, color: PALETTE[2] }
+              ]} />
+            </Card>
+          </div>
+          <Card title="Custo médio por tipo de PI" icon={DollarSign} className="fin-custo">
+            <VerticalBars rows={(pagamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value }))} color={CHART_COLORS} valueFmt={fmtBRL} />
+          </Card>
+        </div>
+        <Card title="Próximos vencimentos" icon={CalendarClock} className="fin-venc">
           <Upcoming rows={proximos} fmtDate={fmtDate} fmtBRL={fmtBRL} />
         </Card>
       </section>
@@ -369,9 +389,10 @@ function FinanceiroTab({ pagamentos, pi, fmtBRL, fmtDate }) {
   );
 }
 
-function CruzamentosTab({ cruzamentos, autores, fmtBRL }) {
+function CruzamentosTab({ cruzamentos, autores, pi, fmtBRL }) {
   cruzamentos = cruzamentos || {};
   autores = autores || {};
+  pi = pi || {};
   const invest = cruzamentos.investimentoPorStatus || [];
   const totalInvest = invest.reduce((a, s) => a + Number(s.value || 0), 0);
   const risco = invest.filter(s => !SUCESSO.includes(s.label)).reduce((a, s) => a + Number(s.value || 0), 0);
@@ -380,67 +401,82 @@ function CruzamentosTab({ cruzamentos, autores, fmtBRL }) {
   return (
     <>
       <section className="kpi-grid">
+        <Kpi label="Investimento total" value={fmtBRL(pi.totalInvestido || 0)} icon={Briefcase} tone="primary" sub={`custo médio ${fmtBRL(pi.custoMedioPorPI || 0)}/PI`} />
+        <Kpi label="Risco (não concedidas)" value={fmtBRL(risco)} icon={AlertTriangle} tone="error" sub={`${riscoPct}% do investimento`} />
         <Kpi label="Departamentos ativos" value={(cruzamentos.produtividadePorDepartamento || []).length} icon={GraduationCap} tone="success" />
         <Kpi label="Campi ativos" value={(cruzamentos.produtividadePorCampus || []).length} icon={Building2} tone="warning" />
-        <Kpi label="Risco (não concedidas)" value={fmtBRL(risco)} icon={AlertTriangle} tone="error" sub={`${riscoPct}% do investimento`} />
-        <Kpi label="Cruzas gênero × vínculo" value={(cruzamentos.generoVinculoPIs || []).length} icon={Activity} tone="info" />
       </section>
 
       <section className="chart-grid">
+        <Card title="Investimento por status da PI" icon={PieChart}>
+          <Bars rows={invest.map(s => ({ label: statusLabel(s.label), value: s.value }))} max={Math.max(1, ...invest.map(s => s.value))} color={CHART_COLORS} valueFmt={fmtBRL} />
+          <p className="card-note">Risco financeiro (PIs ainda não concedidas): <strong>{fmtBRL(risco)}</strong></p>
+        </Card>
+        <Card title="Heatmap gênero × vínculo × PIs" icon={Activity}>
+          <Heatmap rows={cruzamentos.generoVinculoPIs || []} />
+        </Card>
         <Card title="Produtividade por departamento (PIs)" icon={GraduationCap}>
           <Bars rows={cruzamentos.produtividadePorDepartamento || []} max={Math.max(1, ...(cruzamentos.produtividadePorDepartamento || []).map(d => d.value))} color={CHART_COLORS} />
-        </Card>
-        <Card title="Top 10 departamentos (autores)" icon={GraduationCap}>
-          <Ranking rows={(autores.porDepartamento || []).slice(0, 10).map(d => ({ label: d.label, value: d.value, suffix: 'autores' }))} />
         </Card>
         <Card title="Produtividade por campus (PIs)" icon={Building2}>
           <Bars rows={cruzamentos.produtividadePorCampus || []} max={Math.max(1, ...(cruzamentos.produtividadePorCampus || []).map(c => c.value))} color={CHART_COLORS} />
         </Card>
-        <Card title="Investimento por status da PI" icon={PieChart}>
-          <Bars rows={invest} max={Math.max(1, ...invest.map(s => s.value))} color={CHART_COLORS} valueFmt={fmtBRL} />
-          <p className="card-note">Risco financeiro (PIs ainda não concedidas): <strong>{fmtBRL(risco)}</strong></p>
-        </Card>
-        <Card title="Heatmap gênero × vínculo × PIs" icon={Activity} wide>
-          <Heatmap rows={cruzamentos.generoVinculoPIs || []} />
-        </Card>
         <Card title="Custo médio por tipo de PI" icon={DollarSign}>
-          <Bars rows={cruzamentos.custoMedioPorTipo || []} max={Math.max(1, ...(cruzamentos.custoMedioPorTipo || []).map(t => t.value))} color={CHART_COLORS} valueFmt={fmtBRL} />
+          <Bars rows={(cruzamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value }))} max={Math.max(1, ...(cruzamentos.custoMedioPorTipo || []).map(t => t.value))} color={CHART_COLORS} valueFmt={fmtBRL} />
+        </Card>
+        <Card title="Top 10 departamentos (autores)" icon={GraduationCap}>
+          <Ranking rows={(autores.porDepartamento || []).slice(0, 10).map(d => ({ label: d.label, value: d.value, suffix: 'autores' }))} />
         </Card>
       </section>
     </>
   );
 }
 
-function StackedYearChart({ rows }) {
+function LineTiposChart({ rows }) {
   rows = rows || [];
   if (!rows.length) return <p className="chart-empty">Nenhum dado</p>;
   const anos = [...new Set(rows.map(r => r.ano))].sort();
   const tipos = [...new Set(rows.map(r => r.tipo))];
   const get = (a, t) => rows.find(r => r.ano === a && r.tipo === t)?.value || 0;
-  const maxTotal = Math.max(1, ...anos.map(a => tipos.reduce((s, t) => s + get(a, t), 0)));
+  const max = Math.max(1, ...anos.flatMap(a => tipos.map(t => get(a, t))));
+  const step = 46;
+  const N = anos.length;
+  const width = 70 + (N - 1) * step;
+  const xOf = i => 30 + i * step;
+  const yOf = v => 130 - (v / max) * 100;
+  const yticks = [0, Math.round(max / 2), max];
   return (
-    <div className="bar-chart-h stacked-year">
-      {anos.map(a => {
-        const total = tipos.reduce((s, t) => s + get(a, t), 0);
-        return (
-          <div key={a} className="bar-row">
-            <span className="bar-label" title={a}>{a}</span>
-            <div className="bar-track">
-              {tipos.map(t => {
-                const v = get(a, t);
-                if (!v) return null;
-                return <div key={t} className="bar-fill" style={{ width: `${(v / maxTotal) * 100}%`, background: tipoColor(t) }} title={`${t}: ${v}`} />;
-              })}
-            </div>
-            <span className="bar-value">{total}</span>
-          </div>
-        );
-      })}
+    <div>
+      <div className="line-chart-scroll">
+        <svg viewBox={`0 0 ${width} 150`} className="line-chart-svg" style={{ width }}>
+          {yticks.map(v => (
+            <g key={v}>
+              <line x1="30" y1={yOf(v)} x2={width - 40} y2={yOf(v)} stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3 3" />
+              <text x="26" y={yOf(v) + 3} textAnchor="end" fontSize="10" fill="var(--color-text-muted)">{v}</text>
+            </g>
+          ))}
+          {tipos.map(t => (
+            <polyline
+              key={t}
+              points={anos.map((a, i) => `${xOf(i)},${yOf(get(a, t))}`).join(' ')}
+              fill="none" stroke={tipoColor(t)} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            />
+          ))}
+          {tipos.flatMap(t =>
+            anos.map((a, i) => (
+              <circle key={`${t}-${a}`} cx={xOf(i)} cy={yOf(get(a, t))} r="3.5" fill="var(--color-surface)" stroke={tipoColor(t)} strokeWidth="2" />
+            ))
+          )}
+          {anos.map((a, i) => (
+            <text key={a} x={xOf(i)} y={145} textAnchor="middle" fontSize="11" fill="var(--color-text-muted)">{a}</text>
+          ))}
+        </svg>
+      </div>
       <div className="chart-legend">
         {tipos.map(t => (
           <div key={t} className="legend-item">
             <span className="legend-dot" style={{ background: tipoColor(t) }} />
-            <span className="legend-label">{t}</span>
+            <span className="legend-label">{tipoLabel(t)}</span>
           </div>
         ))}
       </div>
@@ -577,6 +613,29 @@ function Bars({ rows, max, color, valueFmt }) {
             <div className="bar-fill" style={{ width: `${(r.value / max) * 100}%`, background: color[i % color.length] }} />
           </div>
           <span className="bar-value bar-value-wide">{valueFmt ? valueFmt(r.value) : r.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VerticalBars({ rows, color, valueFmt }) {
+  rows = rows || [];
+  if (!rows.length) return <p className="chart-empty">Nenhum dado</p>;
+  const max = Math.max(1, ...rows.map(r => r.value));
+  return (
+    <div className="bar-chart-v">
+      {rows.map((r, i) => (
+        <div key={i} className="bar-col">
+          <div className="bar-col-track">
+            <div
+              className="bar-col-fill"
+              style={{ height: `${(r.value / max) * 100}%`, background: color[i % color.length] }}
+              title={`${r.label}: ${valueFmt ? valueFmt(r.value) : r.value}`}
+            />
+          </div>
+          <span className="bar-col-valor">{valueFmt ? valueFmt(r.value) : r.value}</span>
+          <span className="bar-col-label" title={r.label}>{r.label}</span>
         </div>
       ))}
     </div>
