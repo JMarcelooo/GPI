@@ -68,12 +68,16 @@ exports.getStats = async (req, res) => {
       `, { type: Sequelize.QueryTypes.SELECT })
     ]);
 
-    // ---- PIs por titular/instituição (titular é JSONB array) ----
+    // ---- PIs por titular/instituição (titular é texto no formato de array JSON) ----
     const piTitular = await sequelize.query(`
-      SELECT t.val AS label, COUNT(*) AS value
-      FROM pi, jsonb_array_elements_text(titular) t(val)
-      WHERE titular IS NOT NULL
-      GROUP BY t.val
+      SELECT trim(both '"' from elem) AS label, COUNT(*) AS value
+      FROM (
+        SELECT unnest(string_to_array(trim(both '[]' from titular), '","')) AS elem
+        FROM pi
+        WHERE titular IS NOT NULL AND titular <> '' AND titular <> '[]'
+      ) s
+      WHERE elem IS NOT NULL AND elem <> ''
+      GROUP BY label
       ORDER BY value DESC
       LIMIT 10
     `, { type: Sequelize.QueryTypes.SELECT });
@@ -314,7 +318,7 @@ exports.getStats = async (req, res) => {
           pi_id: r.pi_id,
           status: r.status
         })),
-        custoMedioPorPI: toRows(custoMedioPorTipo, 'label')
+        custoMedioPorTipo: toRows(custoMedioPorTipo, 'label')
       },
       cruzamentos: {
         custoMedioPorTipo: toRows(custoMedioPorTipo, 'label'),
