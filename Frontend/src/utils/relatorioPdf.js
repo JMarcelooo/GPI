@@ -291,7 +291,7 @@ function drawUpcoming(doc, x, y, w, h, rows, fmtDate, fmtBRL) {
     let c2 = x;
     applyText(doc, TEXT); doc.setFontSize(8.5);
     doc.text(trunc(doc, String(r.tipo || ''), w * cols[0]), c2, ry, { baseline: 'top' }); c2 += w * cols[0];
-    doc.text(fmtBRL ? fmtBRL(r.valor) : String(r.valor || ''), c2, ry, { baseline: 'top' }); c2 += w * cols[1];
+    doc.text(trunc(doc, fmtBRL ? fmtBRL(r.valor) : String(r.valor || ''), w * cols[1]), c2, ry, { baseline: 'top' }); c2 += w * cols[1];
     doc.text(fmtDate ? fmtDate(r.vencimento) : String(r.vencimento || ''), c2, ry, { baseline: 'top' }); c2 += w * cols[2];
     applyText(doc, colorMap[status]);
     doc.text(status === 'vencido' ? 'Vencido' : status === 'proximo' ? 'Próximo' : 'Em dia', c2, ry, { baseline: 'top' });
@@ -503,7 +503,9 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'Aguardando', value: pagamentos.aguardandoPrazo || 0, color: PALETTE[2] }
   ], pagamentos.total || 0), 'A situação dos pagamentos (pagos, em andamento e aguardando) indica a saúde do fluxo financeiro e o volume de pendências a tratar.');
   chartCard('Custo médio por tipo de PI', 120, (d, x, yy, w, hh) => drawVerticalBars(d, x, yy, w, hh, (pagamentos.custoMedioPorTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value })), fmtBRL), 'O custo médio por tipo de PI apoia o dimensionamento de orçamento e a análise de retorno por categoria.');
-  chartCard('Próximos vencimentos', 100, (d, x, yy, w, hh) => drawUpcoming(d, x, yy, w, hh, pagamentos.proximosVencimentos || [], fmtDate, fmtBRL), 'Os próximos vencimentos exigem atenção para evitar inadimplência e manter as proteções ativas; itens vencidos ou próximos de 30 dias são prioridade.');
+  const proximos = pagamentos.proximosVencimentos || [];
+  const vencH = Math.max(100, 16 + proximos.length * 16 + 12);
+  chartCard('Próximos vencimentos', vencH, (d, x, yy, w, hh) => drawUpcoming(d, x, yy, w, hh, proximos, fmtDate, fmtBRL), 'Os próximos vencimentos exigem atenção para evitar inadimplência e manter as proteções ativas; itens vencidos ou próximos de 30 dias são prioridade.');
 
   novaPagina('Cruzamentos');
   sectionTitle('Cruzamentos e risco');
