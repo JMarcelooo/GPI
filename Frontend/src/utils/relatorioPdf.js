@@ -144,7 +144,19 @@ function fillWedge(doc, cx, cy, r, a0, a1, color) {
 function drawDonut(doc, x, y, w, h, rows, total) {
   if (!total || !rows || !rows.length) { applyText(doc, MUTED); doc.setFontSize(9); doc.text('Sem dados', x, y + 10); return; }
   const r = Math.min(h, w * 0.42) / 2;
-  const cx = x + r + 6;
+  let maxLW = 0, maxVW = 0;
+  rows.forEach(s => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    maxLW = Math.max(maxLW, doc.getTextWidth(String(s.label || '')));
+    doc.setFontSize(8);
+    const pct = Math.round((s.value / total) * 100);
+    maxVW = Math.max(maxVW, doc.getTextWidth(`${s.value} (${pct}%)`));
+  });
+  const legendW = 12 + Math.max(maxLW, maxVW) + 4;
+  const gap = 16;
+  const groupW = 6 + 2 * r + gap + legendW;
+  const startX = x + Math.max(0, (w - groupW) / 2);
+  const cx = startX + 6 + r;
   const cy = y + h / 2;
   let a = -Math.PI / 2;
   rows.forEach(s => {
@@ -158,12 +170,12 @@ function drawDonut(doc, x, y, w, h, rows, total) {
   doc.text(String(total), cx, cy - 4, { align: 'center', baseline: 'middle' });
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); applyText(doc, MUTED);
   doc.text('total', cx, cy + 10, { align: 'center', baseline: 'middle' });
-  const lx = cx + r + 16;
+  const lx = cx + r + gap;
   let ly = cy - (rows.length * 18) / 2;
   rows.forEach(s => {
     applyFill(doc, s.color); doc.circle(lx, ly + 6, 4, 'F');
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); applyText(doc, TEXT);
-    doc.text(trunc(doc, s.label, w - (lx - x) - 20), lx + 12, ly + 4, { baseline: 'top' });
+    doc.text(trunc(doc, s.label, legendW - 16), lx + 12, ly + 4, { baseline: 'top' });
     doc.setFontSize(8); applyText(doc, MUTED);
     const pct = Math.round((s.value / total) * 100);
     doc.text(`${s.value} (${pct}%)`, lx + 12, ly + 15, { baseline: 'top' });
@@ -214,9 +226,51 @@ function drawVerticalBars(doc, x, y, w, h, rows, valueFmt) {
 }
 
 function drawAnoChart(doc, x, y, w, h, rows) {
-  const anos = [...new Set((rows || []).map(r => r.ano))].sort();
-  const data = anos.map(a => ({ label: String(a), value: (rows || []).filter(r => r.ano === a).reduce((s, r) => s + (r.value || 0), 0) }));
-  drawVerticalBars(doc, x, y, w, h, data);
+  rows = rows || [];
+  if (!rows.length) { applyText(doc, MUTED); doc.setFontSize(9); doc.text('Sem dados', x, y + 10); return; }
+  const anos = [...new Set(rows.map(r => r.ano))].sort();
+  const tipos = [...new Set(rows.map(r => r.tipo))];
+  const get = (a, t) => rows.find(r => r.ano === a && r.tipo === t)?.value || 0;
+  const max = Math.max(1, ...anos.flatMap(a => tipos.map(t => get(a, t))));
+  const padL = 26, padR = 12, padT = 8, padB = 48;
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
+  const plotBottom = y + h - padB;
+  const xOf = i => x + padL + (anos.length === 1 ? plotW / 2 : (i * plotW) / (anos.length - 1));
+  const yOf = v => plotBottom - (v / max) * plotH;
+  [0, max / 2, max].forEach(v => {
+    const gy = yOf(v);
+    applyDraw(doc, BORDER); doc.setLineWidth(0.4); doc.setLineDashPattern([2, 2]);
+    doc.line(x + padL, gy, x + padL + plotW, gy);
+    doc.setLineDashPattern([], 0);
+    applyText(doc, MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    doc.text(String(Math.round(v)), x + padL - 4, gy + 2.5, { align: 'right', baseline: 'middle' });
+  });
+  tipos.forEach(t => {
+    const color = tipoColor(t);
+    applyDraw(doc, color); doc.setLineWidth(1.6);
+    for (let i = 1; i < anos.length; i++) {
+      doc.line(xOf(i - 1), yOf(get(anos[i - 1], t)), xOf(i), yOf(get(anos[i], t)));
+    }
+    if (anos.length === 1) {
+      doc.line(xOf(0), yOf(get(anos[0], t)), xOf(0), yOf(get(anos[0], t)));
+    }
+    applyFill(doc, color);
+    anos.forEach((a, i) => doc.circle(xOf(i), yOf(get(a, t)), 2.6, 'F'));
+  });
+  applyText(doc, MUTED); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  anos.forEach((a, i) => doc.text(String(a), xOf(i), plotBottom + 12, { align: 'center', baseline: 'middle' }));
+  let lx = x + padL;
+  let ly = y + h - 16;
+  tipos.forEach(t => {
+    const label = tipoLabel(t);
+    const itemW = 12 + doc.getTextWidth(label) + 12;
+    if (lx + itemW > x + w && lx > x + padL) { lx = x + padL; ly += 12; }
+    applyFill(doc, tipoColor(t)); doc.circle(lx + 4, ly, 4, 'F');
+    applyText(doc, TEXT); doc.setFontSize(8);
+    doc.text(label, lx + 12, ly, { baseline: 'middle' });
+    lx += itemW;
+  });
 }
 
 function drawHeatmap(doc, x, y, w, h, rows) {
@@ -481,7 +535,7 @@ export async function gerarRelatorioPDF(dados) {
     { label: 'Pendentes (terminal)', value: String(pi.pendentes || 0) },
     { label: 'Tempo médio', value: fmtDias(pi.tempoMedioDias), sub: `custo médio ${fmtBRL(pi.custoMedioPorPI)}/PI` }
   ]);
-  chartCard('Evolução temporal por tipo de PI', 130, (d, x, yy, w, hh) => drawAnoChart(d, x, yy, w, hh, pi.porAnoTipo || []), 'A série histórica por ano revela a evolução da quantidade de PIs depositadas e permite observar tendências de crescimento ou estagnação ao longo do tempo.');
+  chartCard('Evolução temporal por tipo de PI', 160, (d, x, yy, w, hh) => drawAnoChart(d, x, yy, w, hh, pi.porAnoTipo || []), 'A série histórica por ano revela a evolução da quantidade de PIs depositadas por tipo e permite observar tendências de crescimento ou estagnação ao longo do tempo. Cada linha representa um tipo de PI.');
   chartCard('PIs por tipo', 120, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, (pi.porTipo || []).map(t => ({ label: tipoLabel(t.label), value: t.value }))), 'A distribuição por tipo de PI orienta a alocação de esforço de proteção conforme o perfil de cada invento.');
   chartCard('Funil de status detalhado', 96, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, funil), 'O funil detalhado reforça as etapas críticas do processo e onde ocorrem as perdas por indeferimento, anulação ou arquivamento.');
   chartCard('PIs por titular / instituição', 130, (d, x, yy, w, hh) => drawBars(d, x, yy, w, hh, pi.porTitular || []), 'Agrupar PIs por titular ou instituição evidencia quem detém a propriedade e facilita o acompanhamento de transferências e cessões.');
