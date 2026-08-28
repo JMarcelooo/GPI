@@ -144,7 +144,19 @@ function fillWedge(doc, cx, cy, r, a0, a1, color) {
 function drawDonut(doc, x, y, w, h, rows, total) {
   if (!total || !rows || !rows.length) { applyText(doc, MUTED); doc.setFontSize(9); doc.text('Sem dados', x, y + 10); return; }
   const r = Math.min(h, w * 0.42) / 2;
-  const cx = x + r + 6;
+  let maxLW = 0, maxVW = 0;
+  rows.forEach(s => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    maxLW = Math.max(maxLW, doc.getTextWidth(String(s.label || '')));
+    doc.setFontSize(8);
+    const pct = Math.round((s.value / total) * 100);
+    maxVW = Math.max(maxVW, doc.getTextWidth(`${s.value} (${pct}%)`));
+  });
+  const legendW = 12 + Math.max(maxLW, maxVW) + 4;
+  const gap = 16;
+  const groupW = 6 + 2 * r + gap + legendW;
+  const startX = x + Math.max(0, (w - groupW) / 2);
+  const cx = startX + 6 + r;
   const cy = y + h / 2;
   let a = -Math.PI / 2;
   rows.forEach(s => {
@@ -158,12 +170,12 @@ function drawDonut(doc, x, y, w, h, rows, total) {
   doc.text(String(total), cx, cy - 4, { align: 'center', baseline: 'middle' });
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); applyText(doc, MUTED);
   doc.text('total', cx, cy + 10, { align: 'center', baseline: 'middle' });
-  const lx = cx + r + 16;
+  const lx = cx + r + gap;
   let ly = cy - (rows.length * 18) / 2;
   rows.forEach(s => {
     applyFill(doc, s.color); doc.circle(lx, ly + 6, 4, 'F');
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); applyText(doc, TEXT);
-    doc.text(trunc(doc, s.label, w - (lx - x) - 20), lx + 12, ly + 4, { baseline: 'top' });
+    doc.text(trunc(doc, s.label, legendW - 16), lx + 12, ly + 4, { baseline: 'top' });
     doc.setFontSize(8); applyText(doc, MUTED);
     const pct = Math.round((s.value / total) * 100);
     doc.text(`${s.value} (${pct}%)`, lx + 12, ly + 15, { baseline: 'top' });
