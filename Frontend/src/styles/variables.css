@@ -28,6 +28,9 @@
   --color-info: #FA0183;
   --color-info-bg: #FFF0F8;
 
+  /* Toast */
+  --color-toast-success: #10B981;
+  --color-toast-error: #EF4444;
   /* Accent */
   --color-accent: #FA7F0C;
   --color-accent-dark: #E06E00;
@@ -121,6 +124,10 @@
   --color-error-bg: #3D0A0A;
   --color-info: #FA0183;
   --color-info-bg: #3D0A2A;
+
+  /* Toast (darker for contrast with white text on dark background) */
+  --color-toast-success: #0E9F6E;
+  --color-toast-error: #C0272B;
   --color-accent: #FB923C;
   --color-accent-dark: #EA580C;
   --color-accent-bg: #5B2A10;

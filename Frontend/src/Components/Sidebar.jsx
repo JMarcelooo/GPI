@@ -18,12 +18,15 @@ const navItems = [
   { label: 'Propriedades Intelectuais', icon: FileText, route: '/propriedade-intelectual' },
   { label: 'Autores', icon: Users, route: '/autores' },
   { label: 'Pagamentos', icon: DollarSign, route: '/pagamentos' },
-  { label: 'Configurações', icon: Settings, route: '/configuracoes' },
 ];
 
 const adminItems = [
   { label: 'Usuários', icon: ShieldCheck, route: '/usuarios' },
   { label: 'Logs', icon: ScrollText, route: '/logs' },
+];
+
+const bottomItems = [
+  { label: 'Configurações', icon: Settings, route: '/configuracoes' },
 ];
 
 export default function Sidebar() {
@@ -38,7 +41,7 @@ export default function Sidebar() {
         if (container) container.classList.toggle('is-sidebar-collapsed', collapsed);
     }, [collapsed]);
 
-    const items = isAdmin ? [...navItems, ...adminItems] : navItems;
+    const items = isAdmin ? [...navItems, ...adminItems, ...bottomItems] : [...navItems, ...bottomItems];
     const isActive = activeFor(location.pathname);
 
     return (

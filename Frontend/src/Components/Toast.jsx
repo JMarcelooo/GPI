@@ -13,7 +13,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
 
   if (!message) return null;
 
-  const bg = type === 'success' ? 'var(--color-success)' : 'var(--color-error)';
+  const bg = type === 'success' ? 'var(--color-toast-success)' : 'var(--color-toast-error)';
   const Icon = type === 'success' ? CheckCircle : XCircle;
 
   return (

@@ -9,6 +9,7 @@ import {
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import AlterarSenhaModal from '../Components/AlterarSenhaModal';
+import Toast from '../Components/Toast';
 import { useAuth } from '../contexts/AuthContext';
 import '../Tela2.css';
 import './Dashboard.css';
@@ -79,6 +80,7 @@ function Dashboard() {
   const [tab, setTab] = useState('geral');
   const [data, setData] = useState(null);
   const [gerando, setGerando] = useState(false);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     axios.get(`${API_URL}/api/stats`)
@@ -99,7 +101,7 @@ function Dashboard() {
       await gerarRelatorioPDF({ pi, autores, pagamentos, cruzamentos, fmtBRL, fmtDias, fmtPct, fmtDate });
     } catch (err) {
       console.error('Erro ao gerar relatório:', err);
-      alert('Não foi possível gerar o relatório.');
+      setToast({ message: 'Não foi possível gerar o relatório.', type: 'error' });
     } finally {
       setGerando(false);
     }
@@ -158,6 +160,8 @@ function Dashboard() {
             <Download size={16} /> {gerando ? 'Gerando...' : 'Relatório'}
           </button>
         </header>
+
+        <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
 
         <nav className="dash-tabs" role="tablist">
           {TABS.map(t => (
