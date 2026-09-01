@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { X, Tag, DollarSign, Calendar, Timer, ShieldCheck, FileText, Wallet, Trash2 } from 'lucide-react';
 import PISelector from './PISelector';
 import { STATUS_PAGAMENTO, addDaysToDate, todayString } from '../utils/formatDate';
 import '../Paginas/Modal.css';
@@ -16,6 +17,18 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
     observacao: payment.observacao || ''
   });
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,6 +37,7 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
 
   const dataInformada = form.data_informada || todayString();
   const dataCalculada = addDaysToDate(dataInformada, form.prazo_dias);
+  const vencPreview = dataCalculada ? new Date(dataCalculada).toLocaleDateString('pt-BR') : '—';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +46,8 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
       setError('Selecione uma PI.');
       return;
     }
+    if (saving) return;
+    setSaving(true);
     try {
       await onUpdate({
         pi_id: Number(piId),
@@ -51,6 +67,8 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
         err.response?.data?.error ||
         'Erro de conexão com o servidor'
       );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -67,93 +85,124 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
     }
   };
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Editar Pagamento</h2>
+  const content = (
+    <div className="modal-overlay modal-overlay--pay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Editar pagamento">
+      <div className="modal modal--pay" onClick={e => e.stopPropagation()}>
+        <header className="modal-header-pay">
+          <div>
+            <span className="modal-eyebrow"><Wallet size={14} /> Editar pagamento</span>
+            <h2 title={form.tipo_de_pagamento || payment.tipo_de_pagamento}>{form.tipo_de_pagamento || payment.tipo_de_pagamento || 'Pagamento'}</h2>
+            <p className="modal-subtitle">Vencimento calculado: <strong>{vencPreview}</strong> {form.prazo_dias ? `· ${form.prazo_dias} dias` : ''}</p>
+          </div>
+          <button className="modal-close-icon" onClick={onClose} aria-label="Fechar"><X size={18} /></button>
+        </header>
 
-        <PISelector value={piId} onChange={setPiId} />
+        <form onSubmit={handleSubmit} className="modal-body-pay">
+          <div className="form-grid form-grid--pay">
+            <div className="form-group form-group--full">
+              <label>Propriedade Intelectual *</label>
+              <PISelector value={piId} onChange={setPiId} />
+            </div>
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="pay-tipo-edit">Tipo de Pagamento</label>
-          <input
-            id="pay-tipo-edit"
-            type="text"
-            name="tipo_de_pagamento"
-            value={form.tipo_de_pagamento}
-            onChange={handleChange}
-            maxLength={255}
-            required
-          />
+            <div className="form-group">
+              <label htmlFor="pay-tipo-edit"><Tag size={12} /> Tipo de Pagamento *</label>
+              <input
+                id="pay-tipo-edit"
+                type="text"
+                name="tipo_de_pagamento"
+                value={form.tipo_de_pagamento}
+                onChange={handleChange}
+                maxLength={255}
+                placeholder="Ex.: Anuidade, Depósito"
+                required
+              />
+            </div>
 
-          <label htmlFor="pay-valor-edit">Valor (R$)</label>
-          <input
-            id="pay-valor-edit"
-            type="number"
-            name="valor"
-            min="0"
-            step="0.01"
-            value={form.valor}
-            onChange={handleChange}
-            required
-          />
+            <div className="form-group">
+              <label htmlFor="pay-valor-edit"><DollarSign size={12} /> Valor (R$) *</label>
+              <input
+                id="pay-valor-edit"
+                type="number"
+                name="valor"
+                min="0"
+                step="0.01"
+                value={form.valor}
+                onChange={handleChange}
+                placeholder="0,00"
+                required
+              />
+            </div>
 
-          <label htmlFor="pay-data-edit">Data Informada</label>
-          <input
-            id="pay-data-edit"
-            type="date"
-            name="data_informada"
-            value={form.data_informada}
-            onChange={handleChange}
-          />
+            <div className="form-group">
+              <label htmlFor="pay-data-edit"><Calendar size={12} /> Data informada</label>
+              <input
+                id="pay-data-edit"
+                type="date"
+                name="data_informada"
+                value={form.data_informada}
+                onChange={handleChange}
+              />
+            </div>
 
-          <label htmlFor="pay-prazo-edit">Prazo (dias)</label>
-          <input
-            id="pay-prazo-edit"
-            type="number"
-            name="prazo_dias"
-            min="1"
-            step="1"
-            value={form.prazo_dias}
-            onChange={handleChange}
-            placeholder="Ex.: 60"
-          />
+            <div className="form-group">
+              <label htmlFor="pay-prazo-edit"><Timer size={12} /> Prazo (dias)</label>
+              <input
+                id="pay-prazo-edit"
+                type="number"
+                name="prazo_dias"
+                min="1"
+                step="1"
+                value={form.prazo_dias}
+                onChange={handleChange}
+                placeholder="Ex.: 60"
+              />
+            </div>
 
-          <label htmlFor="pay-status-edit">Status</label>
-          <select
-            id="pay-status-edit"
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-          >
-            {STATUS_PAGAMENTO.map(s => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
+            <div className="form-group form-group--full">
+              <label htmlFor="pay-status-edit"><FileText size={12} /> Status</label>
+              <div className="segmented">
+                {STATUS_PAGAMENTO.map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    className={`segmented-btn ${form.status===s?'is-active':''}`}
+                    onClick={() => setForm(prev=>({...prev, status:s}))}
+                    aria-pressed={form.status===s}
+                  >{s.charAt(0).toUpperCase()+s.slice(1)}</button>
+                ))}
+              </div>
+            </div>
 
-          <label htmlFor="pay-sei-edit">Processo SEI</label>
-          <input
-            id="pay-sei-edit"
-            type="text"
-            name="processo_sei"
-            value={form.processo_sei}
-            onChange={handleChange}
-            placeholder="Número do processo SEI (opcional)"
-            maxLength={1000}
-          />
+            <div className="form-group form-group--full">
+              <label htmlFor="pay-sei-edit"><ShieldCheck size={12} /> Processo SEI</label>
+              <input
+                id="pay-sei-edit"
+                type="text"
+                name="processo_sei"
+                value={form.processo_sei}
+                onChange={handleChange}
+                placeholder="Número do processo SEI (opcional)"
+                maxLength={1000}
+              />
+              <span className="form-hint">{form.processo_sei.length}/1000</span>
+            </div>
 
-          <label htmlFor="pay-obs-edit">Observações</label>
-          <textarea
-            id="pay-obs-edit"
-            name="observacao"
-            rows="3"
-            value={form.observacao}
-            onChange={handleChange}
-            placeholder="Observações adicionais (opcional)"
-            maxLength={5000}
-          />
+            <div className="form-group form-group--full">
+              <label htmlFor="pay-obs-edit"><FileText size={12} /> Observações</label>
+              <textarea
+                id="pay-obs-edit"
+                name="observacao"
+                rows="3"
+                value={form.observacao}
+                onChange={handleChange}
+                placeholder="Observações adicionais (opcional)"
+                maxLength={5000}
+              />
+              <span className="form-hint">{form.observacao.length}/5000 · vencimento: {vencPreview}</span>
+            </div>
+          </div>
 
-          {error && <p style={{ color: 'var(--color-error)', fontSize: 13, margin: '8px 0 0' }}>{error}</p>}
+          {error && <p className="form-error">{error}</p>}
 
           <div className="modal-actions">
             <button
@@ -165,11 +214,13 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
               <Trash2 size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
               Excluir
             </button>
-            <button type="button" className="cancel-btn" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="confirm-btn">Salvar Alterações</button>
+            <button type="button" className="cancel-btn" onClick={onClose} disabled={saving}>Cancelar</button>
+            <button type="submit" className="confirm-btn" disabled={saving}>{saving?'Salvando...':'Salvar alterações'}</button>
           </div>
         </form>
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
