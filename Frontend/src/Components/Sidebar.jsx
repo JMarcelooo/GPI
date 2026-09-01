@@ -41,11 +41,30 @@ export default function Sidebar() {
         if (container) container.classList.toggle('is-sidebar-collapsed', collapsed);
     }, [collapsed]);
 
-    const items = isAdmin ? [...navItems, ...adminItems, ...bottomItems] : [...navItems, ...bottomItems];
+    const topItems = isAdmin ? [...navItems, ...adminItems] : navItems;
     const isActive = activeFor(location.pathname);
 
+    const renderItem = (item) => {
+        const active = !!isActive[item.route];
+        return (
+            <button
+                key={item.route}
+                onClick={() => navigate(item.route)}
+                title={collapsed ? item.label : undefined}
+                className={active ? 'sidebar-nav-active' : undefined}
+                aria-current={active ? 'page' : undefined}
+                aria-label={item.label}
+            >
+                <span className="sidebar-icon">
+                    <item.icon size={18} />
+                </span>
+                {!collapsed && <span className="sidebar-label">{item.label}</span>}
+            </button>
+        );
+    };
+
     return (
-        <div className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+        <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
             <div className="sidebar-top">
                 {collapsed ? (
                     <img src="/imagens/Sistema-Logo-Retratil.png" alt="UERN inova" className="sidebar-logo-retratil" />
@@ -53,26 +72,34 @@ export default function Sidebar() {
                     <img src="/imagens/Sistema-Logo.png" alt="UERN inova" className="sidebar-logo" />
                 )}
             </div>
-            <nav className="nav">
-                {items.map(item => (
-                    <button
-                        key={item.route}
-                        onClick={() => navigate(item.route)}
-                        title={collapsed ? item.label : undefined}
-                        className={isActive[item.route] ? 'sidebar-nav-active' : undefined}
-                        aria-current={isActive[item.route] ? 'page' : undefined}
-                    >
-                        <item.icon size={20} />
-                        {!collapsed && <span>{item.label}</span>}
-                    </button>
-                ))}
-            </nav>
+
+            <div className="sidebar-navs">
+                <nav className="sidebar-nav sidebar-nav--main" aria-label="Principal">
+                    {topItems.slice(0, navItems.length).map(renderItem)}
+                    {isAdmin && !collapsed && <span className="sidebar-section">Administração</span>}
+                    {isAdmin && topItems.slice(navItems.length).map(renderItem)}
+                </nav>
+
+                <div className="sidebar-spacer" aria-hidden="true" />
+
+                <nav className="sidebar-nav sidebar-nav--bottom" aria-label="Sistema">
+                    <div className="sidebar-divider" />
+                    {bottomItems.map(renderItem)}
+                </nav>
+            </div>
+
             {!collapsed && (
                 <img src="/imagens/Inova-Rodape.png" alt="Rodapé" className="sidebar-footer-img" />
             )}
-            <span className="sidebar-toggle" onClick={() => setCollapsed(!collapsed)}>
-                {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-            </span>
-        </div>
+            <button
+                type="button"
+                className="sidebar-toggle"
+                onClick={() => setCollapsed(!collapsed)}
+                aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+                title={collapsed ? 'Expandir' : 'Recolher'}
+            >
+                {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+        </aside>
     );
 }
