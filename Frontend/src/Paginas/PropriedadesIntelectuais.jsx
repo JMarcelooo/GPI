@@ -171,7 +171,6 @@ function PropriedadesIntelectuais() {
 
   const paginate = (page) => setCurrentPage(page);
 
-  const stats = piStats || { total, emProcesso: 0, ativos: 0, pendentes: 0 };
   const statCards = [
     { label: 'Total', value: piStats ? piStats.total : total, icon: FileText, bg: 'var(--color-primary-bg)', color: 'var(--color-primary)' },
     { label: 'Em análise', value: piStats ? piStats.emProcesso : 0, icon: Clock, bg: 'var(--color-warning-bg)', color: 'var(--color-warning)' },
