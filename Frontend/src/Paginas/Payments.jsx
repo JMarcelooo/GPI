@@ -479,8 +479,10 @@ export default function Payments() {
 
             <div className="day-payments-card">
               <h2 className="section-title day-payments-title">
-                <CalendarIcon size={14} />
-                {calendarSelectedDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                <CalendarIcon size={14} className="day-payments-title-icon" />
+                <span className="day-payments-date">
+                  {calendarSelectedDate.toLocaleDateString('pt-BR')}
+                </span>
                 <span className="day-payments-count">
                   {pagamentosDoDia.length} pagamento{pagamentosDoDia.length !== 1 ? 's' : ''}
                 </span>

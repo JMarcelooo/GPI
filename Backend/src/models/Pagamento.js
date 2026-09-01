@@ -32,11 +32,11 @@ const Pagamento = sequelize.define('Pagamento', {
     allowNull: true
   },
   processo_sei: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.TEXT,
     allowNull: true
   },
   observacao: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT,
     allowNull: true
   }
 }, {

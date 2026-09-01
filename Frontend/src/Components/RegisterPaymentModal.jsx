@@ -69,6 +69,7 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             value={form.tipo_de_pagamento}
             onChange={handleChange}
             placeholder="Ex.: Depósito, Anuidade"
+            maxLength={255}
             required
           />
 
@@ -126,6 +127,7 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             value={form.processo_sei}
             onChange={handleChange}
             placeholder="Número do processo SEI (opcional)"
+            maxLength={1000}
           />
 
           <label htmlFor="pay-obs">Observações</label>
@@ -136,6 +138,7 @@ export default function RegisterPaymentModal({ onClose, onRegister }) {
             value={form.observacao}
             onChange={handleChange}
             placeholder="Observações adicionais (opcional)"
+            maxLength={5000}
           />
 
           {error && <p style={{ color: 'var(--color-error)', fontSize: 13, margin: '8px 0 0' }}>{error}</p>}

@@ -82,6 +82,7 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
             name="tipo_de_pagamento"
             value={form.tipo_de_pagamento}
             onChange={handleChange}
+            maxLength={255}
             required
           />
 
@@ -138,6 +139,7 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
             value={form.processo_sei}
             onChange={handleChange}
             placeholder="Número do processo SEI (opcional)"
+            maxLength={1000}
           />
 
           <label htmlFor="pay-obs-edit">Observações</label>
@@ -148,6 +150,7 @@ export default function UpdatePaymentModal({ payment, onClose, onUpdate, onDelet
             value={form.observacao}
             onChange={handleChange}
             placeholder="Observações adicionais (opcional)"
+            maxLength={5000}
           />
 
           {error && <p style={{ color: 'var(--color-error)', fontSize: 13, margin: '8px 0 0' }}>{error}</p>}

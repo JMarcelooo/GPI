@@ -113,6 +113,16 @@ exports.createPagamento = async (req, res) => {
       return res.status(400).json({ error: 'Prazo inválido. Informe um número de dias maior que zero.' });
     }
 
+    if (processo_sei !== undefined && processo_sei !== null && String(processo_sei).length > 1000) {
+      return res.status(400).json({ error: 'Processo SEI muito longo (máximo 1000 caracteres).' });
+    }
+    if (observacao !== undefined && observacao !== null && String(observacao).length > 5000) {
+      return res.status(400).json({ error: 'Observação muito longa (máximo 5000 caracteres).' });
+    }
+    if (tipo_de_pagamento !== undefined && String(tipo_de_pagamento).length > 255) {
+      return res.status(400).json({ error: 'Tipo de pagamento muito longo (máximo 255 caracteres).' });
+    }
+
     const pi = await PI.findByPk(pi_id);
     if (!pi) {
       return res.status(404).json({ error: 'PI não encontrada.' });
@@ -148,6 +158,9 @@ exports.createPagamento = async (req, res) => {
       return res.status(400).json({
         errors: error.errors.map(e => e.message)
       });
+    }
+    if (error.parent?.code === '22001' || error.original?.code === '22001') {
+      return res.status(400).json({ error: 'Campo muito longo para o banco de dados.' });
     }
     res.status(500).json({ error: 'Erro ao criar pagamento.' });
   }
@@ -187,8 +200,21 @@ exports.updatePagamento = async (req, res) => {
       }
       updateData.prazo_dias = Number(prazo_dias);
     }
-    if (processo_sei !== undefined) updateData.processo_sei = processo_sei;
-    if (observacao !== undefined) updateData.observacao = observacao;
+    if (processo_sei !== undefined) {
+      if (processo_sei !== null && String(processo_sei).length > 1000) {
+        return res.status(400).json({ error: 'Processo SEI muito longo (máximo 1000 caracteres).' });
+      }
+      updateData.processo_sei = processo_sei;
+    }
+    if (observacao !== undefined) {
+      if (observacao !== null && String(observacao).length > 5000) {
+        return res.status(400).json({ error: 'Observação muito longa (máximo 5000 caracteres).' });
+      }
+      updateData.observacao = observacao;
+    }
+    if (tipo_de_pagamento !== undefined && String(tipo_de_pagamento).length > 255) {
+      return res.status(400).json({ error: 'Tipo de pagamento muito longo (máximo 255 caracteres).' });
+    }
 
     if (updateData.pi_id !== undefined) {
       const pi = await PI.findByPk(updateData.pi_id);
@@ -218,6 +244,9 @@ exports.updatePagamento = async (req, res) => {
       return res.status(400).json({
         errors: error.errors.map(e => e.message)
       });
+    }
+    if (error.parent?.code === '22001' || error.original?.code === '22001') {
+      return res.status(400).json({ error: 'Campo muito longo para o banco de dados.' });
     }
     res.status(500).json({ error: 'Erro ao atualizar pagamento.' });
   }
