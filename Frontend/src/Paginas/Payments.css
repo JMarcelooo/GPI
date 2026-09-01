@@ -694,3 +694,29 @@
 .pi-link--sm {
   font-size: var(--text-xs);
 }
+
+/* Corrigir ícones pretos nos filtros no modo escuro */
+[data-theme="dark"] .search-icon {
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .payments-filtros svg,
+[data-theme="dark"] .table-toolbar svg,
+[data-theme="dark"] .search-wrapper svg,
+[data-theme="dark"] .filtro-limpar svg {
+  color: var(--color-text-secondary);
+  stroke: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .filtro-select,
+[data-theme="dark"] .filtro-date,
+[data-theme="dark"] .search-input {
+  color-scheme: dark;
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .filtro-select option {
+  background: var(--color-surface);
+  color: var(--color-text);
+}

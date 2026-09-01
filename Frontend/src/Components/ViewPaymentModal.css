@@ -23,9 +23,9 @@
 
 .vp-modal {
   background: var(--color-surface);
-  width: 520px;
+  width: 620px;
   max-width: 100%;
-  max-height: min(90vh, 90dvh);
+  max-height: min(92vh, 92dvh);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -42,19 +42,21 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Header — mais enxuto */
+/* Header — roxo sólido */
 .vp-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: var(--sidebar-bg);
   flex-shrink: 0;
+  color: #fff;
 }
 
 .vp-header--new {
-  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 100%);
+  background: var(--sidebar-bg);
 }
 
 .vp-eyebrow {
@@ -65,14 +67,14 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--color-text-muted);
+  color: rgba(255,255,255,0.85);
 }
 
 .vp-title {
   margin: 6px 0 8px;
   font-size: 18px;
   font-weight: 750;
-  color: var(--color-text);
+  color: #fff;
   line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -90,9 +92,9 @@
 
 .vp-close {
   flex-shrink: 0;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #fff;
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -104,9 +106,9 @@
 }
 
 .vp-close:hover {
-  background: var(--color-error-bg);
-  color: var(--color-error);
-  border-color: var(--color-error);
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border-color: rgba(255,255,255,0.22);
 }
 
 /* Status diff */
@@ -120,14 +122,14 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   overflow-y: auto;
   overscroll-behavior: contain;
   min-height: 0;
 }
 
 .vp-body--new {
-  gap: 16px;
+  gap: 18px;
 }
 
 /* PI card — único acesso à PI */

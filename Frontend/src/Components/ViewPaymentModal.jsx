@@ -129,10 +129,6 @@ export default function ViewPaymentModal({ payment, onClose }) {
             )}
           </div>
         </div>
-
-        <footer className="vp-footer vp-footer--single">
-          <button className="vp-btn-ghost" onClick={onClose}>Fechar</button>
-        </footer>
       </div>
     </div>
   );

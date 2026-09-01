@@ -13,9 +13,9 @@
   --color-surface: #FFFFFF;
   --color-border: #E2E8F0;
   --color-border-light: #F1F5F9;
-  --color-text: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
+  --color-text: #020617;
+  --color-text-secondary: #334155;
+  --color-text-muted: #64748B;
   --color-hover: #F8FAFC;
 
   /* Status colors */
@@ -111,9 +111,9 @@
   --color-surface: #162032;
   --color-border: #283548;
   --color-border-light: #1D2A3D;
-  --color-text: #F1F5F9;
-  --color-text-secondary: #9CA3AF;
-  --color-text-muted: #6B7280;
+  --color-text: #F8FAFC;
+  --color-text-secondary: #E2E8F0;
+  --color-text-muted: #CBD5E1;
   --color-hover: #1D2A3D;
 
   --color-success: #34D399;
