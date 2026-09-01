@@ -1,7 +1,8 @@
 import API_URL from '../config';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, Search, BarChart3, TrendingUp, Clock, CheckCircle2, Eye, Pencil, Info, X, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import Sidebar from '../Components/Sidebar';
 import Calendar from '../Components/Calendar';
@@ -47,6 +48,9 @@ export default function Payments() {
   const [filterVencDe, setFilterVencDe] = useState('');
   const [filterVencAte, setFilterVencAte] = useState('');
   const [toast, setToast] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const openedFromParam = useRef(false);
   const navigate = useNavigate();
@@ -210,6 +214,35 @@ export default function Payments() {
     setShowViewModal(true);
   };
 
+  const handleOpenDeleteModal = (payment) => {
+    setPaymentToDelete(payment);
+    setShowDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (!deleting) {
+      setShowDeleteModal(false);
+      setPaymentToDelete(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!showDeleteModal) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape' && !deleting) {
+        setShowDeleteModal(false);
+        setPaymentToDelete(null);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [showDeleteModal, deleting]);
+
   const handleRegister = async (payload) => {
     await axios.post(`${API}/api/pagamentos`, payload);
     await Promise.all([loadAllPayments(), loadTable(currentPage, searchTerm, filtrosAtuais())]);
@@ -223,14 +256,25 @@ export default function Payments() {
   };
 
   const handleDelete = async () => {
-    await axios.delete(`${API}/api/pagamentos/${selectedPayment.id}`);
-    await loadAllPayments();
-    if (tablePayments.length === 1 && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    } else {
-      await loadTable(currentPage, searchTerm, filtrosAtuais());
+    if (!paymentToDelete) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`${API}/api/pagamentos/${paymentToDelete.id}`);
+      await loadAllPayments();
+      if (tablePayments.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      } else {
+        await loadTable(currentPage, searchTerm, filtrosAtuais());
+      }
+      setShowDeleteModal(false);
+      setPaymentToDelete(null);
+      setToast({ message: 'Pagamento removido com sucesso!', type: 'success' });
+    } catch (err) {
+      console.error('Erro ao remover pagamento:', err);
+      setToast({ message: err.response?.data?.error || 'Erro ao remover pagamento.', type: 'error' });
+    } finally {
+      setDeleting(false);
     }
-    setToast({ message: 'Pagamento removido com sucesso!', type: 'success' });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -401,6 +445,9 @@ export default function Payments() {
                             <button className="btn-acao" title="Editar" onClick={() => handleOpenUpdateModal(p)}>
                               <Pencil size={18} />
                             </button>
+                            <button className="btn-acao" title="Excluir" onClick={() => handleOpenDeleteModal(p)} style={{ color: 'var(--color-error)' }}>
+                              <Trash2 size={18} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -570,8 +617,23 @@ export default function Payments() {
             payment={selectedPayment}
             onClose={() => setShowUpdateModal(false)}
             onUpdate={handleUpdate}
-            onDelete={handleDelete}
           />
+        )}
+        {showDeleteModal && paymentToDelete && createPortal(
+          <div style={{ position: 'fixed', inset: 0, width: '100vw', height: '100dvh', background: 'rgba(11, 17, 33, 0.55)', backdropFilter: 'blur(4px)', display: 'grid', placeItems: 'center', overflowY: 'auto', padding: 16, boxSizing: 'border-box', zIndex: 1000 }} onClick={handleCloseDeleteModal} role="dialog" aria-modal="true" aria-label="Confirmar exclusão">
+            <div style={{ background: 'var(--color-surface)', borderRadius: 16, padding: 28, maxWidth: 440, width: '100%', maxHeight: 'min(90vh, 90dvh)', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', border: '1px solid var(--color-border)', margin: 'auto', boxSizing: 'border-box' }} onClick={e => e.stopPropagation()}>
+              <h3 style={{ margin: '0 0 8px', color: 'var(--color-text)', fontSize: 18, fontWeight: 750 }}>Confirmar exclusão</h3>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+                Tem certeza que deseja excluir o pagamento <strong style={{ color: 'var(--color-text)' }}>{paymentToDelete.tipo_de_pagamento || `#${paymentToDelete.id}`}</strong> da PI <strong style={{ color: 'var(--color-text)' }}>{piMap[paymentToDelete.pi_id]?.titulo || piMap[paymentToDelete.pi_id]?.protocolo || `PI ${paymentToDelete.pi_id}`}</strong>?
+                Esta ação não pode ser desfeita.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
+                <button onClick={handleCloseDeleteModal} disabled={deleting} style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-secondary)', fontSize: 13, fontWeight: 650, cursor: 'pointer' }}>Cancelar</button>
+                <button onClick={handleDelete} disabled={deleting} style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: 'var(--color-error)', color: '#fff', fontSize: 13, fontWeight: 650, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1 }}>{deleting ? 'Excluindo...' : 'Excluir'}</button>
+              </div>
+            </div>
+          </div>,
+          document.body
         )}
         {showViewModal && (
           <ViewPaymentModal

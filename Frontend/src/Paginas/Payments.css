@@ -350,11 +350,19 @@
 }
 
 .payments-table td.td-pi {
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   min-width: 160px;
   max-width: 260px;
+}
+
+.payments-table td.td-pi .pi-link {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .td-value {
