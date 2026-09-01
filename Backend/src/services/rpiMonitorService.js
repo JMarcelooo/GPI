@@ -42,10 +42,11 @@ async function fetchComTimeout(url, opcoes = {}) {
   }
 }
 
-// O servidor do INPI responde 503 esporadicamente; tenta algumas vezes
-// com espera antes de desistir (a execução seguinte também tentará).
-const TENTATIVAS_FETCH = 3;
-const ESPERA_ENTRE_TENTATIVAS_MS = 5 * 1000;
+// O servidor do INPI responde 503 esporadicamente e, às vezes, encerra a
+// conexão durante o handshake TLS (ECONNRESET). Tenta várias vezes com backoff
+// crescente antes de desistir (a execução seguinte também tentará).
+const TENTATIVAS_FETCH = 5;
+const ESPERA_BASE_MS = 4 * 1000;
 
 async function fetchComRetry(url, opcoes = {}) {
   let ultimoErro;
@@ -58,7 +59,9 @@ async function fetchComRetry(url, opcoes = {}) {
       ultimoErro = err;
     }
     if (tentativa < TENTATIVAS_FETCH) {
-      await new Promise((r) => setTimeout(r, ESPERA_ENTRE_TENTATIVAS_MS));
+      // Backoff progressivo: 4s, 8s, 16s, 32s.
+      const espera = ESPERA_BASE_MS * 2 ** (tentativa - 1);
+      await new Promise((r) => setTimeout(r, espera));
     }
   }
   throw ultimoErro;
@@ -95,6 +98,13 @@ async function baixarXmlDaSecao(url, numero) {
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GPI-UERN/1.0)' }
   });
   const buffer = Buffer.from(await res.arrayBuffer());
+
+  // O INPI às vezes responde 200 com HTML (ex.: seção ainda não publicada)
+  // em vez de ZIP — detecta pelo magic bytes PK (ZIP) antes de tentar abrir.
+  if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4b) {
+    const preview = buffer.slice(0, 200).toString('utf8').replace(/\s+/g, ' ').trim();
+    throw new Error(`Resposta não é ZIP para ${url} da RPI ${numero} (preview: ${preview.slice(0, 120)})`);
+  }
 
   const zip = new AdmZip(buffer);
   const entradaXml = zip.getEntries().find((e) => e.entryName.toLowerCase().endsWith('.xml'));
@@ -164,7 +174,10 @@ function parsearEventosXmlMarcas(xml, numero) {
 }
 
 // Baixa as seções monitoradas da edição (Patentes + Programas de Computador +
-// Marcas) e mescla os eventos por protocolo.
+// Marcas) e mescla os eventos por protocolo. Seções indisponíveis
+// (503, HTML no lugar de ZIP, etc.) são ignoradas com aviso — a edição
+// ainda é processada com as seções que funcionaram (ex.: 2904 só tem
+// Patentes no momento da publicação).
 async function extrairEventosDaEdicao(numero) {
   const secoes = [
     { url: URL_ZIP_PATENTES(numero), parsear: parsearEventosXml },
@@ -173,12 +186,27 @@ async function extrairEventosDaEdicao(numero) {
   ];
 
   const eventos = new Map();
+  let algumaSecaoOk = false;
+  const erros = [];
   for (const { url, parsear } of secoes) {
-    const xml = await baixarXmlDaSecao(url, numero);
-    for (const [chave, evs] of parsear(xml, numero)) {
-      if (!eventos.has(chave)) eventos.set(chave, []);
-      eventos.get(chave).push(...evs);
+    try {
+      const xml = await baixarXmlDaSecao(url, numero);
+      for (const [chave, evs] of parsear(xml, numero)) {
+        if (!eventos.has(chave)) eventos.set(chave, []);
+        eventos.get(chave).push(...evs);
+      }
+      algumaSecaoOk = true;
+    } catch (e) {
+      const nome = url.split('/').pop();
+      erros.push(`${nome}: ${e.message}`);
+      console.warn(`Seção ${nome} da RPI ${numero} indisponível — ignorada: ${e.message}`);
     }
+  }
+  if (!algumaSecaoOk) {
+    throw new Error(`Nenhuma seção TXT disponível para RPI ${numero}: ${erros.join('; ')}`);
+  }
+  if (erros.length > 0) {
+    console.warn(`RPI ${numero} processada parcialmente (${erros.length} seção(ões) ignorada(s)): ${erros.join('; ')}`);
   }
   return eventos;
 }
@@ -186,6 +214,22 @@ async function extrairEventosDaEdicao(numero) {
 function truncar(texto, max) {
   const s = String(texto || '').trim();
   return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+}
+
+async function registrarLogSistema({ acao, descricao, detalhes }) {
+  try {
+    await Historico.create({
+      pi_id: null,
+      usuario_id: null,
+      usuario_nome: 'Sistema',
+      tipo: 'rpi',
+      acao,
+      descricao: truncar(descricao, 500),
+      detalhes: { origem: 'monitor_rpi', ...detalhes },
+    });
+  } catch (e) {
+    console.error('Falha ao registrar log de monitoramento da RPI no histórico:', e.message);
+  }
 }
 
 // codigo_evento é FLOAT: "100.1" → 100.1; códigos de marca como "IPAS161"
@@ -347,11 +391,64 @@ async function verificarNovasEdicoes() {
 
 // Versão com trava anti-sobreposição: se uma verificação ainda está
 // rodando (ex.: INPI lento), as chamadas seguintes são ignoradas.
+// Registra cada execução (sucesso ou falha) no histórico com autor "Sistema"
+// para aparecer na aba Eventos dos Logs do sistema.
 async function verificarNovasEdicoesComTrava() {
   if (emExecucao) return { status: 'ja_em_execucao' };
   emExecucao = true;
   try {
-    return await verificarNovasEdicoes();
+    const resultado = await verificarNovasEdicoes();
+
+    if (resultado.status === 'pagina_indisponivel') {
+      await registrarLogSistema({
+        acao: 'falha',
+        descricao: 'Monitoramento da RPI falhou — página do INPI indisponível ou sem edições reconhecidas',
+        detalhes: { evento: 'verificacao_falha', motivo: 'pagina_indisponivel', verificadas: resultado.verificadas || 0 },
+      });
+    } else if (resultado.status === 'nada_a_fazer') {
+      await registrarLogSistema({
+        acao: 'atualizacao',
+        descricao: `Monitoramento da RPI executado com sucesso — ${resultado.verificadas} edição(ões) verificada(s), nenhuma nova para processar`,
+        detalhes: { evento: 'verificacao_sucesso', verificadas: resultado.verificadas, processadas: 0 },
+      });
+    } else if (resultado.status === 'ok') {
+      const processadas = resultado.resultados || [];
+      const totalRpis = processadas.reduce((s, p) => s + (p.criadas?.rpis || 0), 0);
+      const totalNotifs = processadas.reduce((s, p) => s + (p.criadas?.notificacoes || 0), 0);
+      const totalMatches = processadas.reduce((s, p) => s + (p.matches || 0), 0);
+      const edicoesStr = processadas.map((p) => p.edicao).join(', ');
+      await registrarLogSistema({
+        acao: 'criacao',
+        descricao: `Monitoramento da RPI executado com sucesso — ${processadas.length} edição(ões) processada(s) [${edicoesStr}] — ${totalMatches} PI(s) com despacho, ${totalRpis} RPI(s) e ${totalNotifs} notificação(ões) criada(s)`,
+        detalhes: {
+          evento: 'verificacao_sucesso',
+          verificadas: resultado.verificadas,
+          processadas: processadas.length,
+          rpis: totalRpis,
+          notificacoes: totalNotifs,
+          matches: totalMatches,
+          edicoes: processadas.map((p) => p.edicao),
+        },
+      });
+    }
+
+    return resultado;
+  } catch (err) {
+    const msg = err?.message ? truncar(err.message, 200) : 'erro desconhecido';
+    const rede =
+      err?.cause?.code === 'ECONNRESET' ||
+      err?.cause?.code === 'ETIMEDOUT' ||
+      err?.cause?.code === 'ECONNREFUSED' ||
+      String(err.message || '').includes('fetch failed');
+    const descricao = rede
+      ? `Monitoramento da RPI falhou — não foi possível contactar o INPI (${msg}). Tentará novamente na próxima verificação`
+      : `Monitoramento da RPI falhou — ${msg}`;
+    await registrarLogSistema({
+      acao: 'falha',
+      descricao,
+      detalhes: { evento: 'verificacao_falha', erro: msg, rede: !!rede },
+    });
+    throw err;
   } finally {
     emExecucao = false;
   }

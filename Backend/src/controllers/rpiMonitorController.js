@@ -55,6 +55,18 @@ exports.verificar = async (req, res) => {
     res.json(resultado);
   } catch (error) {
     console.error('Erro ao verificar edições da RPI:', error);
-    res.status(500).json({ error: 'Erro ao verificar edições da RPI.' });
+    const rede = (
+      error && (
+        error.cause?.code === 'ECONNRESET' ||
+        error.cause?.code === 'ETIMEDOUT' ||
+        error.cause?.code === 'ECONNREFUSED' ||
+        error.message?.includes('fetch failed')
+      )
+    );
+    res.status(500).json({
+      error: rede
+        ? 'Não foi possível contactar o INPI (instável ou indisponível). Tente novamente em alguns minutos.'
+        : 'Erro ao verificar edições da RPI.'
+    });
   }
 };

@@ -27,7 +27,8 @@ const TIPOS = [
 const ACES = [
   { value: 'criacao', label: 'Criação' },
   { value: 'atualizacao', label: 'Atualização' },
-  { value: 'exclusao', label: 'Exclusão' }
+  { value: 'exclusao', label: 'Exclusão' },
+  { value: 'falha', label: 'Falha' }
 ];
 
 const ACES_LABEL = Object.fromEntries(ACES.map(a => [a.value, a.label]));
@@ -409,7 +410,7 @@ function RpiEdicoes() {
         type: 'error',
         message: err.response?.status === 403
           ? 'Acesso restrito a administradores.'
-          : 'Erro ao verificar edições da RPI.'
+          : (err.response?.data?.error || 'Erro ao verificar edições da RPI.')
       });
     } finally {
       setVerificando(false);
