@@ -66,7 +66,9 @@ exports.getAllAutores = async (req, res) => {
       where[Op.or] = [
         { name: { [Op.iLike]: term } },
         { email: { [Op.iLike]: term } },
-        { university: { [Op.iLike]: term } }
+        { university: { [Op.iLike]: term } },
+        { campus: { [Op.iLike]: term } },
+        { department: { [Op.iLike]: term } }
       ];
     }
     if (gender) where.gender = gender;

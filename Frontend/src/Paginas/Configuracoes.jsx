@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, LogOut, Bell, Shield, Info, Moon, KeyRound } from 'lucide-react';
+import { User, LogOut, Shield, Info, Moon, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
 import AlterarSenhaModal from '../Components/AlterarSenhaModal';
@@ -14,22 +14,6 @@ function Configuracoes() {
   const { dark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [showAlterarSenha, setShowAlterarSenha] = useState(false);
-  const [notifEmail, setNotifEmail] = useState(() => localStorage.getItem('notifEmail') !== 'false');
-  const [notifStatus, setNotifStatus] = useState(() => localStorage.getItem('notifStatus') !== 'false');
-
-  const toggleNotifEmail = () => {
-    setNotifEmail(v => {
-      localStorage.setItem('notifEmail', String(!v));
-      return !v;
-    });
-  };
-
-  const toggleNotifStatus = () => {
-    setNotifStatus(v => {
-      localStorage.setItem('notifStatus', String(!v));
-      return !v;
-    });
-  };
 
   async function handleSair() {
     logout();
@@ -75,32 +59,6 @@ function Configuracoes() {
             <button className="config-btn" onClick={() => setShowAlterarSenha(true)}>
               <KeyRound size={16} /> Alterar senha
             </button>
-          </div>
-        </div>
-
-        <div className="config-section">
-          <h3 className="config-section-title">
-            <Bell size={18} /> Notificações
-          </h3>
-          <div className="config-card config-card-row">
-            <div>
-              <p className="config-label">Notificações por e-mail</p>
-              <p className="config-desc">Receber alertas sobre prazos e atualizações</p>
-            </div>
-            <label className="config-toggle">
-              <input type="checkbox" checked={notifEmail} onChange={toggleNotifEmail} />
-              <span className="config-toggle-slider"></span>
-            </label>
-          </div>
-          <div className="config-card config-card-row">
-            <div>
-              <p className="config-label">Notificações de status</p>
-              <p className="config-desc">Alertar quando uma PI mudar de status</p>
-            </div>
-            <label className="config-toggle">
-              <input type="checkbox" checked={notifStatus} onChange={toggleNotifStatus} />
-              <span className="config-toggle-slider"></span>
-            </label>
           </div>
         </div>
 

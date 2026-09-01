@@ -1,18 +1,38 @@
 import API_URL from '../config';
 import React, { useState, useEffect, useCallback } from "react";
-import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import { Eye, Pencil, Trash2, ChevronUp, ChevronDown, SlidersHorizontal, X, Plus, FileText, Clock, CheckCircle2, AlertTriangle, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from '../Components/Sidebar';
 import "./PI.css";
+import "./Payments.css";
 import "../Tela2.css";
 import { formatDate, formatStatus, formatTipo } from '../utils/formatDate';
-import FilterPIModal from '../Components/FilterPIModal';
 import Toast from '../Components/Toast';
 import { invalidatePis } from '../services/piApi';
 
 const API = API_URL;
 const PAGE_SIZE = 10;
+
+const TIPOS_OPTS = [
+  { value: 'patente de invencao', label: 'Patente de Invenção' },
+  { value: 'modelo de utilidade', label: 'Modelo de Utilidade' },
+  { value: 'marca', label: 'Marca' },
+  { value: 'programa de computador', label: 'Programa de Computador' }
+];
+
+const STATUS_OPTS = [
+  { value: 'em analise', label: 'Em Análise' },
+  { value: 'deferida', label: 'Deferida' },
+  { value: 'registrada', label: 'Registrada' },
+  { value: 'carta patente', label: 'Carta Patente' },
+  { value: 'indeferida', label: 'Indeferida' },
+  { value: 'anulada', label: 'Anulada' },
+  { value: 'arquivada', label: 'Arquivada' }
+];
+
+const ANO_ATUAL = new Date().getFullYear();
+const ANOS = Array.from({ length: ANO_ATUAL - 1999 }, (_, i) => ANO_ATUAL - i);
 
 function normalizeStatus(status) {
   return status.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
@@ -33,13 +53,13 @@ function PropriedadesIntelectuais() {
   const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
-  const [showFilterModal, setShowFilterModal] = useState(false);
   const [piToDelete, setPiToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
   const [sortField, setSortField] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
+  const [piStats, setPiStats] = useState(null);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -81,6 +101,12 @@ function PropriedadesIntelectuais() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    axios.get(`${API}/api/stats`)
+      .then(res => setPiStats(res.data?.pi || null))
+      .catch(() => setPiStats(null));
   }, []);
 
   useEffect(() => {
@@ -133,107 +159,168 @@ function PropriedadesIntelectuais() {
     setCurrentPage(1);
   };
 
+  const handleQuickFilter = (campo, valor) => {
+    setFilters(prev => {
+      const next = { ...prev };
+      if (valor) next[campo] = valor;
+      else delete next[campo];
+      return next;
+    });
+    setCurrentPage(1);
+  };
+
   const paginate = (page) => setCurrentPage(page);
 
+  const stats = piStats || { total, emProcesso: 0, ativos: 0, pendentes: 0 };
+  const statCards = [
+    { label: 'Total', value: piStats ? piStats.total : total, icon: FileText, bg: 'var(--color-primary-bg)', color: 'var(--color-primary)' },
+    { label: 'Em análise', value: piStats ? piStats.emProcesso : 0, icon: Clock, bg: 'var(--color-warning-bg)', color: 'var(--color-warning)' },
+    { label: 'Ativas', sub: 'Deferida/Registrada/Carta', value: piStats ? piStats.ativos : 0, icon: CheckCircle2, bg: 'var(--color-success-bg)', color: 'var(--color-success)' },
+    { label: 'Pendentes', sub: 'Indeferida/Anulada/Arquivada', value: piStats ? piStats.pendentes : 0, icon: AlertTriangle, bg: 'var(--color-error-bg)', color: 'var(--color-error)' },
+  ];
+
   return (
-    <div className="container">
+    <div className="payments-page">
       <Sidebar />
+      <div className="payments-content anim-rise">
+        <div className="payments-header">
+          <div>
+            <h1 className="payments-title">Propriedades Intelectuais</h1>
+            <p className="payments-subtitle">
+              {total} registro{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
+              {piStats && piStats.total > 0 && ` · ${piStats.emProcesso} em análise · ${piStats.ativos} ativas`}
+            </p>
+          </div>
+          <button className="payments-btn-primary" onClick={() => navigate("/cadastro-pi")}>
+            <Plus size={18} /> Nova PI
+          </button>
+        </div>
 
-      <div className="main anim-rise">
-        <div className="container-pi">
-          <div className="conteudo-pi">
-            <h2>Propriedades Intelectuais</h2>
+        <div className="payments-stats">
+          {statCards.map((s, i) => (
+            <div key={i} className="stat-card">
+              <div className="stat-icon" style={{ background: s.bg, color: s.color }}>
+                <s.icon size={20} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">{s.value}</span>
+                <span className="stat-label">{s.label}</span>
+                {s.sub && <span className="stat-amount">{s.sub}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
 
-            <div className="filtros-topo">
+        <div className="table-section">
+          <div className="table-toolbar">
+            <div className="search-wrapper">
+              <Search size={16} className="search-icon" />
               <input
                 type="text"
                 placeholder="Buscar por título, protocolo, depositante ou parceiro..."
                 value={searchTerm}
                 onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className="search-input"
               />
-              <button className="filter-button" onClick={() => setShowFilterModal(true)}>
-                <SlidersHorizontal size={16} className="filter-icon" /> Filtros
-                {temFiltrosAtivos && <span className="filtro-dot" />}
-              </button>
-              <button className="btn-novo-pi" onClick={() => navigate("/cadastro-pi")}>
-                + Cadastrar Nova PI
+            </div>
+            <div className="payments-filtros">
+              <select
+                className="filtro-select"
+                value={filters.status || ''}
+                onChange={e => handleQuickFilter('status', e.target.value)}
+                title="Filtrar por status"
+              >
+                <option value="">Todos os status</option>
+                {STATUS_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <select
+                className="filtro-select"
+                value={filters.tipo || ''}
+                onChange={e => handleQuickFilter('tipo', e.target.value)}
+                title="Filtrar por tipo"
+              >
+                <option value="">Todos os tipos</option>
+                {TIPOS_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+              <select
+                className="filtro-select"
+                value={filters.ano || ''}
+                onChange={e => handleQuickFilter('ano', e.target.value)}
+                title="Filtrar por ano"
+              >
+                <option value="">Todos os anos</option>
+                {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+              {temFiltrosAtivos && (
+                <button className="filtro-limpar" onClick={limparFiltros} title="Limpar filtros">
+                  <X size={14} /> Limpar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {temFiltrosAtivos && (
+            <div className="filtros-ativos" style={{ padding: '12px 20px', borderBottom: '1px solid var(--color-border)', marginBottom: 0 }}>
+              <span className="filtros-ativos-label">
+                <SlidersHorizontal size={13} /> Filtros:
+              </span>
+              {filters.tipo && (
+                <span className="filtro-chip">
+                  Tipo: {formatTipo(filters.tipo)}
+                  <button onClick={() => removerFiltro('tipo')} title="Remover"><X size={12} /></button>
+                </span>
+              )}
+              {filters.status && (
+                <span className="filtro-chip">
+                  Status: {formatStatus(filters.status)}
+                  <button onClick={() => removerFiltro('status')} title="Remover"><X size={12} /></button>
+                </span>
+              )}
+              {filters.ano && (
+                <span className="filtro-chip">
+                  Ano: {filters.ano}
+                  <button onClick={() => removerFiltro('ano')} title="Remover"><X size={12} /></button>
+                </span>
+              )}
+              <button className="filtro-limpar-tudo" onClick={limparFiltros}>
+                Limpar tudo
               </button>
             </div>
+          )}
 
-            {temFiltrosAtivos && (
-              <div className="filtros-ativos">
-                <span className="filtros-ativos-label">
-                  <SlidersHorizontal size={13} /> Filtros:
-                </span>
-                {filters.tipo && (
-                  <span className="filtro-chip">
-                    Tipo: {formatTipo(filters.tipo)}
-                    <button onClick={() => removerFiltro('tipo')} title="Remover"><X size={12} /></button>
-                  </span>
-                )}
-                {filters.status && (
-                  <span className="filtro-chip">
-                    Status: {formatStatus(filters.status)}
-                    <button onClick={() => removerFiltro('status')} title="Remover"><X size={12} /></button>
-                  </span>
-                )}
-                {filters.ano && (
-                  <span className="filtro-chip">
-                    Ano: {filters.ano}
-                    <button onClick={() => removerFiltro('ano')} title="Remover"><X size={12} /></button>
-                  </span>
-                )}
-                <button className="filtro-limpar-tudo" onClick={limparFiltros}>
-                  Limpar tudo
-                </button>
-              </div>
-            )}
-
-            <div className="tabela-pi-scroll">
-            <table className="tabela-pi">
+          <div className="table-scroll">
+            <table className="payments-table">
               <thead>
                 <tr>
-                  <th
-                    onClick={() => handleSort('tipo')}
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                  >
+                  <th onClick={() => handleSort('tipo')} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     Tipo {sortIcon('tipo')}
                   </th>
-                  <th
-                    onClick={() => handleSort('titulo')}
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                  >
+                  <th onClick={() => handleSort('titulo')} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     Título {sortIcon('titulo')}
                   </th>
-                  <th
-                    onClick={() => handleSort('status')}
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                  >
+                  <th onClick={() => handleSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     Status {sortIcon('status')}
                   </th>
                   <th>Protocolo</th>
                   <th>Depositante</th>
-                  <th
-                    onClick={() => handleSort('data_entrada')}
-                    style={{ cursor: 'pointer', userSelect: 'none' }}
-                  >
+                  <th onClick={() => handleSort('data_entrada')} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     Data de Entrada {sortIcon('data_entrada')}
                   </th>
-                  <th>Ações</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="7">Carregando...</td></tr>
+                  <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
                 ) : error ? (
-                  <tr><td colSpan="7">{error}</td></tr>
+                  <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--color-error)', padding: 24 }}>{error}</td></tr>
                 ) : currentPIs.length === 0 ? (
-                  <tr><td colSpan="7">Nenhuma PI cadastrada</td></tr>
+                  <tr><td colSpan="7" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhuma PI cadastrada</td></tr>
                 ) : (
                   currentPIs.map(pi => (
                     <tr key={pi.id}>
-                      <td>{formatTipo(pi.tipo)}</td>
-                      <td>
+                      <td style={{ fontWeight: 600 }}>{formatTipo(pi.tipo)}</td>
+                      <td className="td-pi" style={{ maxWidth: 300 }}>
                         <span className="pi-titulo" title={pi.titulo}>
                           {pi.titulo || "-"}
                         </span>
@@ -247,7 +334,7 @@ function PropriedadesIntelectuais() {
                       <td>{pi.depositante || "-"}</td>
                       <td>{formatDate(pi.data_entrada)}</td>
                       <td>
-                        <div className="tabela-pi-acoes">
+                        <div style={{ display: 'flex', gap: 6 }}>
                           <button onClick={() => navigate(`/detalhes/${pi.id}`)} className="btn-acao" title="Visualizar"><Eye size={18} /></button>
                           <button onClick={() => navigate(`/editar-pi/${pi.id}`)} className="btn-acao" title="Editar"><Pencil size={18} /></button>
                           <button onClick={() => setPiToDelete(pi)} className="btn-acao" title="Excluir" style={{ color: 'var(--color-error)' }}><Trash2 size={18} /></button>
@@ -258,63 +345,55 @@ function PropriedadesIntelectuais() {
                 )}
               </tbody>
             </table>
-            </div>
-
-            {total > PAGE_SIZE && (
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                marginTop: 20, fontSize: 14
-              }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>
-                  Exibindo {indexOfFirstPI + 1}–{indexOfLastPI} de {total} PIs
-                </span>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <button
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    style={{
-                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
-                      background: currentPage === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
-                      color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
-                      fontWeight: 600, fontSize: 13, cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-                    }}
-                  >Anterior</button>
-                  {pageNumbers.map(number => (
-                    <button
-                      key={number}
-                      onClick={() => paginate(number)}
-                      style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
-                        background: currentPage === number ? 'var(--color-primary)' : 'var(--color-surface)',
-                        color: currentPage === number ? '#fff' : 'var(--color-text-secondary)',
-                        fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
-                      }}
-                    >{number}</button>
-                  ))}
-                  <button
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    style={{
-                      padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
-                      background: currentPage === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
-                      color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
-                      fontWeight: 600, fontSize: 13, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-                    }}
-                  >Próxima</button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {total > PAGE_SIZE && (
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginTop: 20, fontSize: 14
+          }}>
+            <span style={{ color: 'var(--color-text-secondary)' }}>
+              Exibindo {indexOfFirstPI + 1}–{indexOfLastPI} de {total} PIs
+            </span>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                  background: currentPage === 1 ? 'var(--color-border-light)' : 'var(--color-surface)',
+                  color: currentPage === 1 ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                  fontWeight: 600, fontSize: 13, cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >Anterior</button>
+              {pageNumbers.map(number => (
+                <button
+                  key={number}
+                  onClick={() => paginate(number)}
+                  style={{
+                    padding: '8px 12px', borderRadius: 8, border: '1px solid var(--color-border)',
+                    background: currentPage === number ? 'var(--color-primary)' : 'var(--color-surface)',
+                    color: currentPage === number ? '#fff' : 'var(--color-text-secondary)',
+                    fontWeight: 600, fontSize: 13, cursor: 'pointer', minWidth: 36
+                  }}
+                >{number}</button>
+              ))}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '8px 16px', borderRadius: 8, border: '1px solid var(--color-border)',
+                  background: currentPage === totalPages ? 'var(--color-border-light)' : 'var(--color-surface)',
+                  color: currentPage === totalPages ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+                  fontWeight: 600, fontSize: 13, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >Próxima</button>
+            </div>
+          </div>
+        )}
       </div>
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
-      {showFilterModal && (
-        <FilterPIModal
-          onClose={() => setShowFilterModal(false)}
-          onApplyFilters={(f) => { setFilters(f); setCurrentPage(1); }}
-          currentFilters={filters}
-        />
-      )}
       {piToDelete && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
