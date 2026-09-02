@@ -8,6 +8,7 @@ var _Historico = require('./Historico');
 var _User = require('./User');
 var _RevokedToken = require('./RevokedToken');
 var RpiEdicao = require('./RpiEdicao');
+var _PasswordToken = require('./PasswordToken');
 
 function initModels(sequelize) {
   var autor = _autor(sequelize, DataTypes);
@@ -18,6 +19,18 @@ function initModels(sequelize) {
   var Historico = _Historico;
   var User = _User;
   var RevokedToken = _RevokedToken;
+  var PasswordToken = _PasswordToken;
+
+  User.hasMany(PasswordToken, {
+    as: 'passwordTokens',
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  });
+  PasswordToken.belongsTo(User, {
+    as: 'user',
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
+  });
 
   PI.belongsToMany(autor, {
     as: 'autores',
@@ -82,7 +95,8 @@ function initModels(sequelize) {
     Historico,
     User,
     RevokedToken,
-    RpiEdicao
+    RpiEdicao,
+    PasswordToken
   };
 }
 module.exports = initModels;

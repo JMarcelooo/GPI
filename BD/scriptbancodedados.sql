@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS "usuarios" (
 	"id" serial NOT NULL UNIQUE,
 	"nome" varchar(150) NOT NULL,
+	"username" varchar(30) UNIQUE,
 	"email" varchar(255) NOT NULL,
-	"senha" varchar(255) NOT NULL,
+	"senha" varchar(255),
 	"role" varchar(50) NOT NULL DEFAULT 'usuario',
 	"ativo" boolean NOT NULL DEFAULT true,
 	"deveTrocarSenha" boolean NOT NULL DEFAULT false,
@@ -10,7 +11,9 @@ CREATE TABLE IF NOT EXISTS "usuarios" (
 	"updatedAt" timestamp with time zone,
 	PRIMARY KEY ("id"),
 	CONSTRAINT "uq_usuarios_email" UNIQUE ("email"),
-	CONSTRAINT "chk_usuarios_role" CHECK ("role" IN ('admin', 'usuario'))
+	CONSTRAINT "uq_usuarios_username" UNIQUE ("username"),
+	CONSTRAINT "chk_usuarios_role" CHECK ("role" IN ('admin', 'usuario')),
+	CONSTRAINT "chk_usuarios_username" CHECK ("username" ~ '^[a-z0-9_.]{3,30}$')
 );
 
 CREATE TABLE IF NOT EXISTS "pi" (
@@ -179,3 +182,35 @@ DROP INDEX IF EXISTS "uq_notificacao_rpi";
 CREATE UNIQUE INDEX IF NOT EXISTS "uq_notificacao_rpi"
 	ON "notificacoes" ("tipo", "pi_id", "rpi_numero")
 	WHERE "tipo" = 'rpi';
+
+-- Tabela de tokens para convite e reset de senha (fluxo por e-mail)
+CREATE TABLE IF NOT EXISTS "password_tokens" (
+	"id" serial NOT NULL UNIQUE,
+	"user_id" integer NOT NULL,
+	"tipo" varchar(20) NOT NULL,
+	"token_hash" varchar(255),
+	"codigo_hash" varchar(255),
+	"expira_em" timestamp with time zone NOT NULL,
+	"usado_em" timestamp with time zone,
+	"createdAt" timestamp with time zone NOT NULL DEFAULT now(),
+	PRIMARY KEY ("id"),
+	CONSTRAINT "chk_password_tokens_tipo" CHECK ("tipo" IN ('convite', 'reset_codigo'))
+);
+CREATE INDEX IF NOT EXISTS "idx_password_tokens_user_id" ON "password_tokens" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_password_tokens_token_hash" ON "password_tokens" ("token_hash");
+ALTER TABLE "password_tokens" DROP CONSTRAINT IF EXISTS "password_tokens_fk_user";
+ALTER TABLE "password_tokens" ADD CONSTRAINT "password_tokens_fk_user" FOREIGN KEY ("user_id") REFERENCES "usuarios"("id") ON DELETE CASCADE;
+
+-- Migração: username e senha nullable para fluxo de convite
+ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "username" varchar(30) UNIQUE;
+ALTER TABLE "usuarios" ALTER COLUMN "senha" DROP NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='uq_usuarios_username') THEN
+    ALTER TABLE "usuarios" ADD CONSTRAINT "uq_usuarios_username" UNIQUE ("username");
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='chk_usuarios_username') THEN
+    ALTER TABLE "usuarios" ADD CONSTRAINT "chk_usuarios_username" CHECK ("username" ~ '^[a-z0-9_.]{3,30}$');
+  END IF;
+END $$;
