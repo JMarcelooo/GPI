@@ -21,8 +21,7 @@
   padding: var(--space-6);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
-  width: 92%;
-  max-width: 520px;
+  width: 480px;
   max-height: 90vh;
   overflow-y: auto;
   display: flex;
@@ -338,6 +337,7 @@
 /* ---- Responsive ---- */
 @media (max-width: 600px) {
   .modal-content-author {
+    width: 92%;
     padding: var(--space-4);
     gap: var(--space-3);
   }

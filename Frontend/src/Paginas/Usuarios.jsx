@@ -1,5 +1,6 @@
 import API_URL from '../config';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { UserPlus, Pencil, Trash2, RefreshCw } from 'lucide-react';
 import Sidebar from '../Components/Sidebar';
 import Toast from '../Components/Toast';
@@ -28,6 +29,10 @@ function Usuarios() {
   const [editForm, setEditForm] = useState({ role: 'usuario', ativo: true, novaSenha: '' });
   const [formErro, setFormErro] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const [roleDropdownId, setRoleDropdownId] = useState(null);
+  const [roleDropdownPos, setRoleDropdownPos] = useState({ top: 0, left: 0 });
+  const roleDropdownRef = useRef(null);
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -70,6 +75,37 @@ function Usuarios() {
   };
 
   const isSelf = (u) => String(u.id) === String(currentUser?.id);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target)) {
+        setRoleDropdownId(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function toggleRoleDropdown(u, e) {
+    if (roleDropdownId === u.id) { setRoleDropdownId(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setRoleDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    setRoleDropdownId(u.id);
+  }
+
+  async function handleRoleChange(u, newRole) {
+    if (newRole === u.role) { setRoleDropdownId(null); return; }
+    try {
+      await axios.put(`${API}/api/usuarios/${u.id}`, { role: newRole });
+      await loadUsers();
+      setToast({ message: `Papel de "${u.nome}" alterado para ${roleLabel(newRole)}.`, type: 'success' });
+    } catch (error) {
+      const data = error.response?.data;
+      setToast({ message: data?.error || 'Erro ao alterar papel.', type: 'error' });
+    } finally {
+      setRoleDropdownId(null);
+    }
+  }
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -183,7 +219,41 @@ function Usuarios() {
                       <td style={{ color: 'var(--color-text)', fontWeight: 500 }}>{u.nome}{isSelf(u) && <span style={{ marginLeft: 8, fontSize: '0.75rem', color: 'var(--color-primary)' }}>(você)</span>}</td>
                       <td>{u.username || '—'}</td>
                       <td>{u.email}</td>
-                      <td>{roleLabel(u.role)}</td>
+                      <td>
+                        {isSelf(u) ? (
+                          <span>{roleLabel(u.role)}</span>
+                        ) : (
+                          <>
+                            <button
+                              ref={el => { if (el) el.dataset.uid = u.id; }}
+                              onClick={(e) => toggleRoleDropdown(u, e)}
+                              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 'var(--text-sm)', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 4 }}
+                            >
+                              {roleLabel(u.role)} <span style={{ fontSize: 10 }}>▼</span>
+                            </button>
+                            {roleDropdownId === u.id && createPortal(
+                              <div
+                                ref={roleDropdownRef}
+                                style={{ position: 'fixed', top: roleDropdownPos.top, left: roleDropdownPos.left, background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 9999, minWidth: 150, overflow: 'hidden' }}
+                              >
+                                <button
+                                  onClick={() => handleRoleChange(u, 'usuario')}
+                                  style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: u.role === 'usuario' ? 'var(--color-primary-bg, #e8f4fd)' : 'transparent', color: 'var(--color-text)', cursor: 'pointer', textAlign: 'left', fontSize: 'var(--text-sm)' }}
+                                >
+                                  Usuário
+                                </button>
+                                <button
+                                  onClick={() => handleRoleChange(u, 'admin')}
+                                  style={{ display: 'block', width: '100%', padding: '8px 12px', border: 'none', background: u.role === 'admin' ? 'var(--color-primary-bg, #e8f4fd)' : 'transparent', color: 'var(--color-text)', cursor: 'pointer', textAlign: 'left', fontSize: 'var(--text-sm)' }}
+                                >
+                                  Administrador
+                                </button>
+                              </div>,
+                              document.body
+                            )}
+                          </>
+                        )}
+                      </td>
                       <td>
                         <span className={`badge ${u.ativo ? 'green' : 'gray'}`}>
                           {u.ativo ? 'Ativo' : 'Desativado'}
