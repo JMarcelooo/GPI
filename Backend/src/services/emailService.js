@@ -27,7 +27,46 @@ function getTransporter() {
   return transporter;
 }
 
+async function enviarViaResend({ para, assunto, texto, html }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  const from = process.env.RESEND_FROM || process.env.SMTP_FROM || 'UERN Inova <onboarding@resend.dev>';
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from,
+        to: para,
+        subject: assunto,
+        html: html || `<p>${(texto || '').replace(/\n/g, '<br>')}</p>`,
+        text: texto
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || `Resend ${res.status}`);
+    }
+    console.log(`✉️  E-mail enviado via Resend para ${para}: ${assunto} (id: ${data.id || '—'})`);
+    return true;
+  } catch (err) {
+    console.error('Falha ao enviar via Resend:', err.message);
+    return null;
+  }
+}
+
 async function enviarEmail({ para, assunto, texto, html }) {
+  // 1) Tenta Resend se configurado (prioridade, como solicitado)
+  if (process.env.RESEND_API_KEY) {
+    const r = await enviarViaResend({ para, assunto, texto, html });
+    if (r === true) return true;
+    if (r === null) {
+      // null = erro, cai para SMTP/mock
+    }
+  }
   const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'no-reply@uern-inova.local';
   const t = getTransporter();
   if (t) {
@@ -39,7 +78,7 @@ async function enviarEmail({ para, assunto, texto, html }) {
       console.error('Falha ao enviar e-mail via SMTP, caindo para log:', err.message);
     }
   }
-  // Fallback: log no console (útil em dev/teste sem SMTP)
+  // Fallback: log no console (útil em dev/teste sem SMTP/Resend)
   console.log('— — — E-MAIL MOCK — — —');
   console.log(`Para: ${para}`);
   console.log(`Assunto: ${assunto}`);
