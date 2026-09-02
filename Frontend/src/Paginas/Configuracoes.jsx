@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import API_URL from '../config';
-import { User, LogOut, Shield, Info, Moon, KeyRound, AtSign, Mail } from 'lucide-react';
+import { User, LogOut, Shield, Info, Moon, KeyRound, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
 import AlterarSenhaModal from '../Components/AlterarSenhaModal';
@@ -163,7 +163,7 @@ function Configuracoes() {
               {nomeMsg && <p style={{ color:'var(--color-success)', fontSize:'0.85rem', margin:'4px 0 0' }}>{nomeMsg}</p>}
               {nomeError && <p style={{ color:'var(--color-error)', fontSize:'0.85rem', margin:'4px 0 0' }}>{nomeError}</p>}
               <p className="config-email" style={{ display:'flex', alignItems:'center', gap:6, marginTop:6 }}>
-                <AtSign size={14} /> @{user?.username || '—'} <span style={{ opacity:0.6 }}>·</span> {user?.email}
+                {user?.username || '—'} <span style={{ opacity:0.6 }}>·</span> {user?.email}
               </p>
               <p className="config-desc">{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</p>
               {editUsername ? (
