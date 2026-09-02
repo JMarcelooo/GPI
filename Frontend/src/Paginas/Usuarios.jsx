@@ -24,7 +24,7 @@ function Usuarios() {
   const [showDelete, setShowDelete] = useState(false);
   const [selected, setSelected] = useState(null);
 
-  const [form, setForm] = useState({ nome: '', email: '', role: 'usuario', senhaInicial: '' });
+  const [form, setForm] = useState({ nome: '', email: '', username: '', role: 'usuario' });
   const [editForm, setEditForm] = useState({ role: 'usuario', ativo: true, novaSenha: '' });
   const [formErro, setFormErro] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -47,11 +47,12 @@ function Usuarios() {
   const filtered = users.filter(u =>
     !searchTerm ||
     u.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.username && u.username.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const openAdd = () => {
-    setForm({ nome: '', email: '', role: 'usuario', senhaInicial: '' });
+    setForm({ nome: '', email: '', username: '', role: 'usuario' });
     setFormErro(null);
     setShowAdd(true);
   };
@@ -73,16 +74,22 @@ function Usuarios() {
   async function handleCreate(e) {
     e.preventDefault();
     setFormErro(null);
-    if (!form.nome || !form.email || !form.senhaInicial) {
-      setFormErro('Preencha nome, e-mail e senha inicial.');
+    if (!form.nome || !form.email) {
+      setFormErro('Preencha nome e e-mail.');
+      return;
+    }
+    if (form.username && !/^[a-z0-9_.]{3,30}$/i.test(form.username)) {
+      setFormErro('Username deve ter 3-30 caracteres (a-z, 0-9, ponto, sublinhado).');
       return;
     }
     setSaving(true);
     try {
-      await axios.post(`${API}/api/usuarios`, form);
+      const payload = { nome: form.nome, email: form.email, role: form.role };
+      if (form.username) payload.username = form.username;
+      await axios.post(`${API}/api/usuarios`, payload);
       setShowAdd(false);
       await loadUsers();
-      setToast({ message: 'Usuário criado com sucesso!', type: 'success' });
+      setToast({ message: 'Usuário criado! Um link de ativação foi enviado por e-mail.', type: 'success' });
     } catch (error) {
       const data = error.response?.data;
       if (data?.errors) setFormErro(data.errors.join(' '));
@@ -145,7 +152,7 @@ function Usuarios() {
             <div className="filtros-topo">
               <input
                 type="text"
-                placeholder="Buscar por nome ou e-mail"
+                placeholder="Buscar por nome, username ou e-mail"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -159,6 +166,7 @@ function Usuarios() {
                 <thead>
                   <tr>
                     <th>Nome</th>
+                    <th>Username</th>
                     <th>E-mail</th>
                     <th>Papel</th>
                     <th>Status</th>
@@ -167,12 +175,13 @@ function Usuarios() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
+                    <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Carregando...</td></tr>
                   ) : filtered.length === 0 ? (
-                    <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum usuário encontrado</td></tr>
+                    <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: 24 }}>Nenhum usuário encontrado</td></tr>
                   ) : filtered.map(u => (
                     <tr key={u.id}>
                       <td style={{ color: 'var(--color-text)', fontWeight: 500 }}>{u.nome}{isSelf(u) && <span style={{ marginLeft: 8, fontSize: '0.75rem', color: 'var(--color-primary)' }}>(você)</span>}</td>
+                      <td style={{ fontFamily:'var(--font-mono)', fontSize:'0.85rem' }}>@{u.username || '—'}</td>
                       <td>{u.email}</td>
                       <td>{roleLabel(u.role)}</td>
                       <td>
@@ -209,22 +218,25 @@ function Usuarios() {
               <h2>Novo usuário</h2>
               <button className="close-button" onClick={() => setShowAdd(false)}>&times;</button>
             </div>
+            <p style={{ fontSize:'0.85rem', color:'var(--color-text-secondary)', margin:'0 0 12px' }}>
+              Um link para definir a senha será enviado por e-mail. O username será usado para login.
+            </p>
             <form onSubmit={handleCreate}>
-              <label className="form-label" htmlFor="u-nome">Nome</label>
-              <input id="u-nome" className="form-input" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} />
-              <label className="form-label" htmlFor="u-email">E-mail</label>
-              <input id="u-email" className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+              <label className="form-label" htmlFor="u-nome">Nome *</label>
+              <input id="u-nome" className="form-input" value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} required />
+              <label className="form-label" htmlFor="u-email">E-mail *</label>
+              <input id="u-email" className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+              <label className="form-label" htmlFor="u-username">Username (opcional — gerado se vazio)</label>
+              <input id="u-username" className="form-input" value={form.username} onChange={e => setForm({ ...form, username: e.target.value.toLowerCase() })} placeholder="ex.: joao.silva" pattern="[a-z0-9_.]{3,30}" />
               <label className="form-label" htmlFor="u-role">Papel</label>
               <select id="u-role" className="form-input" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
                 <option value="usuario">Usuário</option>
                 <option value="admin">Administrador</option>
               </select>
-              <label className="form-label" htmlFor="u-senha">Senha inicial</label>
-              <input id="u-senha" className="form-input" type="password" value={form.senhaInicial} onChange={e => setForm({ ...form, senhaInicial: e.target.value })} placeholder="Mínimo 6 caracteres" />
               {formErro && <p className="form-erro">{formErro}</p>}
               <div className="modal-actions-author">
                 <button type="button" className="cancel-button" onClick={() => setShowAdd(false)}>Cancelar</button>
-                <button type="submit" className="save-button" disabled={saving}>{saving ? 'Salvando...' : 'Criar usuário'}</button>
+                <button type="submit" className="save-button" disabled={saving}>{saving ? 'Salvando...' : 'Criar e enviar convite'}</button>
               </div>
             </form>
           </div>
