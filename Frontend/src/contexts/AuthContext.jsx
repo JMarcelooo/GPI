@@ -39,13 +39,16 @@ export function AuthProvider({ children }) {
     navigate('/login', { state: { from: from || '/dashboard' } });
   }), [navigate]);
 
-  const login = useCallback(async (email, senha) => {
+  const login = useCallback(async (identificador, senha) => {
     const API = API_URL;
+    const body = identificador && identificador.includes('@')
+      ? { email: identificador, senha }
+      : { username: identificador, identificador, senha };
     const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, senha })
+      body: JSON.stringify(body)
     });
 
     const data = await res.json().catch(() => ({}));
