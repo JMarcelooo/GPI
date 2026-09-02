@@ -10,7 +10,12 @@ async function main() {
     await sequelize.authenticate();
     console.log('Conectado ao banco de dados.');
 
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ alter: true });
+    // Garante colunas novas em bancos já existentes
+    await sequelize.query(`
+      ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "username" varchar(30) UNIQUE;
+      ALTER TABLE "usuarios" ALTER COLUMN "senha" DROP NOT NULL;
+    `).catch(()=>{});
 
     const tabelas = Object.keys(sequelize.models).sort();
     console.log(`Tabelas criadas/sincronizadas com sucesso (${tabelas.length}):`, tabelas.join(', '));
