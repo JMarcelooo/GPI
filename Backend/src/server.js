@@ -4,12 +4,44 @@ const sequelize = require('./config/db');
 const { sincronizarNotificacoes } = require('./services/notificacaoService');
 const { verificarNovasEdicoesComTrava } = require('./services/rpiMonitorService');
 
-// Cria tabelas faltantes (ex.: token_blacklist do BUG-006) sem dropar nada.
-// Evita que um modelo novo quebre o boot ou deixe rotas autenticadas em 401
-// por falta de tabela. Idempotente (force:false).
-sequelize.sync({ force: false })
-  .then(() => console.log('✅ Tabelas sincronizadas (sequelize.sync).'))
+// Cria tabelas faltantes e adiciona colunas novas (ex.: username, password_tokens)
+// sem dropar dados. Usa alter:true para adicionar colunas que não existem.
+sequelize.sync({ alter: true })
+  .then(() => console.log('✅ Tabelas sincronizadas (sequelize.sync alter:true).'))
   .catch((err) => console.error('⚠️ Falha ao sincronizar tabelas:', err.message));
+
+// Fallback manual para garantir username em bancos antigos onde alter não pegou por constraint
+sequelize.authenticate().then(async () => {
+  try {
+    await sequelize.query(`
+      ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "username" varchar(30) UNIQUE;
+      ALTER TABLE "usuarios" ALTER COLUMN "senha" DROP NOT NULL;
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='uq_usuarios_username') THEN
+          ALTER TABLE "usuarios" ADD CONSTRAINT "uq_usuarios_username" UNIQUE ("username");
+        END IF;
+      END $$;
+    `);
+    // Backfill username para usuários antigos (gera a partir do nome)
+    const { User } = require('./models');
+    const semUsername = await User.findAll({ where: { username: null } });
+    for (const u of semUsername) {
+      const base = String(u.nome || 'user').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0,20) || 'user';
+      let cand = base;
+      let n = 0;
+      while (await User.findOne({ where: { username: cand } })) {
+        n += 1;
+        cand = `${base}${n}`.slice(0,30);
+        if (n>100) break;
+      }
+      u.username = cand;
+      await u.save();
+      console.log(`🔧 Username backfill: ${u.email} → ${cand}`);
+    }
+  } catch(e) {
+    // ignora se já existe
+  }
+});
 
 const INTERVALO_RPI_MS = 24 * 60 * 60 * 1000; // 1×/dia
 
