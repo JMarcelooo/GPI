@@ -85,8 +85,8 @@ function Login() {
               {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          <div style={{ width:'100%', display:'flex', justifyContent:'flex-end', marginTop:6 }}>
-            <button type="button" onClick={() => navigate('/esqueci-senha')} style={{ background:'none', border:'none', color:'var(--color-primary)', fontSize:'0.85rem', cursor:'pointer', textDecoration:'underline' }}>
+          <div style={{ width:'100%', display:'flex', justifyContent:'flex-end', marginTop:2 }}>
+            <button type="button" onClick={() => navigate('/esqueci-senha')} style={{ background:'none', border:'none', color:'#009FDF', fontSize:'0.85rem', fontWeight:600, cursor:'pointer', textDecoration:'underline', padding:0, lineHeight:1 }}>
               Esqueci minha senha
             </button>
           </div>
