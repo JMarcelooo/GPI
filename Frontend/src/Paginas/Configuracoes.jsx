@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import API_URL from '../config';
 import { User, LogOut, Shield, Info, Moon, KeyRound, AtSign, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +19,10 @@ function Configuracoes() {
   const [newUsername, setNewUsername] = useState(user?.username || '');
   const [usernameMsg, setUsernameMsg] = useState(null);
   const [usernameError, setUsernameError] = useState(null);
+  const [editNome, setEditNome] = useState(false);
+  const [newNome, setNewNome] = useState(user?.nome || '');
+  const [nomeMsg, setNomeMsg] = useState(null);
+  const [nomeError, setNomeError] = useState(null);
   const [codigo, setCodigo] = useState('');
   const [novaSenhaCodigo, setNovaSenhaCodigo] = useState('');
   const [codigoMsg, setCodigoMsg] = useState(null);
@@ -52,6 +56,40 @@ function Configuracoes() {
       setEditUsername(false);
     } catch (err) {
       setUsernameError(err.message);
+    }
+  }
+
+  useEffect(() => {
+    if (user?.username) setNewUsername(user.username);
+    if (user?.nome) setNewNome(user.nome);
+  }, [user?.username, user?.nome]);
+
+  async function handleSalvarNome(e) {
+    e.preventDefault();
+    setNomeMsg(null); setNomeError(null);
+    const v = String(newNome || '').trim();
+    if (!v || v.length < 2) {
+      setNomeError('Nome deve ter ao menos 2 caracteres.');
+      return;
+    }
+    if (v.length > 150) {
+      setNomeError('Nome muito longo (máximo 150 caracteres).');
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ nome: v })
+      });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) throw new Error(data.error || 'Erro ao atualizar nome.');
+      updateUser({ nome: data.user.nome });
+      setNomeMsg('Nome atualizado com sucesso.');
+      setEditNome(false);
+    } catch (err) {
+      setNomeError(err.message);
     }
   }
 
@@ -110,8 +148,21 @@ function Configuracoes() {
               <User size={32} />
             </div>
             <div className="config-info">
-              <p className="config-name">{user?.nome || 'Usuário'}</p>
-              <p className="config-email" style={{ display:'flex', alignItems:'center', gap:6 }}>
+              {editNome ? (
+                <form onSubmit={handleSalvarNome} style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap', marginBottom:8 }}>
+                  <input value={newNome} onChange={e=>setNewNome(e.target.value)} placeholder="novo nome de exibição" style={{ padding:'6px 10px', border:'1px solid var(--color-border)', borderRadius:6, fontSize:'0.9rem', flex:1, minWidth:160 }} />
+                  <button type="submit" className="config-btn" style={{ padding:'6px 12px' }}>Salvar</button>
+                  <button type="button" className="config-btn" style={{ background:'var(--color-border)', color:'var(--color-text-secondary)' }} onClick={()=>{ setEditNome(false); setNewNome(user?.nome||''); setNomeError(null); setNomeMsg(null); }}>Cancelar</button>
+                </form>
+              ) : (
+                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                  <p className="config-name" style={{ margin:0 }}>{user?.nome || 'Usuário'}</p>
+                  <button className="config-btn" style={{ padding:'4px 8px', fontSize:'0.75rem' }} onClick={()=>{ setNewNome(user?.nome||''); setEditNome(true); }}>Alterar nome</button>
+                </div>
+              )}
+              {nomeMsg && <p style={{ color:'var(--color-success)', fontSize:'0.85rem', margin:'4px 0 0' }}>{nomeMsg}</p>}
+              {nomeError && <p style={{ color:'var(--color-error)', fontSize:'0.85rem', margin:'4px 0 0' }}>{nomeError}</p>}
+              <p className="config-email" style={{ display:'flex', alignItems:'center', gap:6, marginTop:6 }}>
                 <AtSign size={14} /> @{user?.username || '—'} <span style={{ opacity:0.6 }}>·</span> {user?.email}
               </p>
               <p className="config-desc">{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</p>
