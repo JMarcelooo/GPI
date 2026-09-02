@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import API_URL from '../config';
-import { User, LogOut, Shield, Info, Moon, KeyRound, Mail } from 'lucide-react';
+import { User, LogOut, Shield, Info, Moon, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Components/Sidebar';
 import AlterarSenhaModal from '../Components/AlterarSenhaModal';
@@ -23,11 +23,6 @@ function Configuracoes() {
   const [newNome, setNewNome] = useState(user?.nome || '');
   const [nomeMsg, setNomeMsg] = useState(null);
   const [nomeError, setNomeError] = useState(null);
-  const [codigo, setCodigo] = useState('');
-  const [novaSenhaCodigo, setNovaSenhaCodigo] = useState('');
-  const [codigoMsg, setCodigoMsg] = useState(null);
-  const [codigoError, setCodigoError] = useState(null);
-  const [enviandoCodigo, setEnviandoCodigo] = useState(false);
 
   async function handleSair() {
     logout();
@@ -93,44 +88,6 @@ function Configuracoes() {
     }
   }
 
-  async function handleEnviarCodigo() {
-    setCodigoMsg(null); setCodigoError(null);
-    setEnviandoCodigo(true);
-    try {
-      const res = await fetch(`${API_URL}/api/auth/esqueci`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email })
-      });
-      const data = await res.json().catch(()=>({}));
-      setCodigoMsg(data.message || 'Código enviado para seu e-mail (válido por 15 min).');
-    } catch (err) {
-      setCodigoError(err.message || 'Erro ao enviar código.');
-    } finally {
-      setEnviandoCodigo(false);
-    }
-  }
-
-  async function handleRedefinirComCodigo(e) {
-    e.preventDefault();
-    setCodigoMsg(null); setCodigoError(null);
-    if (!codigo || !novaSenhaCodigo) { setCodigoError('Informe código e nova senha.'); return; }
-    if (novaSenhaCodigo.length < 6) { setCodigoError('Senha deve ter no mínimo 6 caracteres.'); return; }
-    try {
-      const res = await fetch(`${API_URL}/api/auth/redefinir`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, codigo, novaSenha: novaSenhaCodigo })
-      });
-      const data = await res.json().catch(()=>({}));
-      if (!res.ok) throw new Error(data.error || 'Código inválido.');
-      setCodigoMsg('Senha alterada com sucesso!');
-      setCodigo(''); setNovaSenhaCodigo('');
-    } catch (err) {
-      setCodigoError(err.message);
-    }
-  }
-
   return (
     <div className="container">
       <Sidebar />
@@ -192,30 +149,12 @@ function Configuracoes() {
           </h3>
           <div className="config-card config-card-row">
             <div>
-              <p className="config-label">Senha (com senha atual)</p>
-              <p className="config-desc">Altere a senha informando a atual</p>
+              <p className="config-label">Senha</p>
+              <p className="config-desc">Altere sua senha de acesso</p>
             </div>
             <button className="config-btn" onClick={() => setShowAlterarSenha(true)}>
               <KeyRound size={16} /> Alterar senha
             </button>
-          </div>
-          <div className="config-card" style={{ flexDirection:'column', alignItems:'stretch' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
-              <div>
-                <p className="config-label" style={{ display:'flex', alignItems:'center', gap:6 }}><Mail size={14} /> Alterar senha com código por e-mail</p>
-                <p className="config-desc">Enviaremos um código de 6 dígitos para <strong>{user?.email}</strong> (válido 15 min)</p>
-              </div>
-              <button className="config-btn" onClick={handleEnviarCodigo} disabled={enviandoCodigo}>
-                {enviandoCodigo ? 'Enviando...' : 'Enviar código'}
-              </button>
-            </div>
-            <form onSubmit={handleRedefinirComCodigo} style={{ display:'flex', gap:8, marginTop:12, flexWrap:'wrap', alignItems:'center' }}>
-              <input placeholder="Código" value={codigo} onChange={e=>setCodigo(e.target.value.replace(/\D/g,'').slice(0,6))} style={{ padding:'8px 10px', border:'1px solid var(--color-border)', borderRadius:6, width:110, letterSpacing:'3px', textAlign:'center' }} />
-              <input type="password" placeholder="Nova senha" value={novaSenhaCodigo} onChange={e=>setNovaSenhaCodigo(e.target.value)} style={{ padding:'8px 10px', border:'1px solid var(--color-border)', borderRadius:6, flex:1, minWidth:160 }} />
-              <button type="submit" className="config-btn">Redefinir</button>
-            </form>
-            {codigoMsg && <p style={{ color:'var(--color-success)', fontSize:'0.85rem', margin:'8px 0 0' }}>{codigoMsg}</p>}
-            {codigoError && <p style={{ color:'var(--color-error)', fontSize:'0.85rem', margin:'8px 0 0' }}>{codigoError}</p>}
           </div>
         </div>
 

@@ -181,7 +181,7 @@ function Usuarios() {
                   ) : filtered.map(u => (
                     <tr key={u.id}>
                       <td style={{ color: 'var(--color-text)', fontWeight: 500 }}>{u.nome}{isSelf(u) && <span style={{ marginLeft: 8, fontSize: '0.75rem', color: 'var(--color-primary)' }}>(você)</span>}</td>
-                      <td style={{ fontFamily:'var(--font-mono)', fontSize:'0.85rem' }}>{u.username || '—'}</td>
+                      <td>{u.username || '—'}</td>
                       <td>{u.email}</td>
                       <td>{roleLabel(u.role)}</td>
                       <td>
