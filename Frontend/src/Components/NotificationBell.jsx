@@ -8,7 +8,15 @@ function NotificationBell() {
   const location = useLocation();
   const { unreadCount, refresh } = useNotificacoes();
 
-  if (location.pathname === '/notificacoes' || location.pathname === '/cadastro-pi' || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/cadastro') return null;
+  if (
+    location.pathname === '/notificacoes' ||
+    location.pathname === '/cadastro-pi' ||
+    location.pathname === '/' ||
+    location.pathname === '/login' ||
+    location.pathname === '/cadastro' ||
+    location.pathname === '/esqueci-senha' ||
+    location.pathname.startsWith('/ativar-conta')
+  ) return null;
 
   return (
     <div className="notification-bell-float" onClick={() => { navigate('/notificacoes'); refresh(); }}>

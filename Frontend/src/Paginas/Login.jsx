@@ -21,7 +21,7 @@ function Login() {
     setError(null);
 
     if (!identificador || !senha) {
-      setError('Informe usuário (username ou e-mail) e senha.');
+      setError('Informe usuário (nome de usuário ou e-mail) e senha.');
       return;
     }
 
@@ -56,11 +56,11 @@ function Login() {
         <form className="login-card" onSubmit={handleEntrar}>
           <img src="/imagens/Sistema-Logo.png" alt="UERN inova" className="login-logo" />
           <h2>Seja bem-vindo(a)!</h2>
-          <label htmlFor="login-identificador">Username ou e-mail</label>
+          <label htmlFor="login-identificador">Nome de usuário ou e-mail</label>
           <input
             id="login-identificador"
             type="text"
-            placeholder="Digite seu username ou e-mail"
+            placeholder="Digite seu nome de usuário ou e-mail"
             value={identificador}
             onChange={e => setIdentificador(e.target.value)}
             autoComplete="username"
