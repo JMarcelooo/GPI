@@ -13,6 +13,8 @@ import Notificacoes from './Paginas/Notificacoes';
 import Configuracoes from './Paginas/Configuracoes';
 import Usuarios from './Paginas/Usuarios';
 import Logs from './Paginas/Logs';
+import AtivarConta from './Paginas/AtivarConta';
+import EsqueciSenha from './Paginas/EsqueciSenha';
 import NotificationBell from './Components/NotificationBell';
 import Toast from './Components/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -69,6 +71,8 @@ function App() {
             <Routes>
               <Route path="/" element={<LoginRoute><Login /></LoginRoute>} />
               <Route path="/login" element={<LoginRoute><Login /></LoginRoute>} />
+              <Route path="/ativar-conta/:token" element={<AtivarConta />} />
+              <Route path="/esqueci-senha" element={<EsqueciSenha />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/propriedade-intelectual" element={<ProtectedRoute><PropriedadesIntelectuais /></ProtectedRoute>} />
               <Route path="/detalhes/:id" element={<ProtectedRoute><PatenteDetalhes /></ProtectedRoute>} />

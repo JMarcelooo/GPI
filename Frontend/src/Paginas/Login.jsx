@@ -10,7 +10,7 @@ function Login() {
   const location = useLocation();
   const { login } = useAuth();
   const from = location.state?.from || '/dashboard';
-  const [email, setEmail] = useState('');
+  const [identificador, setIdentificador] = useState('');
   const [senha, setSenha] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,14 +20,14 @@ function Login() {
     e.preventDefault();
     setError(null);
 
-    if (!email || !senha) {
-      setError('Informe e-mail e senha.');
+    if (!identificador || !senha) {
+      setError('Informe usuário (nome de usuário ou e-mail) e senha.');
       return;
     }
 
     setLoading(true);
     try {
-      await login(email, senha);
+      await login(identificador, senha);
       navigate(from);
     } catch (err) {
       setError(err.message || 'Falha ao autenticar. Tente novamente.');
@@ -56,14 +56,14 @@ function Login() {
         <form className="login-card" onSubmit={handleEntrar}>
           <img src="/imagens/Sistema-Logo.png" alt="UERN inova" className="login-logo" />
           <h2>Seja bem-vindo(a)!</h2>
-          <label htmlFor="login-email">Email</label>
+          <label htmlFor="login-identificador">Nome de usuário ou e-mail</label>
           <input
-            id="login-email"
-            type="email"
-            placeholder="Digite seu e-mail"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            autoComplete="email"
+            id="login-identificador"
+            type="text"
+            placeholder="Digite seu nome de usuário ou e-mail"
+            value={identificador}
+            onChange={e => setIdentificador(e.target.value)}
+            autoComplete="username"
           />
           <label htmlFor="login-senha">Senha</label>
           <div className="password-field">
@@ -83,6 +83,11 @@ function Login() {
               aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
             >
               {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          <div style={{ width:'100%', display:'flex', justifyContent:'flex-end', marginTop:2 }}>
+            <button type="button" onClick={() => navigate('/esqueci-senha')} style={{ background:'none', border:'none', color:'#009FDF', fontSize:'0.85rem', fontWeight:600, cursor:'pointer', textDecoration:'underline', padding:0, lineHeight:1 }}>
+              Esqueci minha senha
             </button>
           </div>
           {error && <p style={{ color: '#fff', background: 'rgba(239,68,68,0.85)', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width: '100%', boxSizing: 'border-box' }}>{error}</p>}

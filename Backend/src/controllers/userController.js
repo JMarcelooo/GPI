@@ -1,7 +1,9 @@
 const bcrypt = require('bcryptjs');
-const { User } = require('../models/index');
+const crypto = require('crypto');
+const { User, PasswordToken } = require('../models/index');
 const { sincronizarNotificacoes } = require('../services/notificacaoService');
 const { registrarHistorico } = require('../services/historicoService');
+const { enviarConvite, hashToken } = require('../services/emailService');
 
 const ROLES_VALIDOS = ['admin', 'usuario'];
 
@@ -14,6 +16,10 @@ function sanitizeUser(user) {
 function handleError(error, res, label) {
   console.error(`Erro ao ${label}:`, error);
   if (error.name === 'SequelizeUniqueConstraintError') {
+    const field = error.errors?.[0]?.path || '';
+    if (String(field).includes('username')) {
+      return res.status(409).json({ error: 'Já existe um usuário com este username.' });
+    }
     return res.status(409).json({
       error: 'Já existe um usuário com este e-mail.'
     });
@@ -32,7 +38,7 @@ function handleError(error, res, label) {
 exports.listUsuarios = async (req, res) => {
   try {
     const usuarios = await User.findAll({
-      attributes: ['id', 'nome', 'email', 'role', 'ativo', 'deveTrocarSenha', 'createdAt', 'updatedAt'],
+      attributes: ['id', 'nome', 'username', 'email', 'role', 'ativo', 'deveTrocarSenha', 'createdAt', 'updatedAt'],
       order: [['nome', 'ASC']]
     });
     res.json({ data: usuarios });
@@ -41,13 +47,13 @@ exports.listUsuarios = async (req, res) => {
   }
 };
 
-// POST /api/usuarios
+// POST /api/usuarios — cria usuário e envia convite por e-mail (sem senhaInicial)
 exports.createUsuario = async (req, res) => {
-  const { nome, email, role = 'usuario', senhaInicial } = req.body;
+  const { nome, email, username: usernameRaw, role = 'usuario', senhaInicial } = req.body;
 
-  if (!nome || !email || !senhaInicial) {
+  if (!nome || !email) {
     return res.status(400).json({
-      error: 'Nome, e-mail e senha inicial são obrigatórios.'
+      error: 'Nome e e-mail são obrigatórios.'
     });
   }
   if (role && !ROLES_VALIDOS.includes(role)) {
@@ -55,21 +61,71 @@ exports.createUsuario = async (req, res) => {
       error: 'Role inválida. Use "admin" ou "usuario".'
     });
   }
-  if (String(senhaInicial).length < 6) {
+
+  // Normaliza/valida username (gerado a partir do nome se não fornecido)
+  let username = usernameRaw ? String(usernameRaw).toLowerCase().trim() : '';
+  if (!username) {
+    const base = String(nome).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 20) || 'user';
+    let candidate = base;
+    let suffix = 0;
+    while (await User.findOne({ where: { username: candidate } })) {
+      suffix += 1;
+      candidate = `${base}${suffix}`.slice(0, 30);
+      if (suffix > 100) break;
+    }
+    username = candidate;
+  }
+  if (!/^[a-z0-9_.]{3,30}$/.test(username)) {
+    return res.status(400).json({ error: 'Username deve ter 3-30 caracteres (letras, números, ponto, sublinhado).' });
+  }
+  const existente = await User.findOne({ where: { username } });
+  if (existente) {
+    return res.status(409).json({ error: 'Já existe um usuário com este username.' });
+  }
+
+  // Compatibilidade: se senhaInicial ainda vier (tests antigos), mantém fluxo legado
+  const usarLegado = senhaInicial !== undefined && senhaInicial !== null && String(senhaInicial) !== '';
+  if (usarLegado && String(senhaInicial).length < 6) {
     return res.status(400).json({
       error: 'A senha inicial deve ter no mínimo 6 caracteres.'
     });
   }
 
   try {
-    const senhaHash = await bcrypt.hash(senhaInicial, 10);
-    const novoUsuario = await User.create({
-      nome,
-      email,
-      role,
-      senha: senhaHash,
-      deveTrocarSenha: true
-    });
+    let novoUsuario;
+    if (usarLegado) {
+      const senhaHash = await bcrypt.hash(String(senhaInicial), 10);
+      novoUsuario = await User.create({
+        nome,
+        username,
+        email: String(email).toLowerCase().trim(),
+        role,
+        senha: senhaHash,
+        deveTrocarSenha: true
+      });
+    } else {
+      novoUsuario = await User.create({
+        nome,
+        username,
+        email: String(email).toLowerCase().trim(),
+        role,
+        senha: null,
+        deveTrocarSenha: true
+      });
+    }
+
+    // Fluxo novo: envia convite por e-mail com link para definir senha (sem senhaInicial)
+    if (!usarLegado) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = hashToken(rawToken);
+      await PasswordToken.create({
+        user_id: novoUsuario.id,
+        tipo: 'convite',
+        token_hash: tokenHash,
+        expira_em: new Date(Date.now() + 48 * 60 * 60 * 1000)
+      });
+      enviarConvite({ email: novoUsuario.email, nome: novoUsuario.nome, username: novoUsuario.username, token: rawToken }).catch(e => console.error('Falha ao enviar convite:', e.message));
+    }
     // Gera as cópias de notificações para o novo usuário.
     await sincronizarNotificacoes(true);
     await registrarHistorico({

@@ -6,6 +6,15 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(150),
     allowNull: false
   },
+  username: {
+    type: DataTypes.STRING(30),
+    allowNull: true,
+    unique: true,
+    validate: {
+      len: { args: [3, 30], msg: 'Username deve ter entre 3 e 30 caracteres' },
+      is: { args: /^[a-z0-9_.]+$/i, msg: 'Username só pode conter letras, números, ponto e sublinhado' }
+    }
+  },
   email: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -16,7 +25,7 @@ const User = sequelize.define('User', {
   },
   senha: {
     type: DataTypes.STRING(255),
-    allowNull: false
+    allowNull: true
   },
   role: {
     type: DataTypes.ENUM('admin', 'usuario'),
