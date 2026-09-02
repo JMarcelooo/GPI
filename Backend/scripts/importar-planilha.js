@@ -239,6 +239,65 @@ async function main() {
     }
   }
 
+  // ---- 2b. Extração de telefone/email dos autores (passada separada) ----
+  console.log('Extraindo telefone e email dos autores...');
+  let autoresAtualizados = 0;
+  const autorCacheRefresh = {};
+  const todosAutores = await Autor.findAll();
+  for (const a of todosAutores) autorCacheRefresh[a.name] = a;
+
+  let ii = 0;
+  while (ii < rows.length) {
+    const r = rows[ii];
+    const tipo = (r[1] || '').toUpperCase().trim();
+    if (!TIPOS_PI_MAP[tipo]) { ii++; continue; }
+
+    const nomes = splitAutores(r[11] || '');
+    const autoresBloco = nomes.map(n => autorCacheRefresh[n]).filter(Boolean);
+
+    // Avança até a linha que contém TELEFONE na coluna 8
+    let jj = ii + 1;
+    let foundPhoneHeader = false;
+    while (jj < rows.length) {
+      const pr = rows[jj];
+      const ptipo = (pr[1] || '').toUpperCase().trim();
+      if (TIPOS_PI_MAP[ptipo] || ptipo === 'TIPO') break;
+      if ((pr[8] || '').trim().toUpperCase() === 'TELEFONE') {
+        foundPhoneHeader = true;
+        jj++;
+        break;
+      }
+      jj++;
+    }
+
+    // Coleta telefone/email e associa aos autores na ordem
+    if (foundPhoneHeader) {
+      let autorIdx = 0;
+      while (jj < rows.length && autorIdx < autoresBloco.length) {
+        const pr = rows[jj];
+        const ptipo = (pr[1] || '').toUpperCase().trim();
+        if (TIPOS_PI_MAP[ptipo] || ptipo === 'TIPO') break;
+
+        const telefone = (pr[8] || '').trim();
+        const email = (pr[10] || '').trim();
+        if (telefone || email) {
+          const autor = autoresBloco[autorIdx];
+          const updates = {};
+          if (telefone) updates.phone = trunca(telefone, 20);
+          if (email) updates.email = trunca(email, 50);
+          await Autor.update(updates, { where: { id: autor.id } });
+          autoresAtualizados++;
+          autorIdx++;
+        }
+        jj++;
+      }
+    }
+
+    // Avança ii para o fim deste bloco de PI
+    ii = jj;
+  }
+  console.log(`Autores com telefone/email atualizados: ${autoresAtualizados}`);
+
   // ---- 3. Sincroniza notificações ----
   const { sincronizarNotificacoes } = require('../src/services/notificacaoService');
   await sincronizarNotificacoes(true);
