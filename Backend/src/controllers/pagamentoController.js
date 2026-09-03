@@ -2,6 +2,9 @@ const { Op } = require('sequelize');
 const { Pagamento, PI } = require('../models/index');
 const { sincronizarNotificacoes } = require('../services/notificacaoService');
 const { registrarHistorico } = require('../services/historicoService');
+const { stripHtmlFields } = require('../utils/sanitize');
+
+const PG_STRING_FIELDS = ['tipo_de_pagamento', 'processo_sei', 'observacao'];
 
 const STATUS_VALIDOS = ['aguardando prazo', 'em andamento', 'pago'];
 
@@ -128,7 +131,7 @@ exports.createPagamento = async (req, res) => {
       return res.status(404).json({ error: 'PI não encontrada.' });
     }
 
-    const pagamento = await Pagamento.create({
+    const pagamento = await Pagamento.create(stripHtmlFields({
       pi_id,
       tipo_de_pagamento,
       data_de_vencimento,
@@ -138,7 +141,7 @@ exports.createPagamento = async (req, res) => {
       prazo_dias: prazo_dias || null,
       processo_sei: processo_sei || null,
       observacao: observacao || null
-    });
+    }, PG_STRING_FIELDS));
 
     await registrarHistorico({
       pi_id: pagamento.pi_id,
@@ -222,6 +225,8 @@ exports.updatePagamento = async (req, res) => {
         return res.status(404).json({ error: 'PI não encontrada.' });
       }
     }
+
+    Object.assign(updateData, stripHtmlFields(updateData, PG_STRING_FIELDS));
 
     await Pagamento.update(updateData, { where: { id: req.params.id } });
 

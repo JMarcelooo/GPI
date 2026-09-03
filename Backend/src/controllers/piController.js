@@ -1,6 +1,9 @@
 const { Op } = require('sequelize');
 const { PI, RPI, Pagamento, Historico, Notificacao } = require('../models/index');
 const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
+const { stripHtmlFields } = require('../utils/sanitize');
+
+const PI_STRING_FIELDS = ['titulo', 'depositante', 'parceiro', 'titular', 'protocolo'];
 
 const SORT_COLS = {
   tipo: 'tipo',
@@ -108,7 +111,7 @@ exports.createPI = async (req, res) => {
       return res.status(400).json({ errors });
     }
 
-    const piData = {
+    const piData = stripHtmlFields({
       tipo: req.body.tipo,
       titulo: req.body.titulo || null,
       depositante: req.body.depositante,
@@ -119,7 +122,7 @@ exports.createPI = async (req, res) => {
       data_entrada: req.body.data_entrada || null,
       ano: (req.body.ano === '' || req.body.ano == null) ? null : req.body.ano,
       termo_cessao: req.body.termo_cessao || false
-    };
+    }, PI_STRING_FIELDS);
 
     const newPI = await PI.create(piData);
 
@@ -277,6 +280,8 @@ exports.updatePI = async (req, res) => {
         updateData[field] = req.body[field];
       }
     });
+
+    Object.assign(updateData, stripHtmlFields(updateData, PI_STRING_FIELDS));
 
     if (updateData.status && !STATUS_VALIDOS.includes(updateData.status)) {
       return res.status(400).json({
