@@ -8,8 +8,9 @@ const PasswordToken = sequelize.define('PasswordToken', {
     references: { model: 'usuarios', key: 'id' }
   },
   tipo: {
-    type: DataTypes.ENUM('convite', 'reset_codigo'),
-    allowNull: false
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: { isIn: [['convite', 'reset_codigo']] }
   },
   token_hash: {
     type: DataTypes.STRING(255),

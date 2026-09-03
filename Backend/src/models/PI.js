@@ -3,13 +3,11 @@ const sequelize = require('../config/db');
 
 const PI = sequelize.define('PI', {
   tipo: {
-    type: DataTypes.ENUM(
-      'patente de invencao',
-      'modelo de utilidade',
-      'marca',
-      'programa de computador'
-    ),
-    allowNull: false
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    validate: {
+      isIn: [['patente de invencao', 'modelo de utilidade', 'marca', 'programa de computador']]
+    }
   },
   titulo: {
     type: DataTypes.STRING(200),
@@ -29,17 +27,12 @@ const PI = sequelize.define('PI', {
     defaultValue: []
   },
   status: {
-    type: DataTypes.ENUM(
-      'indeferida',
-      'anulada',
-      'arquivada',
-      'em analise',
-      'deferida',
-      'registrada',
-      'carta patente'
-    ),
+    type: DataTypes.STRING(50),
     allowNull: false,
-    defaultValue: 'em analise'
+    defaultValue: 'em analise',
+    validate: {
+      isIn: [['indeferida', 'anulada', 'arquivada', 'em analise', 'deferida', 'registrada', 'carta patente']]
+    }
   },
   protocolo: {
     type: DataTypes.STRING(50),
