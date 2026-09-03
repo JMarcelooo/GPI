@@ -49,7 +49,11 @@ exports.listUsuarios = async (req, res) => {
 
 // POST /api/usuarios — cria usuário e envia convite por e-mail (sem senhaInicial)
 exports.createUsuario = async (req, res) => {
-  const { nome, email, username: usernameRaw, role = 'usuario', senhaInicial } = req.body;
+  const { nome, email, username: usernameRaw, senhaInicial } = req.body;
+  // BUG-012: role sempre forçada para 'usuario' — quem cria define a role,
+  // mas somente admin (já garantido pelo middleware exigirAdmin na rota)
+  // pode atribuir 'admin' depois via update.
+  const role = 'usuario';
 
   if (!nome || !email) {
     return res.status(400).json({
@@ -144,7 +148,9 @@ exports.createUsuario = async (req, res) => {
 // PUT /api/usuarios/:id
 exports.updateUsuario = async (req, res) => {
   const { id } = req.params;
-  const { nome, role, ativo, novaSenha } = req.body;
+  const { nome, ativo, novaSenha } = req.body;
+  // BUG-012: role controlada separadamente — só admin pode alterar.
+  const role = req.usuario.role === 'admin' ? req.body.role : undefined;
 
   try {
     const usuario = await User.findByPk(id);
