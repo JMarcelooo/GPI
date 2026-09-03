@@ -24,14 +24,20 @@ describe('Auth cookie httpOnly + blacklist (BUG-006)', () => {
     expect(piRes.statusCode).toBe(200);
   });
 
-  it('logout revoga o jti: cookie reaproveitado e Bearer do corpo são rejeitados (401)', async () => {
+  it('logout revoga o jti: cookie reaproveitado e Bearer do cookie são rejeitados (401)', async () => {
     const agent = request.agent(app);
     const loginRes = await agent
       .post('/api/auth/login')
       .send({ email: TEST_EMAIL, senha: TEST_SENHA });
 
-    const rawToken = loginRes.body.token;
-    expect(rawToken).toBeDefined();
+    expect(loginRes.statusCode).toBe(200);
+    expect(loginRes.body.token).toBeUndefined();
+
+    // Extrai o token JWT do cookie httpOnly set-cookie
+    const setCookie = loginRes.headers['set-cookie'].join(';');
+    const cookieMatch = setCookie.match(/gpi_token=([^;]+)/);
+    expect(cookieMatch).toBeTruthy();
+    const rawToken = cookieMatch[1];
 
     const logoutRes = await agent.post('/api/auth/logout');
     expect(logoutRes.statusCode).toBe(200);
@@ -43,7 +49,7 @@ describe('Auth cookie httpOnly + blacklist (BUG-006)', () => {
       .set('Cookie', cookie);
     expect(reuse.statusCode).toBe(401);
 
-    // Bearer capturado no corpo da resposta de login -> 401 após logout
+    // Bearer capturado do cookie -> 401 após logout
     const bearer = await request(app)
       .get('/api/pi?limit=1')
       .set('Authorization', `Bearer ${rawToken}`);

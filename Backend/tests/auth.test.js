@@ -15,12 +15,12 @@ describe('Auth API', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('POST /api/auth/login com usuário válido retorna 200 + token', async () => {
+  it('POST /api/auth/login com usuário válido retorna 200 + user (sem token no body)', async () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({ email: TEST_EMAIL, senha: TEST_SENHA });
     expect(res.statusCode).toBe(200);
-    expect(res.body.token).toBeDefined();
+    expect(res.body.token).toBeUndefined();
     expect(res.body.user).toBeDefined();
     expect(res.body.user.email).toBe(TEST_EMAIL);
   });

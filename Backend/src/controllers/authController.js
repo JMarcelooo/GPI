@@ -67,11 +67,10 @@ exports.login = async (req, res) => {
     }
 
     const token = assinarToken(usuario);
-    // BUG-006: token em cookie httpOnly (ilegível via JS → mitiga XSS).
-    // O token também é retornado no corpo para clientes não-navegador/APIs.
+    // BUG-006/BUG-002: token exclusivamente em cookie httpOnly (ilegível via
+    // JS → mitiga XSS). Não retornamos no body JSON para evitar exposição.
     res.cookie('gpi_token', token, cookieOptions(req));
     res.json({
-      token,
       user: sanitizeUser(usuario)
     });
   } catch (error) {
