@@ -22,7 +22,18 @@ const FRONTEND_URLS = (process.env.FRONTEND_URL
   .map((u) => u.trim())
   .filter(Boolean);
 
-app.use(cors({ origin: FRONTEND_URLS, credentials: true }));
+// BUG-001: Usa função callback ao invés de array para o CORS não vazar
+// headers de CORS (incluindo credentials) para origens não autorizadas.
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || FRONTEND_URLS.includes(origin)) {
+      callback(null, origin || FRONTEND_URLS[0]);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -32,6 +43,9 @@ app.use(cookieParser());
 app.use((err, req, res, next) => {
   if (err && err.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'JSON inválido no corpo da requisição.' });
+  }
+  if (err && err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'Origem não permitida pelo CORS.' });
   }
   next(err);
 });
