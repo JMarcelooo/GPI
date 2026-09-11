@@ -7,4 +7,11 @@ function validarSenhaForte(senha) {
   return STRONG_PASSWORD.test(String(senha || ''));
 }
 
-module.exports = { validarSenhaForte, SENHA_FRACA_MSG, STRONG_PASSWORD };
+const SENHA_MAX = 72; // bcrypt trunc em 72 bytes
+
+function validarSenhaForte(senha) {
+  const s = String(senha || '');
+  return s.length >= 8 && s.length <= SENHA_MAX && STRONG_PASSWORD.test(s);
+}
+
+module.exports = { validarSenhaForte, SENHA_FRACA_MSG, STRONG_PASSWORD, SENHA_MAX };

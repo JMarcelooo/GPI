@@ -21,6 +21,7 @@ function CampoSenha({ label, id, value, onChange, autoComplete }) {
           value={value}
           onChange={onChange}
           autoComplete={autoComplete}
+          maxLength={128}
         />
         <button
           type="button"
