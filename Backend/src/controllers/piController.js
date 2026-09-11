@@ -90,6 +90,8 @@ const validatePIData = (data, isUpdate = false) => {
       errors.push('Data de entrada inválida.');
     } else if (d.getTime() > Date.now()) {
       errors.push('A data de entrada não pode ser posterior à data atual.');
+    } else if (d.getFullYear() < 1900) {
+      errors.push('A data de entrada não pode ser anterior a 1900.');
     }
   }
 
