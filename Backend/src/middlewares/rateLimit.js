@@ -29,4 +29,27 @@ const loginLimiter = rateLimit({
   }
 });
 
-module.exports = { loginLimiter };
+// BUG-006: Protege /verificar-codigo e /redefinir contra brute-force de 6 dígitos.
+// Usa mesma janela e max do loginLimiter, com key baseada em IP + identificador.
+const codigoLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  validate: false,
+  keyGenerator: (req) => {
+    const ip = (req.ip || req.socket.remoteAddress || 'desconhecido').replace(/:/g, '.');
+    const id = req.body && (req.body.email || req.body.username || req.body.identificador)
+      ? String(req.body.email || req.body.username || req.body.identificador).toLowerCase().trim()
+      : 'desconhecido';
+    return `${ip}_${id}`;
+  },
+  statusCode: 429,
+  message: {
+    error: 'Muitas tentativas de verificação de código. Esta conta foi temporariamente bloqueada. Tente novamente mais tarde.',
+    codigo: 'CODIGO_BLOQUEADO'
+  }
+});
+
+module.exports = { loginLimiter, codigoLimiter };
