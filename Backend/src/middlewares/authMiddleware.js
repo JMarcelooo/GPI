@@ -40,7 +40,13 @@ async function autenticar(req, res, next) {
     if (revogado) {
       return res.status(401).json({ error: 'Sessão inválida ou expirada.' });
     }
-    req.usuario = { id: payload.id, role: payload.role };
+    // Verifica se o usuário ainda existe e está ativo
+    const User = require('../models/User');
+    const user = await User.findByPk(payload.id);
+    if (!user || !user.ativo) {
+      return res.status(401).json({ error: 'Sessão inválida ou expirada.' });
+    }
+    req.usuario = { id: user.id, role: user.role };
     req.jti = payload.jti;
     req.tokenExp = payload.exp;
     next();
