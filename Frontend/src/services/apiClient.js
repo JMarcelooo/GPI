@@ -6,19 +6,6 @@ import { emitToast, emitSessionExpired, isWarned, setWarned } from './events';
 // Não lemos/armazenamos o token em JS (evita roubo por XSS).
 axios.defaults.withCredentials = true;
 
-// BUG-010: lê o cookie CSRF legível (gpi_csrf) e envia como header em cada request.
-function getCsrfToken() {
-  const match = document.cookie.match(/(?:^|;\s*)gpi_csrf=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : '';
-}
-axios.interceptors.request.use((config) => {
-  const method = (config.method || 'get').toLowerCase();
-  if (['post', 'put', 'patch', 'delete'].includes(method)) {
-    config.headers['X-CSRF-Token'] = getCsrfToken();
-  }
-  return config;
-});
-
 let logoutTimer = null;
 
 axios.interceptors.response.use(

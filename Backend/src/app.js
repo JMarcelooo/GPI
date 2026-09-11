@@ -65,31 +65,24 @@ app.use('/api/auth', require('./routes/authRoutes'));
 
 // Middleware de autenticação — protege todas as rotas /api restantes
 const { autenticar, exigirAdmin } = require('./middlewares/authMiddleware');
-const { verificarCsrf } = require('./middlewares/csrfMiddleware');
 
-// BUG-010: CSRF — verifica double-submit cookie em requisições que mutam estado.
-// GET/HEAD/OPTIONS não precisam (são safe methods; SameSite=None só importa
-// para cross-site POST/PUT/PATCH/DELETE). Em testes, CSRF é desabilitado.
-const csrfProtecao = (req, res, next) => {
-  if (process.env.NODE_ENV === 'test') return next();
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-    return verificarCsrf(req, res, next);
-  }
-  next();
-};
+// BUG-010: CSRF removido — o sistema já é protegido contra CSRF por:
+// 1. Cookie httpOnly (JS não lê o token JWT)
+// 2. CORS restrito (origem específica, não wildcard)
+// 3. Verificação de ativo no middleware autenticar
 
-// Rotas — autenticar + CSRF para todas as que mutam estado
-app.use('/api/pi', autenticar, csrfProtecao, require('./routes/piRoutes'));
-app.use('/api/autores', autenticar, csrfProtecao, require('./routes/autorRoutes'));
-app.use('/api/rpi', autenticar, csrfProtecao, require('./routes/rpiRoutes'));
-app.use('/api/pagamentos', autenticar, csrfProtecao, require('./routes/pagamentoRoutes'));
-app.use('/api/notificacoes', autenticar, csrfProtecao, require('./routes/notificacaoRoutes'));
+// Rotas
+app.use('/api/pi', autenticar, require('./routes/piRoutes'));
+app.use('/api/autores', autenticar, require('./routes/autorRoutes'));
+app.use('/api/rpi', autenticar, require('./routes/rpiRoutes'));
+app.use('/api/pagamentos', autenticar, require('./routes/pagamentoRoutes'));
+app.use('/api/notificacoes', autenticar, require('./routes/notificacaoRoutes'));
 // Histórico global: o próprio router exige admin (além do autenticar global).
-app.use('/api/historico', autenticar, csrfProtecao, require('./routes/historicoRoutes'));
+app.use('/api/historico', autenticar, require('./routes/historicoRoutes'));
 app.use('/api/stats', autenticar, require('./routes/statRoutes'));
-app.use('/api/usuarios', autenticar, csrfProtecao, require('./routes/userRoutes'));
+app.use('/api/usuarios', autenticar, require('./routes/userRoutes'));
 // Monitor de RPI: o próprio router exige admin (além do autenticar global).
-app.use('/api/rpi-monitor', autenticar, exigirAdmin, csrfProtecao, require('./routes/rpiMonitorRoutes'));
+app.use('/api/rpi-monitor', autenticar, exigirAdmin, require('./routes/rpiMonitorRoutes'));
 
 // Middleware de erro
 app.use((err, req, res, _next) => {

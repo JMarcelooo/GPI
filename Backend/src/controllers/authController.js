@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const sequelize = require('../config/db');
@@ -7,7 +6,6 @@ const { assinarToken } = require('../middlewares/authMiddleware');
 const { revogar } = require('../services/revogacaoService');
 const { registrarHistorico } = require('../services/historicoService');
 const { enviarCodigoReset, hashToken } = require('../services/emailService');
-const { CSRF_COOKIE, csrfCookieOptions } = require('../middlewares/csrfMiddleware');
 const { validarSenhaForte, SENHA_FRACA_MSG } = require('../utils/password');
 
 function sanitizeUser(user) {
@@ -74,9 +72,6 @@ exports.login = async (req, res) => {
     // BUG-006/BUG-002: token exclusivamente em cookie httpOnly (ilegível via
     // JS → mitiga XSS). Não retornamos no body JSON para evitar exposição.
     res.cookie('gpi_token', token, cookieOptions(req));
-    // BUG-010: cookie CSRF legível (não httpOnly) para double-submit pattern.
-    const csrfToken = crypto.randomUUID();
-    res.cookie(CSRF_COOKIE, csrfToken, csrfCookieOptions(req));
     res.json({
       user: sanitizeUser(usuario)
     });
@@ -342,7 +337,6 @@ exports.logout = async (req, res) => {
     // Revoga o jti atual (blacklist) para que o token não seja reaproveitado.
     await revogar(req.jti, req.tokenExp);
     res.clearCookie('gpi_token', cookieOptions(req));
-    res.clearCookie(CSRF_COOKIE, csrfCookieOptions(req));
     res.json({ message: 'Logout realizado.' });
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
