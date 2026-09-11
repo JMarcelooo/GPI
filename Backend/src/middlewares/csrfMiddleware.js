@@ -8,8 +8,8 @@ function csrfCookieOptions(req) {
   const isHttps = req && (req.secure || req.headers['x-forwarded-proto'] === 'https');
   return {
     httpOnly: false,       // frontend precisa ler via document.cookie
-    sameSite: 'lax',       // suficiente — o valor é transmitido via header customizado
-    secure: isHttps,
+    sameSite: isHttps ? 'none' : 'lax',
+    secure: isHttps,       // obrigatório quando sameSite=none (HTTPS only)
     maxAge: CSRF_MAX_AGE,
     path: '/'
   };
@@ -29,6 +29,12 @@ function verificarCsrf(req, res, next) {
   const headerToken = req.headers[CSRF_HEADER];
 
   if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+    console.error('CSRF falhou:', {
+      temCookie: !!cookieToken,
+      temHeader: !!headerToken,
+      mesmoValor: cookieToken === headerToken,
+      cookies: Object.keys(req.cookies || {})
+    });
     return res.status(403).json({ error: 'Token CSRF inválido.' });
   }
   next();
