@@ -38,7 +38,7 @@ sequelize.authenticate().then(async () => {
       await u.save();
       console.log(`🔧 Username backfill: ${u.email} → ${cand}`);
     }
-  } catch(e) {
+  } catch {
     // ignora se já existe
   }
 });

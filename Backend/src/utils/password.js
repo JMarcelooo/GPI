@@ -3,10 +3,6 @@ const STRONG_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
 
 const SENHA_FRACA_MSG = 'A senha deve ter no mínimo 8 caracteres, incluindo letra maiúscula, minúscula, número e símbolo.';
 
-function validarSenhaForte(senha) {
-  return STRONG_PASSWORD.test(String(senha || ''));
-}
-
 const SENHA_MAX = 72; // bcrypt trunc em 72 bytes
 
 function validarSenhaForte(senha) {
