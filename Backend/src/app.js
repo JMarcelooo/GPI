@@ -5,25 +5,16 @@ const sequelize = require('./config/db');
 
 const app = express();
 
-// Confia no proxy reverso (nginx) para req.secure / X-Forwarded-* / req.ip
-// corretos — necessário para o cookie httpOnly ficar Secure atrás de HTTPS
-// e para o rate-limit usar o IP real do cliente.
+
 app.set('trust proxy', 1);
 
-// Origem(s) permitida(s) via FRONTEND_URL no .env (separadas por vírgula).
-// Em dev (sem a variável) usamos o endereço do CRA (porta 3001). O cors com
-// array de origens define 'Access-Control-Allow-Origin' explícito (não o
-// curinga '*'), o que é obrigatório quando credentials:true (cookie httpOnly
-// do BUG-006). Sem origin explícito, o reflexo de req.headers.origin falha e
-// o navegador bloqueia com 'No Access-Control-Allow-Origin header'.
 const FRONTEND_URLS = (process.env.FRONTEND_URL
   || 'http://localhost:3001,http://127.0.0.1:3001')
   .split(',')
   .map((u) => u.trim())
   .filter(Boolean);
 
-// BUG-001: Usa função callback ao invés de array para o CORS não vazar
-// headers de CORS (incluindo credentials) para origens não autorizadas.
+
 app.use(cors({
   origin(origin, callback) {
     if (!origin || FRONTEND_URLS.includes(origin)) {
@@ -37,9 +28,6 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Tratamento de erro de parsing de JSON (corpo malformado) -> 400.
-// Em Express 5, express.json() repassa o SyntaxError (type 'entity.parse.failed')
-// para o next, que cairia no handler global e responderia 500.
 app.use((err, req, res, next) => {
   if (err && err.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'JSON inválido no corpo da requisição.' });
@@ -66,10 +54,6 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Middleware de autenticação — protege todas as rotas /api restantes
 const { autenticar, exigirAdmin } = require('./middlewares/authMiddleware');
 
-// BUG-010: CSRF removido — o sistema já é protegido contra CSRF por:
-// 1. Cookie httpOnly (JS não lê o token JWT)
-// 2. CORS restrito (origem específica, não wildcard)
-// 3. Verificação de ativo no middleware autenticar
 
 // Rotas
 app.use('/api/pi', autenticar, require('./routes/piRoutes'));
@@ -83,6 +67,11 @@ app.use('/api/stats', autenticar, require('./routes/statRoutes'));
 app.use('/api/usuarios', autenticar, require('./routes/userRoutes'));
 // Monitor de RPI: o próprio router exige admin (além do autenticar global).
 app.use('/api/rpi-monitor', autenticar, exigirAdmin, require('./routes/rpiMonitorRoutes'));
+
+// 404 para rotas inexistentes — retorna JSON em vez de HTML do Express
+app.use((req, res) => {
+  res.status(404).json({ error: 'Rota não encontrada' });
+});
 
 // Middleware de erro
 app.use((err, req, res, _next) => {
