@@ -8,6 +8,7 @@ const { revogar } = require('../services/revogacaoService');
 const { registrarHistorico } = require('../services/historicoService');
 const { enviarCodigoReset, hashToken } = require('../services/emailService');
 const { CSRF_COOKIE, csrfCookieOptions } = require('../middlewares/csrfMiddleware');
+const { validarSenhaForte, SENHA_FRACA_MSG } = require('../utils/password');
 
 function sanitizeUser(user) {
   const plain = user.get({ plain: true });
@@ -108,9 +109,9 @@ exports.alterarSenha = async (req, res) => {
       error: 'Informe a nova senha.'
     });
   }
-  if (String(novaSenha).length < 6) {
+  if (!validarSenhaForte(novaSenha)) {
     return res.status(400).json({
-      error: 'A nova senha deve ter no mínimo 6 caracteres.'
+      error: SENHA_FRACA_MSG
     });
   }
 
@@ -158,7 +159,7 @@ exports.alterarSenha = async (req, res) => {
 exports.ativarConta = async (req, res) => {
   const { token, novaSenha } = req.body;
   if (!token || !novaSenha) return res.status(400).json({ error: 'Token e nova senha são obrigatórios.' });
-  if (String(novaSenha).length < 6) return res.status(400).json({ error: 'Senha deve ter no mínimo 6 caracteres.' });
+  if (!validarSenhaForte(novaSenha)) return res.status(400).json({ error: SENHA_FRACA_MSG });
   try {
     const tokenHash = hashToken(token);
     // BUG-005: transação com row lock (SELECT ... FOR UPDATE) previne race condition
@@ -256,7 +257,7 @@ exports.redefinirSenha = async (req, res) => {
   const { email, username, identificador, codigo, novaSenha } = req.body;
   const raw = String(identificador || email || username || '').trim();
   if (!raw || !codigo || !novaSenha) return res.status(400).json({ error: 'Informe e-mail/usuário, código e nova senha.' });
-  if (String(novaSenha).length < 6) return res.status(400).json({ error: 'Senha deve ter no mínimo 6 caracteres.' });
+  if (!validarSenhaForte(novaSenha)) return res.status(400).json({ error: SENHA_FRACA_MSG });
   try {
     const isEmail = raw.includes('@');
     let usuario = null;

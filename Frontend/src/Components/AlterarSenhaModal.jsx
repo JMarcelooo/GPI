@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { validarSenhaForte, SENHA_FRACA_MSG } from '../utils/password';
 import './AuthorModal.css';
 
 const API = API_URL;
@@ -79,8 +80,8 @@ export default function AlterarSenhaModal({ onClose, onSuccess, forcada }) {
       setErro('A confirmação não confere com a nova senha.');
       return;
     }
-    if (novaSenha.length < 6) {
-      setErro('A nova senha deve ter pelo menos 6 caracteres.');
+    if (!validarSenhaForte(novaSenha)) {
+      setErro(SENHA_FRACA_MSG);
       return;
     }
 

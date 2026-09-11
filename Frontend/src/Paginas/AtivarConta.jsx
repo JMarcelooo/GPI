@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API_URL from '../config';
+import { validarSenhaForte, SENHA_FRACA_MSG } from '../utils/password';
 import '../Telas.css';
 
 export default function AtivarConta() {
@@ -17,8 +18,8 @@ export default function AtivarConta() {
     e.preventDefault();
     setError(null);
     setMsg(null);
-    if (!novaSenha || novaSenha.length < 6) {
-      setError('Senha deve ter no mínimo 6 caracteres.');
+    if (!novaSenha || !validarSenhaForte(novaSenha)) {
+      setError(SENHA_FRACA_MSG);
       return;
     }
     if (novaSenha !== confirm) {
@@ -67,7 +68,7 @@ export default function AtivarConta() {
             Defina sua senha para ativar o acesso.
           </p>
           <label htmlFor="nova">Nova senha</label>
-          <input id="nova" type="password" placeholder="Mínimo 6 caracteres" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} required />
+          <input id="nova" type="password" placeholder="Mínimo 8 caracteres" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} required />
           <label htmlFor="conf">Confirmar senha</label>
           <input id="conf" type="password" placeholder="Repita a senha" value={confirm} onChange={e=>setConfirm(e.target.value)} required />
           {error && <p style={{ color: '#fff', background: 'rgba(239,68,68,0.85)', padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem', margin: '8px 0 0', width:'100%', boxSizing:'border-box' }}>{error}</p>}

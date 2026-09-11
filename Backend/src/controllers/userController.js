@@ -4,6 +4,7 @@ const { User, PasswordToken } = require('../models/index');
 const { sincronizarNotificacoes } = require('../services/notificacaoService');
 const { registrarHistorico } = require('../services/historicoService');
 const { enviarConvite, hashToken } = require('../services/emailService');
+const { validarSenhaForte, SENHA_FRACA_MSG } = require('../utils/password');
 
 const ROLES_VALIDOS = ['admin', 'usuario'];
 
@@ -89,9 +90,9 @@ exports.createUsuario = async (req, res) => {
 
   // Compatibilidade: se senhaInicial ainda vier (tests antigos), mantém fluxo legado
   const usarLegado = senhaInicial !== undefined && senhaInicial !== null && String(senhaInicial) !== '';
-  if (usarLegado && String(senhaInicial).length < 6) {
+  if (usarLegado && !validarSenhaForte(senhaInicial)) {
     return res.status(400).json({
-      error: 'A senha inicial deve ter no mínimo 6 caracteres.'
+      error: SENHA_FRACA_MSG
     });
   }
 
@@ -179,9 +180,9 @@ exports.updateUsuario = async (req, res) => {
     }
 
     if (novaSenha !== undefined) {
-      if (String(novaSenha).length < 6) {
+      if (!validarSenhaForte(novaSenha)) {
         return res.status(400).json({
-          error: 'A nova senha deve ter no mínimo 6 caracteres.'
+          error: SENHA_FRACA_MSG
         });
       }
       usuario.senha = await bcrypt.hash(novaSenha, 10);

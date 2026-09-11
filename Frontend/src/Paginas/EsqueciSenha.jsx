@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API_URL from '../config';
+import { validarSenhaForte, SENHA_FRACA_MSG } from '../utils/password';
 import '../Telas.css';
 
 export default function EsqueciSenha() {
@@ -40,7 +41,7 @@ export default function EsqueciSenha() {
     e.preventDefault();
     setError(null); setMsg(null);
     if (!codigo || !novaSenha) { setError('Informe código e nova senha.'); return; }
-    if (novaSenha.length < 6) { setError('Senha deve ter no mínimo 6 caracteres.'); return; }
+    if (!validarSenhaForte(novaSenha)) { setError(SENHA_FRACA_MSG); return; }
     if (novaSenha !== confirm) { setError('Senhas não conferem.'); return; }
     setLoading(true);
     try {
@@ -94,7 +95,7 @@ export default function EsqueciSenha() {
               <label htmlFor="cod">Código de 6 dígitos</label>
               <input id="cod" type="text" inputMode="numeric" maxLength={6} placeholder="000000" value={codigo} onChange={e=>setCodigo(e.target.value.replace(/\D/g,'').slice(0,6))} required />
               <label htmlFor="nova">Nova senha</label>
-              <input id="nova" type="password" placeholder="Mínimo 6 caracteres" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} required />
+              <input id="nova" type="password" placeholder="Mínimo 8 caracteres" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} required />
               <label htmlFor="conf">Confirmar senha</label>
               <input id="conf" type="password" placeholder="Repita a senha" value={confirm} onChange={e=>setConfirm(e.target.value)} required />
               <button type="button" onClick={()=>setEtapa(1)} style={{ background:'none', border:'none', color:'#fff', fontSize:'0.85rem', cursor:'pointer', marginTop:6, textDecoration:'underline', textShadow:'0 1px 2px rgba(0,0,0,0.15)' }}>Voltar / reenviar código</button>
