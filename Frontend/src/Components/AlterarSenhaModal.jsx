@@ -167,6 +167,7 @@ export default function AlterarSenhaModal({ onClose, onSuccess, forcada }) {
             onChange={e => setNovaSenha(e.target.value)}
             autoComplete="new-password"
           />
+          <p style={{ margin:'2px 0 8px', fontSize:'0.75rem', color:'var(--color-text-muted)' }}>8+ caracteres com maiúscula, minúscula, número e símbolo (!@#$...).</p>
           <CampoSenha
             label="Confirmar nova senha *"
             id="ap-confirmar"

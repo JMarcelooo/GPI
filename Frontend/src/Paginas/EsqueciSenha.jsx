@@ -96,6 +96,7 @@ export default function EsqueciSenha() {
               <input id="cod" type="text" inputMode="numeric" maxLength={6} placeholder="000000" value={codigo} onChange={e=>setCodigo(e.target.value.replace(/\D/g,'').slice(0,6))} required />
               <label htmlFor="nova">Nova senha</label>
               <input id="nova" type="password" placeholder="Mínimo 8 caracteres" value={novaSenha} onChange={e=>setNovaSenha(e.target.value)} required />
+              <p style={{ margin:'2px 0 0', fontSize:'0.75rem', color:'rgba(255,255,255,0.7)' }}>Use 8+ caracteres com maiúscula, minúscula, número e símbolo (!@#$...).</p>
               <label htmlFor="conf">Confirmar senha</label>
               <input id="conf" type="password" placeholder="Repita a senha" value={confirm} onChange={e=>setConfirm(e.target.value)} required />
               <button type="button" onClick={()=>setEtapa(1)} style={{ background:'none', border:'none', color:'#fff', fontSize:'0.85rem', cursor:'pointer', marginTop:6, textDecoration:'underline', textShadow:'0 1px 2px rgba(0,0,0,0.15)' }}>Voltar / reenviar código</button>
