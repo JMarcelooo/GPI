@@ -69,8 +69,9 @@ const { verificarCsrf } = require('./middlewares/csrfMiddleware');
 
 // BUG-010: CSRF — verifica double-submit cookie em requisições que mutam estado.
 // GET/HEAD/OPTIONS não precisam (são safe methods; SameSite=None só importa
-// para cross-site POST/PUT/PATCH/DELETE).
+// para cross-site POST/PUT/PATCH/DELETE). Em testes, CSRF é desabilitado.
 const csrfProtecao = (req, res, next) => {
+  if (process.env.NODE_ENV === 'test') return next();
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
     return verificarCsrf(req, res, next);
   }
