@@ -146,38 +146,41 @@ export default function CadastroPI() {
     <div className="container">
       <Sidebar />
       <main style={{ flex: 1, padding: "30px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <button
-              onClick={() => navigate(-1)}
-              style={{
-                background: "none", border: "none", fontSize: "18px", cursor: "pointer",
-                padding: "8px", borderRadius: "5px", transition: "background 0.2s",
-                color: "var(--color-text-secondary)"
-              }}
-            >
-              ←
-            </button>
-            <h2 style={{ fontSize: "20px", color: "var(--color-primary)" }}>Cadastro de Propriedade Intelectual</h2>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px" }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              background: "none", border: "none", fontSize: "18px", cursor: "pointer",
+              padding: "8px", borderRadius: "5px", transition: "background 0.2s",
+              color: "var(--color-text-secondary)"
+            }}
+          >
+            ←
+          </button>
+          <h2 style={{ fontSize: "20px", color: "var(--color-primary)", margin: 0 }}>Cadastro de Propriedade Intelectual</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="anim-pop">
+          {/* Seção 1: Identificação */}
           <div className="card-form-section">
-            <h3 className="section-title">Informações principais</h3>
+            <h3 className="section-title">Identificação</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="tipo">Tipo</label>
+                <label htmlFor="tipo">Tipo *</label>
                 <select id="tipo" name="tipo" value={form.tipo} onChange={handleChange} required>
                   <option value="">Selecione</option>
                   {TIPOS_PI.map(t => (
-                    <option key={t} value={t}>{t.toUpperCase()}</option>
+                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
+                <label htmlFor="protocolo">Protocolo *</label>
+                <input type="text" id="protocolo" name="protocolo" value={form.protocolo} onChange={handleChange} required placeholder="Ex: BR 10 2024 001234-5" />
+              </div>
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label htmlFor="titulo">Título</label>
-                <input type="text" id="titulo" name="titulo" value={form.titulo} onChange={handleChange} placeholder="Nome da PI" />
+                <input type="text" id="titulo" name="titulo" value={form.titulo} onChange={handleChange} placeholder="Nome da propriedade intelectual" />
               </div>
               <div className="form-group">
                 <label htmlFor="status">Status</label>
@@ -187,17 +190,20 @@ export default function CadastroPI() {
                   ))}
                 </select>
               </div>
+            </div>
+          </div>
+
+          {/* Seção 2: Envolvidos */}
+          <div className="card-form-section">
+            <h3 className="section-title">Envolvidos</h3>
+            <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="protocolo">Protocolo</label>
-                <input type="text" id="protocolo" name="protocolo" value={form.protocolo} onChange={handleChange} required />
-              </div>
-              <div className="form-group">
-                <label htmlFor="depositante">Depositante</label>
-                <input type="text" id="depositante" name="depositante" value={form.depositante} onChange={handleChange} required />
+                <label htmlFor="depositante">Depositante *</label>
+                <input type="text" id="depositante" name="depositante" value={form.depositante} onChange={handleChange} required placeholder="Nome do depositante" />
               </div>
               <div className="form-group">
                 <label htmlFor="parceiro">Parceiro</label>
-                <input type="text" id="parceiro" name="parceiro" value={form.parceiro} onChange={handleChange} />
+                <input type="text" id="parceiro" name="parceiro" value={form.parceiro} onChange={handleChange} placeholder="Nome do parceiro (se houver)" />
               </div>
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label>Titulares</label>
@@ -230,6 +236,13 @@ export default function CadastroPI() {
                   <Plus size={14} /> Adicionar titular
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Seção 3: Datas e Prazos */}
+          <div className="card-form-section">
+            <h3 className="section-title">Datas e Prazos</h3>
+            <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="data_entrada">Data de Entrada</label>
                 <input type="date" id="data_entrada" name="data_entrada" value={form.data_entrada} onChange={handleChange} />
@@ -245,16 +258,28 @@ export default function CadastroPI() {
                   <option value="true">Sim</option>
                 </select>
               </div>
-              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <label htmlFor="descricao">Descrição</label>
-                <textarea id="descricao" name="descricao" rows={3} placeholder="Descreva brevemente esta propriedade intelectual..." value={form.descricao} onChange={e => setForm(prev => ({ ...prev, descricao: e.target.value }))} style={{ width: '100%', resize: 'vertical', padding: '10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 14 }} />
-              </div>
             </div>
           </div>
 
+          {/* Seção 4: Descrição */}
+          <div className="card-form-section">
+            <h3 className="section-title">Descrição</h3>
+            <div className="form-group">
+              <label htmlFor="descricao">Descrição da PI</label>
+              <textarea
+                id="descricao"
+                name="descricao"
+                rows={4}
+                placeholder="Descreva brevemente o que é esta propriedade intelectual..."
+                value={form.descricao}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Seção 5: Autores */}
           <div className="card-form-section">
             <h3 className="section-title">Autores</h3>
-
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <div style={{ position: 'relative', flex: 1 }}>
                 <input
@@ -288,9 +313,9 @@ export default function CadastroPI() {
               <button
                 type="button"
                 onClick={() => setShowRegisterAuthorModal(true)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-                    background: 'var(--color-btn)', color: '#fff', border: 'none',
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
+                  background: 'var(--color-btn)', color: '#fff', border: 'none',
                   padding: '10px 16px', borderRadius: '8px', fontSize: '0.875rem',
                   fontWeight: 600, cursor: 'pointer'
                 }}
@@ -318,7 +343,7 @@ export default function CadastroPI() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
             <button type="button" className="cancel-button" onClick={() => navigate(-1)}>Cancelar</button>
             <button type="submit" className="submit-button" disabled={submitting}>{submitting ? "Salvando..." : "Cadastrar PI"}</button>
           </div>
