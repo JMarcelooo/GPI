@@ -38,6 +38,8 @@ sequelize.authenticate().then(async () => {
       await u.save();
       console.log(`🔧 Username backfill: ${u.email} → ${cand}`);
     }
+    // Migração: coluna descricao na tabela pi
+    await sequelize.query(`ALTER TABLE "pi" ADD COLUMN IF NOT EXISTS "descricao" text;`);
   } catch {
     // ignora se já existe
   }
