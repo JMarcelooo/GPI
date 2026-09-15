@@ -286,6 +286,12 @@ export default function PatenteDetalhes() {
                   <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Depositante</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.depositante || "-"}</span></div>
                   <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parceiro</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{Array.isArray(pi.parceiro) ? pi.parceiro.filter(Boolean).join(', ') : pi.parceiro || "-"}</span></div>
                   <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Titulares</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{Array.isArray(pi.titular) ? pi.titular.filter(Boolean).join(', ') : (pi.titular || "-")}</span></div>
+                  {pi.descricao && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Descrição</strong>
+                      <p style={{ color: 'var(--color-text)', fontWeight: 500, margin: '4px 0 0', lineHeight: 1.6 }}>{pi.descricao}</p>
+                    </div>
+                  )}
                   <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data de Entrada</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{formatDate(pi.data_entrada)}</span></div>
                   <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ano</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.ano || "-"}</span></div>
                   <div><strong style={{ color: 'var(--color-text-secondary)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Termo de Cessão</strong><br /><span style={{ color: 'var(--color-text)', fontWeight: 600 }}>{pi.termo_cessao ? "Sim" : "Não"}</span></div>
