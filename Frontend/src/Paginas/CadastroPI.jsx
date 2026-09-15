@@ -33,7 +33,7 @@ export default function CadastroPI() {
     tipo: '',
     titulo: '',
     depositante: '',
-    parceiro: '',
+    parceiro: [''],
     titular: [''],
     status: 'em analise',
     protocolo: '',
@@ -82,6 +82,26 @@ export default function CadastroPI() {
     }));
   };
 
+  const handleParceiroChange = (index, value) => {
+    setForm(prev => {
+      const updated = [...prev.parceiro];
+      updated[index] = value;
+      return { ...prev, parceiro: updated };
+    });
+  };
+
+  const addParceiro = () => {
+    setForm(prev => ({ ...prev, parceiro: [...prev.parceiro, ''] }));
+  };
+
+  const removeParceiro = (index) => {
+    if (form.parceiro.length <= 1) return;
+    setForm(prev => ({
+      ...prev,
+      parceiro: prev.parceiro.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleRegisterAuthorSuccess = async (newAuthorData) => {
     const response = await axios.post(`${API_URL}/api/autores`, newAuthorData);
     const created = response.data.data;
@@ -120,6 +140,7 @@ export default function CadastroPI() {
         ano: form.ano ? Number(form.ano) : null,
         data_entrada: form.data_entrada || null,
         titular: form.titular.filter(Boolean),
+        parceiro: form.parceiro.filter(Boolean),
         autores: autoresSelecionados
       });
       invalidatePis();
@@ -201,9 +222,36 @@ export default function CadastroPI() {
                 <label htmlFor="depositante">Depositante *</label>
                 <input type="text" id="depositante" name="depositante" value={form.depositante} onChange={handleChange} required placeholder="Nome do depositante" />
               </div>
-              <div className="form-group">
-                <label htmlFor="parceiro">Parceiro</label>
-                <input type="text" id="parceiro" name="parceiro" value={form.parceiro} onChange={handleChange} placeholder="Nome do parceiro (se houver)" />
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Parceiros</label>
+                {form.parceiro.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={p}
+                      onChange={e => handleParceiroChange(i, e.target.value)}
+                      placeholder={`Parceiro ${i + 1}`}
+                      style={{ flex: 1 }}
+                    />
+                    {form.parceiro.length > 1 && (
+                      <button type="button" onClick={() => removeParceiro(i)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--color-error)', padding: 4, display: 'flex'
+                      }}>
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={addParceiro} style={{
+                  background: 'none', border: '1px dashed var(--color-border)',
+                  borderRadius: 'var(--radius-md)', padding: '8px 16px',
+                  cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--text-sm)',
+                  fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
+                  marginTop: 4
+                }}>
+                  <Plus size={14} /> Adicionar parceiro
+                </button>
               </div>
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label>Titulares</label>
