@@ -378,14 +378,15 @@
 
 .timeline {
   position: relative;
-  padding-left: var(--space-8);
+  padding-left: 60px;
+  padding-top: 4px;
 }
 
 .timeline::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 11px;
+  left: 30px;
   width: 2px;
   height: 100%;
   background: var(--color-border);
@@ -393,8 +394,8 @@
 
 .timeline-item {
   position: relative;
-  margin-bottom: var(--space-6);
-  padding-left: var(--space-6);
+  margin-bottom: var(--space-5);
+  padding-left: var(--space-5);
 }
 
 .timeline-item:last-child {
@@ -403,13 +404,14 @@
 
 .timeline-icon {
   position: absolute;
-  top: 4px;
-  left: calc(-1 * var(--space-8) + 4px);
-  width: 16px;
-  height: 16px;
+  top: 0;
+  left: -35px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--color-border);
-  border: 3px solid var(--color-surface);
+  border: none;
+  z-index: 1;
 }
 
 .timeline-icon.pending { background: var(--color-primary); }
