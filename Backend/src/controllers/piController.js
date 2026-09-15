@@ -3,7 +3,7 @@ const { PI, RPI, Pagamento, Historico, Notificacao } = require('../models/index'
 const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 const { stripHtmlFields } = require('../utils/sanitize');
 
-const PI_STRING_FIELDS = ['titulo', 'depositante', 'parceiro', 'titular', 'protocolo'];
+const PI_STRING_FIELDS = ['titulo', 'depositante', 'parceiro', 'titular', 'protocolo', 'descricao'];
 
 const SORT_COLS = {
   tipo: 'tipo',
@@ -123,7 +123,8 @@ exports.createPI = async (req, res) => {
       protocolo: req.body.protocolo,
       data_entrada: req.body.data_entrada || null,
       ano: (req.body.ano === '' || req.body.ano == null) ? null : req.body.ano,
-      termo_cessao: req.body.termo_cessao || false
+      termo_cessao: req.body.termo_cessao || false,
+      descricao: req.body.descricao || null
     }, PI_STRING_FIELDS);
 
     const newPI = await PI.create(piData);
@@ -182,7 +183,8 @@ exports.getAllPIs = async (req, res) => {
         { protocolo: { [Op.iLike]: term } },
         { depositante: { [Op.iLike]: term } },
         { parceiro: { [Op.iLike]: term } },
-        { titulo: { [Op.iLike]: term } }
+        { titulo: { [Op.iLike]: term } },
+        { descricao: { [Op.iLike]: term } }
       ];
     }
     if (status) where.status = status;
@@ -276,7 +278,7 @@ exports.updatePI = async (req, res) => {
     }
 
     const updateData = {};
-    const allowedFields = ['tipo', 'titulo', 'depositante', 'parceiro', 'titular', 'status', 'protocolo', 'data_entrada', 'ano', 'termo_cessao'];
+    const allowedFields = ['tipo', 'titulo', 'depositante', 'parceiro', 'titular', 'status', 'protocolo', 'data_entrada', 'ano', 'termo_cessao', 'descricao'];
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updateData[field] = req.body[field];
