@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const sequelize = require('../config/db');
 const { PI, RPI, Pagamento, Historico, Notificacao } = require('../models/index');
 const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 const { stripHtmlFields } = require('../utils/sanitize');
@@ -117,7 +118,7 @@ exports.createPI = async (req, res) => {
       tipo: req.body.tipo,
       titulo: req.body.titulo || null,
       depositante: req.body.depositante,
-      parceiro: req.body.parceiro || null,
+      parceiro: Array.isArray(req.body.parceiro) ? req.body.parceiro : (req.body.parceiro ? [req.body.parceiro] : []),
       titular: Array.isArray(req.body.titular) ? req.body.titular : (req.body.titular ? [req.body.titular] : []),
       status: req.body.status || 'em analise',
       protocolo: req.body.protocolo,
@@ -182,9 +183,10 @@ exports.getAllPIs = async (req, res) => {
       where[Op.or] = [
         { protocolo: { [Op.iLike]: term } },
         { depositante: { [Op.iLike]: term } },
-        { parceiro: { [Op.iLike]: term } },
         { titulo: { [Op.iLike]: term } },
-        { descricao: { [Op.iLike]: term } }
+        { descricao: { [Op.iLike]: term } },
+        sequelize.where(sequelize.cast(sequelize.col('parceiro'), 'text'), { [Op.iLike]: term }),
+        sequelize.where(sequelize.cast(sequelize.col('titular'), 'text'), { [Op.iLike]: term })
       ];
     }
     if (status) where.status = status;
