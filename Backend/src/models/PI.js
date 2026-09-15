@@ -18,8 +18,9 @@ const PI = sequelize.define('PI', {
     allowNull: false
   },
   parceiro: {
-    type: DataTypes.STRING(100),
-    allowNull: true
+    type: DataTypes.JSONB,
+    allowNull: false,
+    defaultValue: []
   },
   titular: {
     type: DataTypes.JSONB,
