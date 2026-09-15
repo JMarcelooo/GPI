@@ -4,55 +4,54 @@ const sequelize = require('./config/db');
 const { sincronizarNotificacoes } = require('./services/notificacaoService');
 const { verificarNovasEdicoesComTrava } = require('./services/rpiMonitorService');
 
-// Cria tabelas faltantes e adiciona colunas novas (ex.: username, password_tokens)
-// sem dropar dados. Usa alter:true para adicionar colunas que não existem.
-sequelize.sync({ alter: true })
-  .then(() => console.log('✅ Tabelas sincronizadas (sequelize.sync alter:true).'))
-  .catch((err) => console.error('⚠️ Falha ao sincronizar tabelas:', err.message));
+// Cria tabelas faltantes (sem alter — nao mexe tipos existentes).
+sequelize.sync()
+  .then(async () => {
+    console.log('✅ Tabelas sincronizadas (sequelize.sync).');
 
-// Fallback manual para garantir username em bancos antigos onde alter não pegou por constraint
-sequelize.authenticate().then(async () => {
-  try {
-    await sequelize.query(`
-      ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "username" varchar(30) UNIQUE;
-      ALTER TABLE "usuarios" ALTER COLUMN "senha" DROP NOT NULL;
-      DO $$ BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='uq_usuarios_username') THEN
-          ALTER TABLE "usuarios" ADD CONSTRAINT "uq_usuarios_username" UNIQUE ("username");
-        END IF;
-      END $$;
-    `);
-    // Backfill username para usuários antigos (gera a partir do nome)
-    const { User } = require('./models');
-    const semUsername = await User.findAll({ where: { username: null } });
-    for (const u of semUsername) {
-      const base = String(u.nome || 'user').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0,20) || 'user';
-      let cand = base;
-      let n = 0;
-      while (await User.findOne({ where: { username: cand } })) {
-        n += 1;
-        cand = `${base}${n}`.slice(0,30);
-        if (n>100) break;
+    // Migrações manuais que o sync não cobre
+    try {
+      await sequelize.query(`
+        ALTER TABLE "usuarios" ADD COLUMN IF NOT EXISTS "username" varchar(30) UNIQUE;
+        ALTER TABLE "usuarios" ALTER COLUMN "senha" DROP NOT NULL;
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='uq_usarios_username') THEN
+            ALTER TABLE "usuarios" ADD CONSTRAINT "uq_usuarios_username" UNIQUE ("username");
+          END IF;
+        END $$;
+      `);
+      // Backfill username para usuários antigos
+      const { User } = require('./models');
+      const semUsername = await User.findAll({ where: { username: null } });
+      for (const u of semUsername) {
+        const base = String(u.nome || 'user').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0,20) || 'user';
+        let cand = base;
+        let n = 0;
+        while (await User.findOne({ where: { username: cand } })) {
+          n += 1;
+          cand = `${base}${n}`.slice(0,30);
+          if (n>100) break;
+        }
+        u.username = cand;
+        await u.save();
+        console.log(`🔧 Username backfill: ${u.email} → ${cand}`);
       }
-      u.username = cand;
-      await u.save();
-      console.log(`🔧 Username backfill: ${u.email} → ${cand}`);
+      // Migração: coluna descricao na tabela pi
+      await sequelize.query('ALTER TABLE "pi" ADD COLUMN IF NOT EXISTS "descricao" text;');
+      // Migração: parceiro de varchar para JSONB (converte strings existentes para array)
+      await sequelize.query(`
+        ALTER TABLE "pi" ALTER COLUMN "parceiro" TYPE jsonb USING CASE
+          WHEN "parceiro" IS NULL OR "parceiro" = '' THEN '[]'::jsonb
+          ELSE to_jsonb(ARRAY["parceiro"])
+        END;
+        ALTER TABLE "pi" ALTER COLUMN "parceiro" SET DEFAULT '[]'::jsonb;
+        ALTER TABLE "pi" ALTER COLUMN "parceiro" SET NOT NULL;
+      `);
+    } catch {
+      // ignora se já existe
     }
-    // Migração: coluna descricao na tabela pi
-    await sequelize.query(`ALTER TABLE "pi" ADD COLUMN IF NOT EXISTS "descricao" text;`);
-    // Migração: parceiro de varchar para JSONB (converte strings existentes para array)
-    await sequelize.query(`
-      ALTER TABLE "pi" ALTER COLUMN "parceiro" TYPE jsonb USING CASE
-        WHEN "parceiro" IS NULL OR "parceiro" = '' THEN '[]'::jsonb
-        ELSE to_jsonb(ARRAY["parceiro"])
-      END;
-      ALTER TABLE "pi" ALTER COLUMN "parceiro" SET DEFAULT '[]'::jsonb;
-      ALTER TABLE "pi" ALTER COLUMN "parceiro" SET NOT NULL;
-    `);
-  } catch {
-    // ignora se já existe
-  }
-});
+  })
+  .catch((err) => console.error('⚠️ Falha ao sincronizar tabelas:', err.message));
 
 const INTERVALO_RPI_MS = 24 * 60 * 60 * 1000; // 1×/dia
 

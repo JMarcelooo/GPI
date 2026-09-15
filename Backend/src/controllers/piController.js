@@ -4,7 +4,7 @@ const { PI, RPI, Pagamento, Historico, Notificacao } = require('../models/index'
 const { registrarHistorico, camposAlterados, descricaoCamposAlterados } = require('../services/historicoService');
 const { stripHtmlFields } = require('../utils/sanitize');
 
-const PI_STRING_FIELDS = ['titulo', 'depositante', 'parceiro', 'titular', 'protocolo', 'descricao'];
+const PI_STRING_FIELDS = ['titulo', 'depositante', 'protocolo', 'descricao'];
 
 const SORT_COLS = {
   tipo: 'tipo',
@@ -118,8 +118,6 @@ exports.createPI = async (req, res) => {
       tipo: req.body.tipo,
       titulo: req.body.titulo || null,
       depositante: req.body.depositante,
-      parceiro: Array.isArray(req.body.parceiro) ? req.body.parceiro : (req.body.parceiro ? [req.body.parceiro] : []),
-      titular: Array.isArray(req.body.titular) ? req.body.titular : (req.body.titular ? [req.body.titular] : []),
       status: req.body.status || 'em analise',
       protocolo: req.body.protocolo,
       data_entrada: req.body.data_entrada || null,
@@ -128,7 +126,15 @@ exports.createPI = async (req, res) => {
       descricao: req.body.descricao || null
     }, PI_STRING_FIELDS);
 
+    // JSONB fields bypassed via raw query to avoid Sequelize cache mismatch
+    const parceiroVal = Array.isArray(req.body.parceiro) ? req.body.parceiro : (req.body.parceiro ? [req.body.parceiro] : []);
+    const titularVal = Array.isArray(req.body.titular) ? req.body.titular : (req.body.titular ? [req.body.titular] : []);
+
     const newPI = await PI.create(piData);
+    await sequelize.query(
+      'UPDATE "pi" SET "parceiro" = ?, "titular" = ? WHERE "id" = ?',
+      { replacements: [JSON.stringify(parceiroVal), JSON.stringify(titularVal), newPI.id] }
+    );
 
     if (req.body.autores !== undefined && req.body.autores !== null) {
       const parsed = parseAutorIds(req.body.autores);
@@ -301,7 +307,27 @@ exports.updatePI = async (req, res) => {
       });
     }
 
-    await PI.update(updateData, { where: { id: piId } });
+    // Separa parceiro/titular (JSONB) dos demais campos para evitar
+    // conflito de validação do Sequelize quando o schema foi alterado via SQL.
+    const { parceiro, titular, ...camposNormais } = updateData;
+    await PI.update(camposNormais, { where: { id: piId } });
+
+    if (parceiro !== undefined || titular !== undefined) {
+      const rawSets = [];
+      const rawReplacements = [];
+      if (parceiro !== undefined) {
+        rawSets.push('"parceiro" = ?');
+        rawReplacements.push(JSON.stringify(parceiro));
+      }
+      if (titular !== undefined) {
+        rawSets.push('"titular" = ?');
+        rawReplacements.push(JSON.stringify(titular));
+      }
+      await sequelize.query(
+        `UPDATE "pi" SET ${rawSets.join(', ')} WHERE "id" = ?`,
+        { replacements: [...rawReplacements, piId] }
+      );
+    }
 
     const alterados = camposAlterados(existingPI.toJSON(), updateData);
     let textoAlteracoes = descricaoCamposAlterados(alterados);
