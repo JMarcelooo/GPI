@@ -39,7 +39,8 @@ export default function CadastroPI() {
     protocolo: '',
     data_entrada: '',
     ano: new Date().getFullYear(),
-    termo_cessao: false
+    termo_cessao: false,
+    descricao: ''
   });
   const [autoresDisponiveis, setAutoresDisponiveis] = useState([]);
   const [autoresSelecionados, setAutoresSelecionados] = useState([]);
@@ -243,6 +244,10 @@ export default function CadastroPI() {
                   <option value="false">Não</option>
                   <option value="true">Sim</option>
                 </select>
+              </div>
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="descricao">Descrição</label>
+                <textarea id="descricao" name="descricao" rows={3} placeholder="Descreva brevemente esta propriedade intelectual..." value={form.descricao} onChange={e => setForm(prev => ({ ...prev, descricao: e.target.value }))} style={{ width: '100%', resize: 'vertical', padding: '10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: 14 }} />
               </div>
             </div>
           </div>
