@@ -40,6 +40,15 @@ sequelize.authenticate().then(async () => {
     }
     // Migração: coluna descricao na tabela pi
     await sequelize.query(`ALTER TABLE "pi" ADD COLUMN IF NOT EXISTS "descricao" text;`);
+    // Migração: parceiro de varchar para JSONB (converte strings existentes para array)
+    await sequelize.query(`
+      ALTER TABLE "pi" ALTER COLUMN "parceiro" TYPE jsonb USING CASE
+        WHEN "parceiro" IS NULL OR "parceiro" = '' THEN '[]'::jsonb
+        ELSE to_jsonb(ARRAY["parceiro"])
+      END;
+      ALTER TABLE "pi" ALTER COLUMN "parceiro" SET DEFAULT '[]'::jsonb;
+      ALTER TABLE "pi" ALTER COLUMN "parceiro" SET NOT NULL;
+    `);
   } catch {
     // ignora se já existe
   }
