@@ -302,7 +302,7 @@ export default function PatenteDetalhes() {
               <div className="patente-detalhes-container">
                 <div className="header">
                   <div className="title-section">
-                    <h1>Informações de RPI</h1>
+                    <h1 style={{ color: 'var(--color-text)', margin: 0 }}>Informações de RPI</h1>
                   </div>
                   <button className="add-rpi-button" onClick={openAddModal}>+ Adicionar RPI</button>
                 </div>
@@ -326,6 +326,33 @@ export default function PatenteDetalhes() {
                   </div>
                 )}
               </div>
+
+              {pi.autores && pi.autores.length > 0 && (
+                <div className="patente-detalhes-container" style={{ marginTop: 0 }}>
+                  <h3 style={{ color: 'var(--color-text)', margin: '0 0 16px', fontSize: 16, fontWeight: 700 }}>
+                    Autores vinculados
+                  </h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {pi.autores.map(autor => (
+                      <button
+                        key={autor.id}
+                        onClick={() => navigate(`/autores/${autor.id}`)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: 'var(--color-primary-bg)', color: 'var(--color-primary)',
+                          border: 'none', borderRadius: 20, padding: '6px 14px',
+                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          transition: 'opacity 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                      >
+                        {autor.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
