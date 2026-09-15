@@ -182,10 +182,30 @@ export default function CadastroPI() {
         </div>
 
         <form onSubmit={handleSubmit} className="anim-pop">
-          {/* Seção 1: Identificação */}
+          {/* Seção 1: Título e Descrição */}
+          <div className="card-form-section">
+            <h3 className="section-title">Título e Descrição</h3>
+            <div className="form-group">
+              <label htmlFor="titulo">Título</label>
+              <input type="text" id="titulo" name="titulo" value={form.titulo} onChange={handleChange} placeholder="Nome da propriedade intelectual" />
+            </div>
+            <div className="form-group" style={{ marginTop: 'var(--space-3)' }}>
+              <label htmlFor="descricao">Descrição</label>
+              <textarea
+                id="descricao"
+                name="descricao"
+                rows={3}
+                placeholder="Descreva brevemente o que é esta propriedade intelectual..."
+                value={form.descricao}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Seção 2: Identificação */}
           <div className="card-form-section">
             <h3 className="section-title">Identificação</h3>
-            <div className="form-grid">
+            <div className="form-grid-2col">
               <div className="form-group">
                 <label htmlFor="tipo">Tipo *</label>
                 <select id="tipo" name="tipo" value={form.tipo} onChange={handleChange} required>
@@ -196,12 +216,16 @@ export default function CadastroPI() {
                 </select>
               </div>
               <div className="form-group">
+                <label htmlFor="data_entrada">Data de Entrada</label>
+                <input type="date" id="data_entrada" name="data_entrada" value={form.data_entrada} onChange={handleChange} />
+              </div>
+              <div className="form-group">
                 <label htmlFor="protocolo">Protocolo *</label>
                 <input type="text" id="protocolo" name="protocolo" value={form.protocolo} onChange={handleChange} required placeholder="Ex: BR 10 2024 001234-5" />
               </div>
-              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <label htmlFor="titulo">Título</label>
-                <input type="text" id="titulo" name="titulo" value={form.titulo} onChange={handleChange} placeholder="Nome da propriedade intelectual" />
+              <div className="form-group">
+                <label htmlFor="ano">Ano</label>
+                <input type="number" id="ano" name="ano" value={form.ano} onChange={handleChange} min="1900" max="2100" />
               </div>
               <div className="form-group">
                 <label htmlFor="status">Status</label>
@@ -210,94 +234,6 @@ export default function CadastroPI() {
                     <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                   ))}
                 </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Seção 2: Envolvidos */}
-          <div className="card-form-section">
-            <h3 className="section-title">Envolvidos</h3>
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="depositante">Depositante *</label>
-                <input type="text" id="depositante" name="depositante" value={form.depositante} onChange={handleChange} required placeholder="Nome do depositante" />
-              </div>
-              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <label>Parceiros</label>
-                {form.parceiro.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                    <input
-                      type="text"
-                      value={p}
-                      onChange={e => handleParceiroChange(i, e.target.value)}
-                      placeholder={`Parceiro ${i + 1}`}
-                      style={{ flex: 1 }}
-                    />
-                    {form.parceiro.length > 1 && (
-                      <button type="button" onClick={() => removeParceiro(i)} style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: 'var(--color-error)', padding: 4, display: 'flex'
-                      }}>
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={addParceiro} style={{
-                  background: 'none', border: '1px dashed var(--color-border)',
-                  borderRadius: 'var(--radius-md)', padding: '8px 16px',
-                  cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--text-sm)',
-                  fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
-                  marginTop: 4
-                }}>
-                  <Plus size={14} /> Adicionar parceiro
-                </button>
-              </div>
-              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <label>Titulares</label>
-                {form.titular.map((t, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                    <input
-                      type="text"
-                      value={t}
-                      onChange={e => handleTitularChange(i, e.target.value)}
-                      placeholder={`Titular ${i + 1}`}
-                      style={{ flex: 1 }}
-                    />
-                    {form.titular.length > 1 && (
-                      <button type="button" onClick={() => removeTitular(i)} style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: 'var(--color-error)', padding: 4, display: 'flex'
-                      }}>
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={addTitular} style={{
-                  background: 'none', border: '1px dashed var(--color-border)',
-                  borderRadius: 'var(--radius-md)', padding: '8px 16px',
-                  cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--text-sm)',
-                  fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
-                  marginTop: 4
-                }}>
-                  <Plus size={14} /> Adicionar titular
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Seção 3: Datas e Prazos */}
-          <div className="card-form-section">
-            <h3 className="section-title">Datas e Prazos</h3>
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="data_entrada">Data de Entrada</label>
-                <input type="date" id="data_entrada" name="data_entrada" value={form.data_entrada} onChange={handleChange} />
-              </div>
-              <div className="form-group">
-                <label htmlFor="ano">Ano</label>
-                <input type="number" id="ano" name="ano" value={form.ano} onChange={handleChange} min="1900" max="2100" />
               </div>
               <div className="form-group">
                 <label htmlFor="termo_cessao">Termo de Cessão</label>
@@ -309,26 +245,10 @@ export default function CadastroPI() {
             </div>
           </div>
 
-          {/* Seção 4: Descrição */}
-          <div className="card-form-section">
-            <h3 className="section-title">Descrição</h3>
-            <div className="form-group">
-              <label htmlFor="descricao">Descrição da PI</label>
-              <textarea
-                id="descricao"
-                name="descricao"
-                rows={4}
-                placeholder="Descreva brevemente o que é esta propriedade intelectual..."
-                value={form.descricao}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {/* Seção 5: Autores */}
+          {/* Seção 3: Autores */}
           <div className="card-form-section">
             <h3 className="section-title">Autores</h3>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
               <div style={{ position: 'relative', flex: 1 }}>
                 <input
                   ref={searchRef}
@@ -338,16 +258,16 @@ export default function CadastroPI() {
                   onChange={e => { setSearchAutor(e.target.value); setShowDropdown(true); }}
                   onFocus={() => setShowDropdown(true)}
                   onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                  style={{ width: '100%', padding: '10px 12px', paddingLeft: '36px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.875rem', boxSizing: 'border-box', background: 'var(--color-bg)', color: 'var(--color-text)' }}
+                  style={{ width: '100%', padding: '8px 12px', paddingLeft: '36px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '0.875rem', boxSizing: 'border-box', background: 'var(--color-bg)', color: 'var(--color-text)' }}
                 />
                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
                 {showDropdown && searchAutor && autoresFiltrados.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', marginTop: '4px', maxHeight: '180px', overflowY: 'auto', zIndex: 10, boxShadow: 'var(--shadow-md)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', marginTop: '4px', maxHeight: '160px', overflowY: 'auto', zIndex: 10, boxShadow: 'var(--shadow-md)' }}>
                     {autoresFiltrados.map(autor => (
                       <div
                         key={autor.id}
                         onMouseDown={() => adicionarAutorNaLista(autor)}
-                        style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}
+                        style={{ padding: '6px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--color-hover)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
@@ -364,7 +284,7 @@ export default function CadastroPI() {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
                   background: 'var(--color-btn)', color: '#fff', border: 'none',
-                  padding: '10px 16px', borderRadius: '8px', fontSize: '0.875rem',
+                  padding: '8px 14px', borderRadius: '8px', fontSize: '0.875rem',
                   fontWeight: 600, cursor: 'pointer'
                 }}
               >
@@ -391,7 +311,64 @@ export default function CadastroPI() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+          {/* Seção 4: Titularidade */}
+          <div className="card-form-section">
+            <h3 className="section-title">Titularidade</h3>
+            <div className="form-grid-2col">
+              <div className="form-group">
+                <label>Titulares</label>
+                {form.titular.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={t}
+                      onChange={e => handleTitularChange(i, e.target.value)}
+                      placeholder={`Titular ${i + 1}`}
+                      style={{ flex: 1 }}
+                    />
+                    {form.titular.length > 1 && (
+                      <button type="button" onClick={() => removeTitular(i)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--color-text-muted)', padding: 4, display: 'flex'
+                      }}>
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={addTitular} className="add-item-btn">
+                  <Plus size={14} /> Adicionar titular
+                </button>
+              </div>
+              <div className="form-group">
+                <label>Parceiros</label>
+                {form.parceiro.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={p}
+                      onChange={e => handleParceiroChange(i, e.target.value)}
+                      placeholder={`Parceiro ${i + 1}`}
+                      style={{ flex: 1 }}
+                    />
+                    {form.parceiro.length > 1 && (
+                      <button type="button" onClick={() => removeParceiro(i)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'var(--color-text-muted)', padding: 4, display: 'flex'
+                      }}>
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" onClick={addParceiro} className="add-item-btn">
+                  <Plus size={14} /> Adicionar parceiro
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
             <button type="button" className="cancel-button" onClick={() => navigate(-1)}>Cancelar</button>
             <button type="submit" className="submit-button" disabled={submitting}>{submitting ? "Salvando..." : "Cadastrar PI"}</button>
           </div>
