@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS "pi" (
 	"data_entrada" date,
 	"ano" integer,
 	"termo_cessao" boolean NOT NULL DEFAULT false,
+	"descricao" text,
 	"createdAt" timestamp with time zone,
 	"updatedAt" timestamp with time zone,
 	PRIMARY KEY ("id"),
