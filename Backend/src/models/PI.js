@@ -51,6 +51,10 @@ const PI = sequelize.define('PI', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
+  },
+  descricao: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
   tableName: 'pi',
