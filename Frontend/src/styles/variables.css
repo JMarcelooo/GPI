@@ -93,6 +93,26 @@
   --sidebar-hover: #7B1F78;
   --sidebar-end: #621563;
 
+  /* Header PI */
+  --header-pi-bg: #B8BC10;
+  --header-pi-text: #F8FAFC;
+  --header-pi-text-secondary: rgba(248, 250, 252, 0.85);
+  --header-pi-badge-bg: rgba(248, 250, 252, 0.15);
+  --header-pi-border: rgba(248, 250, 252, 0.18);
+  --header-pi-card: rgba(248, 250, 252, 0.92);
+  --header-pi-card-text: #4A4D0A;
+  --header-pi-danger: #DC2626;
+  --header-pi-danger-text: #fff;
+
+  /* Header Autor */
+  --header-autor-bg: #009FDF;
+  --header-autor-text: #F8FAFC;
+  --header-autor-text-secondary: rgba(248, 250, 252, 0.85);
+  --header-autor-badge-bg: rgba(248, 250, 252, 0.15);
+  --header-autor-border: rgba(248, 250, 252, 0.18);
+  --header-autor-card: rgba(248, 250, 252, 0.92);
+  --header-autor-card-text: #002E4D;
+
   /* Transitions */
   --transition: 150ms ease;
   --transition-slow: 250ms ease;
@@ -155,6 +175,26 @@
   --sidebar-bg: #421941;
   --sidebar-hover: #5B2358;
   --sidebar-end: #2E0E2D;
+
+  /* Header PI */
+  --header-pi-bg: #7A7D08;
+  --header-pi-text: #F8FAFC;
+  --header-pi-text-secondary: rgba(248, 250, 252, 0.85);
+  --header-pi-badge-bg: rgba(248, 250, 252, 0.15);
+  --header-pi-border: rgba(248, 250, 252, 0.18);
+  --header-pi-card: rgba(248, 250, 252, 0.15);
+  --header-pi-card-text: #F0F2B8;
+  --header-pi-danger: #EF4444;
+  --header-pi-danger-text: #fff;
+
+  /* Header Autor */
+  --header-autor-bg: #007BB5;
+  --header-autor-text: #F8FAFC;
+  --header-autor-text-secondary: rgba(248, 250, 252, 0.85);
+  --header-autor-badge-bg: rgba(248, 250, 252, 0.15);
+  --header-autor-border: rgba(248, 250, 252, 0.18);
+  --header-autor-card: rgba(248, 250, 252, 0.15);
+  --header-autor-card-text: #66C2FF;
 }
 
 *, *::before, *::after {

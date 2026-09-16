@@ -193,11 +193,11 @@ export default function PatenteDetalhes() {
       <Sidebar />
       <div className="payments-content anim-rise" style={{ padding:0, overflowY:'auto', background:'var(--color-bg)' }}>
 
-        {/* Header roxo — estilo AutorDetalhes */}
+        {/* Header amarelo — cor do dashboard */}
         <div style={{
-          background: 'var(--sidebar-bg)',
+          background: 'var(--header-pi-bg)',
           padding: '28px 32px 24px',
-          color:'#fff',
+          color:'var(--header-pi-text)',
           position:'relative',
           overflow:'hidden'
         }}>
@@ -206,24 +206,24 @@ export default function PatenteDetalhes() {
           {/* Top bar: Voltar + Editar/Excluir */}
           <div style={{ position:'relative', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:22 }}>
             <button onClick={() => navigate(-1)} style={{
-              background: 'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.14)', cursor:'pointer',
-              padding:'8px 14px', borderRadius:10, display:'inline-flex', alignItems:'center', gap:6, color:'#fff', fontSize:13, fontWeight:600,
+              background: 'var(--header-pi-badge-bg)', border:'1px solid var(--header-pi-border)', cursor:'pointer',
+              padding:'8px 14px', borderRadius:10, display:'inline-flex', alignItems:'center', gap:6, color:'var(--header-pi-text)', fontSize:13, fontWeight:600,
               backdropFilter:'blur(6px)'
             }}>
               <ArrowLeft size={16} /> Voltar
             </button>
             <div style={{ display:'flex', gap:8 }}>
               <button onClick={() => navigate(`/editar-pi/${id}`)} style={{
-                background:'#fff', border:'1px solid rgba(255,255,255,0.9)', cursor:'pointer',
-                padding:'8px 14px', borderRadius:10, display:'inline-flex', alignItems:'center', gap:6, color:'var(--sidebar-bg)', fontSize:13, fontWeight:700,
+                background:'var(--header-pi-badge-bg)', border:'1px solid var(--header-pi-border)', cursor:'pointer',
+                padding:'8px 14px', borderRadius:10, display:'inline-flex', alignItems:'center', gap:6, color:'var(--header-pi-text)', fontSize:13, fontWeight:700,
                 boxShadow:'0 4px 12px rgba(0,0,0,0.14)'
               }}>
                 <Pencil size={14} /> Editar
               </button>
               <button onClick={() => setConfirmDelete(true)} style={{
-                background:'rgba(239,68,68,0.2)', border:'1px solid rgba(239,68,68,0.3)', cursor:'pointer',
-                padding:'8px 14px', borderRadius:10, display:'inline-flex', alignItems:'center', gap:6, color:'#FCA5A5', fontSize:13, fontWeight:600,
-                backdropFilter:'blur(6px)'
+                background:'var(--header-pi-danger)', border:'none', cursor:'pointer',
+                padding:'8px 14px', borderRadius:10, display:'inline-flex', alignItems:'center', gap:6, color:'var(--header-pi-danger-text)', fontSize:13, fontWeight:600,
+                boxShadow:'0 2px 8px rgba(220,38,38,0.3)'
               }}>
                 <Trash2 size={14} /> Excluir
               </button>
@@ -233,21 +233,21 @@ export default function PatenteDetalhes() {
           {/* Título + badges */}
           <div style={{ position:'relative', display:'flex', gap:18, alignItems:'center', marginBottom:20 }}>
             <div style={{
-              width:64, height:64, borderRadius:14, background:'#fff', color:'var(--sidebar-bg)',
+              width:64, height:64, borderRadius:14, background:'var(--header-pi-card)', color:'var(--header-pi-card-text)',
               display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:20,
-              boxShadow:'0 8px 24px rgba(0,0,0,0.18)', border:'3px solid rgba(255,255,255,0.9)', flexShrink:0
+              boxShadow:'0 8px 24px rgba(0,0,0,0.18)', border:'3px solid var(--header-pi-card)', flexShrink:0
             }}>
               <Layers size={28} />
             </div>
             <div style={{ minWidth:0, flex:1 }}>
-              <h1 style={{ fontSize:26, fontWeight:800, color:'#fff', margin:'0 0 4px', lineHeight:1.2, letterSpacing:'-0.02em' }}>
+              <h1 style={{ fontSize:26, fontWeight:800, color:'var(--header-pi-text)', margin:'0 0 4px', lineHeight:1.2, letterSpacing:'-0.02em' }}>
                 {pi.titulo || "PI sem título"}
               </h1>
-              <p style={{ margin:0, color:'rgba(255,255,255,0.88)', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', background:'rgba(255,255,255,0.15)', borderRadius:999, fontSize:11, fontWeight:700 }}>{formatTipo(pi.tipo)}</span>
+              <p style={{ margin:0, color:'var(--header-pi-text-secondary)', fontSize:13, fontWeight:500, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', background:'var(--header-pi-badge-bg)', borderRadius:999, fontSize:11, fontWeight:700 }}>{formatTipo(pi.tipo)}</span>
                 <span className={`badge ${normalizeStatus(pi.status)}`} style={{ fontSize:11 }}>{formatStatus(pi.status)}</span>
                 <span style={{ fontSize:12, opacity:0.8 }}>{pi.protocolo || '-'}</span>
-                {autores.length > 0 && <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'4px 10px', background:'#fff', borderRadius:999, fontSize:11, fontWeight:700, color:'var(--sidebar-bg)' }}><Layers size={12} />{autores.length} Autor{autores.length!==1?'es':''}</span>}
+                {autores.length > 0 && <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'4px 10px', background:'var(--header-pi-card)', borderRadius:999, fontSize:11, fontWeight:700, color:'var(--header-pi-card-text)' }}><Layers size={12} />{autores.length} Autor{autores.length!==1?'es':''}</span>}
               </p>
             </div>
           </div>
@@ -257,58 +257,58 @@ export default function PatenteDetalhes() {
 
             {/* Identificação */}
             <div>
-              <div style={{ fontSize:12, fontWeight:800, letterSpacing:'0.08em', textTransform:'uppercase', color:'#fff', marginBottom:6 }}>Identificação</div>
+              <div style={{ fontSize:12, fontWeight:800, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--header-pi-text)', marginBottom:6 }}>Identificação</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:8, alignItems:'start' }}>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Protocolo</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{pi.protocolo || '—'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Protocolo</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{pi.protocolo || '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Depositante</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{pi.depositante || '—'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Depositante</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{pi.depositante || '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Data de Entrada</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{formatDate(pi.data_entrada) || '—'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Data de Entrada</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{formatDate(pi.data_entrada) || '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Ano</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{pi.ano || '—'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Ano</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{pi.ano || '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Termo de Cessão</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{pi.termo_cessao ? 'Sim' : 'Não'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Termo de Cessão</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{pi.termo_cessao ? 'Sim' : 'Não'}</div>
                 </div>
               </div>
             </div>
 
-            <div style={{ height:1, background:'rgba(255,255,255,0.12)', margin:'0' }} />
+            <div style={{ height:1, background:'var(--header-pi-border)', margin:'0' }} />
 
             {/* Titularidade */}
             <div>
-              <div style={{ fontSize:12, fontWeight:800, letterSpacing:'0.08em', textTransform:'uppercase', color:'#fff', marginBottom:6 }}>Titularidade</div>
+              <div style={{ fontSize:12, fontWeight:800, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--header-pi-text)', marginBottom:6 }}>Titularidade</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:8, alignItems:'start' }}>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Titulares</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{titulares.length > 0 ? titulares.join(', ') : '—'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Titulares</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{titulares.length > 0 ? titulares.join(', ') : '—'}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, color:'#fff', fontWeight:700, lineHeight:1.2 }}>Parceiros</div>
-                  <div style={{ fontSize:11, fontWeight:500, color:'rgba(255,255,255,0.78)', lineHeight:1.35 }}>{parceiros.length > 0 ? parceiros.join(', ') : '—'}</div>
+                  <div style={{ fontSize:13, color:'var(--header-pi-text)', fontWeight:700, lineHeight:1.2 }}>Parceiros</div>
+                  <div style={{ fontSize:11, fontWeight:500, color:'var(--header-pi-text-secondary)', lineHeight:1.35 }}>{parceiros.length > 0 ? parceiros.join(', ') : '—'}</div>
                 </div>
               </div>
             </div>
 
             {autores.length > 0 && (
               <>
-                <div style={{ height:1, background:'rgba(255,255,255,0.12)', margin:'0' }} />
+                <div style={{ height:1, background:'var(--header-pi-border)', margin:'0' }} />
                 <div>
-                  <div style={{ fontSize:12, fontWeight:800, letterSpacing:'0.08em', textTransform:'uppercase', color:'#fff', marginBottom:6 }}>Autores vinculados</div>
+                  <div style={{ fontSize:12, fontWeight:800, letterSpacing:'0.08em', textTransform:'uppercase', color:'var(--header-pi-text)', marginBottom:6 }}>Autores vinculados</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                     {autores.map(a => (
                       <button key={a.id} onClick={() => navigate(`/autores/${a.id}`)} style={{
                         display:'inline-flex', alignItems:'center', gap:4,
-                        background:'rgba(255,255,255,0.15)', color:'#fff',
+                        background:'var(--header-pi-badge-bg)', color:'var(--header-pi-text)',
                         border:'none', borderRadius:999, padding:'4px 12px',
                         fontSize:11, fontWeight:600, cursor:'pointer',
                         backdropFilter:'blur(4px)', transition:'opacity 0.2s'

@@ -169,7 +169,7 @@ async function main() {
         tipo: TIPOS_PI_MAP[tipo],
         titulo: trunca((r[2] || '').trim(), 200) || null,
         depositante: trunca((r[3] || '').trim(), 100) || 'UERN',
-        parceiro: ((parceiro === '-' ? null : parceiro) || null) && trunca(parceiro, 100),
+        parceiro: (r[4] || '').trim() === '-' || !(r[4] || '').trim() ? [] : [(r[4] || '').trim()],
         titular: (r[5] || '').split('/').map(s => s.trim()).filter(Boolean),
         status: STATUS_MAP[(r[6] || '').trim()] || 'em analise',
         protocolo: trunca(protocolo, 50),
