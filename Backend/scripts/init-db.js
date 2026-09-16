@@ -1,9 +1,12 @@
 require('dotenv').config();
 
 const sequelize = require('../src/config/db');
-const initModels = require('../src/models/init-models');
 
-initModels(sequelize);
+// Quando roda standalone, precisa carregar os models
+if (require.main === module) {
+  const initModels = require('../src/models/init-models');
+  initModels(sequelize);
+}
 
 async function initDatabase() {
   await sequelize.authenticate();
