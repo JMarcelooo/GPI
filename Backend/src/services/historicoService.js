@@ -11,6 +11,7 @@ const LABELS = {
   data_entrada: 'Data de entrada',
   ano: 'Ano',
   termo_cessao: 'Termo de cessão',
+  descricao: 'Descrição',
   data: 'Data',
   codigo_evento: 'Código do evento',
   descricao_do_evento: 'Descrição do evento',
