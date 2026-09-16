@@ -16,9 +16,13 @@ const FRONTEND_URLS = (process.env.FRONTEND_URL
   .filter(Boolean);
 
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || FRONTEND_URLS.includes(origin)) {
+    // Sem FRONTEND_URL definido → libera tudo (desenvolvimento).
+    // Com FRONTEND_URL definido → restringe às origens listadas (produção).
+    if (!process.env.FRONTEND_URL || !origin || FRONTEND_URLS.includes(origin)) {
       callback(null, origin || FRONTEND_URLS[0]);
     } else {
       callback(new Error('Not allowed by CORS'));

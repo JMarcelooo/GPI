@@ -96,12 +96,11 @@ cd Backend
 cp .env.example .env   # ou crie manualmente
 ```
 
-Edite o `Backend/.env` com as credenciais do banco:
+Edite o `Backend/.env` seguindo o exemplo. As variáveis obrigárias são:
 
 ```
 DATABASE_URL=postgres://usuario:senha@localhost:5432/inova
-PORT=3000
-NODE_ENV=development
+JWT_SECRET=cole_um_segredo_forte_aqui
 ```
 
 Instale as dependências e inicie:
@@ -195,18 +194,55 @@ Base URL: `http://localhost:3000/api`
 - **Backend:** [Render](https://render.com) (`gpi-nmnp.onrender.com`)
 - **Frontend:** [Vercel](https://vercel.com) (`gpi-two.vercel.app`)
 
-Variáveis de ambiente de produção:
+Variáveis de ambiente (ver `Backend/.env.example` e `Frontend/.env.example`):
+
+#### Backend — Obrigatórias
 
 | Variável | Descrição |
 |---|---|
-| `DATABASE_URL` | 🗄️ URL de conexão com o PostgreSQL |
-| `PORT` | 🚪 Porta do servidor (padrão: 3000) |
-| `NODE_ENV` | ⚙️ `production` |
-| `FRONTEND_URL` | 🌐 URL do frontend (ex: `https://gpi-two.vercel.app`) |
-| `JWT_SECRET` | 🔑 Segredo para assinatura dos tokens JWT |
-| `ADMIN_NOME` | 👤 Nome do usuário admin inicial (seed) |
-| `ADMIN_EMAIL` | 📧 Email do usuário admin inicial |
-| `ADMIN_SENHA` | 🔒 Senha do usuário admin inicial |
+| `DATABASE_URL` | URL de conexão com o PostgreSQL |
+| `JWT_SECRET` | Segredo para assinatura dos tokens JWT |
+
+#### Backend — Opcionais
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `PORT` | `3000` | Porta do servidor |
+| `NODE_ENV` | `development` | `production` em deploy |
+| `DATABASE_SSL` | `false` | Força SSL (Render, Heroku, etc.) |
+| `FRONTEND_URL` | `localhost:3001` | Origens CORS (separadas por vírgula) |
+
+#### Backend — E-mail (pelo menos um para envio real)
+
+| Variável | Descrição |
+|---|---|
+| `RESEND_API_KEY` | API key do Resend (**prioritário**) |
+| `RESEND_FROM` | Remetente do Resend |
+| `SMTP_URL` | URL completa do SMTP (alternativa a `SMTP_HOST`) |
+| `SMTP_HOST` | Hostname do SMTP |
+| `SMTP_PORT` | Porta SMTP (padrão: `587`) |
+| `SMTP_SECURE` | TLS (`true`/`false`, padrão: `false`) |
+| `SMTP_USER` | Usuário SMTP |
+| `SMTP_PASS` | Senha SMTP |
+| `SMTP_FROM` | Remetente SMTP (padrão: `no-reply@uern-inova.local`) |
+
+> Se nenhum serviço de e-mail estiver configurado, os e-mails são impressos no log do console (mock).
+
+#### Backend — Scripts auxiliares
+
+| Variável | Usado por | Descrição |
+|---|---|---|
+| `ADMIN_NOME` | `seed-admin.js` | Nome do admin inicial |
+| `ADMIN_EMAIL` | `seed-admin.js` | Email do admin inicial |
+| `ADMIN_SENHA` | `seed-admin.js` | Senha do admin inicial |
+| `ADMIN_USERNAME` | `seed-admin.js` | Username do admin (opcional) |
+| `PLANILHA_PATH` | `importar-planilha.js` | Caminho do CSV (opcional) |
+
+#### Frontend
+
+| Variável | Descrição |
+|---|---|
+| `REACT_APP_API_URL` | URL do backend (vazio em dev via proxy; obrigatório em produção/Vercel) |
 
 ## 📄 Licença
 
